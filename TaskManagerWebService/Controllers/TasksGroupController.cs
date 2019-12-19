@@ -5,6 +5,7 @@ using MyFirstWebApp.Domain.Services;
 using MyFirstWebApp.Resources;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TaskManagerWebService.Resources;
 
 namespace MyFirstWebApp.Controllers
 {
@@ -26,6 +27,12 @@ namespace MyFirstWebApp.Controllers
             IEnumerable<TasksGroup> groups = await mTaskService.ListAsync();
             return mMapper
                 .Map<IEnumerable<TasksGroup>, IEnumerable<TasksGroupResource>>(groups);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PostAsync([FromBody] SaveTasksGroupResource resource)
+        {
+
         }
     }
 }
