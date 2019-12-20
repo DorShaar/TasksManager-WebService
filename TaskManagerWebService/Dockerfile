@@ -5,16 +5,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
 WORKDIR /src
-COPY ["MyFirstWebApp/MyFirstWebApp.csproj", "MyFirstWebApp/"]
-RUN dotnet restore "MyFirstWebApp/MyFirstWebApp.csproj"
+COPY ["TaskManagerWebService/TaskManagerWebService.csproj", "TaskManagerWebService/"]
+RUN dotnet restore "TaskManagerWebService/TaskManagerWebService.csproj"
 COPY . .
-WORKDIR "/src/MyFirstWebApp"
-RUN dotnet build "MyFirstWebApp.csproj" -c Release -o /app
+WORKDIR "/src/TaskManagerWebService"
+RUN dotnet build "TaskManagerWebService.csproj" -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish "MyFirstWebApp.csproj" -c Release -o /app
+RUN dotnet publish "TaskManagerWebService.csproj" -c Release -o /app
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "MyFirstWebApp.dll"]
+ENTRYPOINT ["dotnet", "TaskManagerWebService.dll"]

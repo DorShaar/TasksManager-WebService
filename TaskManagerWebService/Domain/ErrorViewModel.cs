@@ -1,4 +1,4 @@
-namespace MyFirstWebApp.Models
+namespace TaskManagerWebService.Models
 {
     public class ErrorViewModel
     {

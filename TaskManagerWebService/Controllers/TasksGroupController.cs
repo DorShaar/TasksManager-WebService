@@ -1,31 +1,31 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using MyFirstWebApp.Domain.Models;
-using MyFirstWebApp.Domain.Services;
-using MyFirstWebApp.Resources;
+using TaskManagerWebService.Domain.Models;
+using TaskManagerWebService.Domain.Services;
+using TaskManagerWebService.Resources;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TaskManagerWebService.Extensions;
-using TaskManagerWebService.Resources;
+using TaskManagerWebService.Domain.Services.Communication;
 
-namespace MyFirstWebApp.Controllers
+namespace TaskManagerWebService.Controllers
 {
     [Route("/api/[controller]")]
     public class TasksGroupController : Controller
     {
-        private readonly ITasksGroupService mTaskService;
+        private readonly ITasksGroupService mTasksGroupService;
         private readonly IMapper mMapper;
 
         public TasksGroupController(ITasksGroupService taskService, IMapper mapper)
         {
-            mTaskService = taskService;
+            mTasksGroupService = taskService;
             mMapper = mapper;
         }
 
         [HttpGet]
         public async Task<IEnumerable<TasksGroupResource>> GetAllAsync()
         {
-            IEnumerable<TasksGroup> groups = await mTaskService.ListAsync();
+            IEnumerable<TasksGroup> groups = await mTasksGroupService.ListAsync();
             return mMapper
                 .Map<IEnumerable<TasksGroup>, IEnumerable<TasksGroupResource>>(groups);
         }
@@ -35,6 +35,16 @@ namespace MyFirstWebApp.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());
+
+            TasksGroup group = mMapper.Map<SaveTasksGroupResource, TasksGroup>(resource);
+
+            SaveTasksGroupResponse result = await mTasksGroupService.SaveAsync(group);
+
+            if (!result.IsSuccess)
+                return BadRequest(result.Message);
+
+            var categoryResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
+            return Ok(categoryResource);
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using MyFirstWebApp.Domain.Models;
-using MyFirstWebApp.Resources;
+using TaskManagerWebService.Domain.Models;
+using TaskManagerWebService.Resources;
 
-namespace MyFirstWebApp.Mapping
+namespace TaskManagerWebService.Mapping
 {
     public class ModelToResourceProfile : Profile
     {

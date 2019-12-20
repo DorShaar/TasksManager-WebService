@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using MyFirstWebApp.Domain.Persistence.Context;
+using TaskManagerWebService.Persistence.Context;
 
-namespace MyFirstWebApp
+namespace TaskManagerWebService
 {
     public class Program
     {

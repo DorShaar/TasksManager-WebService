@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using MyFirstWebApp.Models;
+using TaskManagerWebService.Models;
 
-namespace MyFirstWebApp.Controllers
+namespace TaskManagerWebService.Controllers
 {
     public class HomeController : Controller
     {

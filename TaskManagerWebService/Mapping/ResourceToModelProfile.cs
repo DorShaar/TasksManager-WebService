@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using MyFirstWebApp.Domain.Models;
+using TaskManagerWebService.Domain.Models;
 using TaskManagerWebService.Resources;
 
 namespace TaskManagerWebService.Mapping

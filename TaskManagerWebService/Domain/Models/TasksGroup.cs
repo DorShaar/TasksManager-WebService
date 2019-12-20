@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace MyFirstWebApp.Domain.Models
+namespace TaskManagerWebService.Domain.Models
 {
     public class TasksGroup
     {

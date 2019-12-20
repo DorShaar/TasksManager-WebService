@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MyFirstWebApp.Domain.Models;
+using TaskManagerWebService.Domain.Models;
 using System.Collections.Generic;
 
-namespace MyFirstWebApp.Domain.Persistence.Context
+namespace TaskManagerWebService.Persistence.Context
 {
     public class AppDbContext : DbContext
     {

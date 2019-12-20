@@ -6,14 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MyFirstWebApp.Domain.Persistence.Context;
-using MyFirstWebApp.Domain.Persistence.Repositories;
-using MyFirstWebApp.Domain.Repositories;
-using MyFirstWebApp.Domain.Services;
-using MyFirstWebApp.Mapping;
-using MyFirstWebApp.Services;
+using TaskManagerWebService.Persistence.Context;
+using TaskManagerWebService.Persistence.Repositories;
+using TaskManagerWebService.Domain.Repositories;
+using TaskManagerWebService.Domain.Services;
+using TaskManagerWebService.Mapping;
+using TaskManagerWebService.Services;
 
-namespace MyFirstWebApp
+namespace TaskManagerWebService
 {
     public class Startup
     {
@@ -36,6 +36,7 @@ namespace MyFirstWebApp
 
             services.AddScoped<ITasksGroupRepository, TasksGroupRepository>();
             services.AddScoped<ITasksGroupService, TasksGroupService>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.Configure<CookiePolicyOptions>(options =>
             {

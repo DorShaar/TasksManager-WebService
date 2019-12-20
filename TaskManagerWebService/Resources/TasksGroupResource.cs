@@ -1,4 +1,4 @@
-﻿namespace MyFirstWebApp.Resources
+﻿namespace TaskManagerWebService.Resources
 {
     public class TasksGroupResource
     {
