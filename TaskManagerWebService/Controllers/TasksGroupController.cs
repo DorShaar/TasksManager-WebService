@@ -5,6 +5,7 @@ using MyFirstWebApp.Domain.Services;
 using MyFirstWebApp.Resources;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TaskManagerWebService.Extensions;
 using TaskManagerWebService.Resources;
 
 namespace MyFirstWebApp.Controllers
@@ -32,7 +33,8 @@ namespace MyFirstWebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] SaveTasksGroupResource resource)
         {
-
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
         }
     }
 }

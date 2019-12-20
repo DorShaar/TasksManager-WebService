@@ -45,6 +45,7 @@ namespace MyFirstWebApp
             });
 
             services.AddAutoMapper(typeof(ModelToResourceProfile));
+            services.AddAutoMapper(typeof(ResourceToModelProfile));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
