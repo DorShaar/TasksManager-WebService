@@ -38,5 +38,27 @@ namespace TaskManagerWebService.Services
                 return new SaveTasksGroupResponse($"An error occurred when saving the category: {ex.Message}");
             }
         }
+
+        public async Task<SaveTasksGroupResponse> UpdateAsync(string id, TasksGroup newGroup)
+        {
+            TasksGroup groupToUpdate = await mTasksGroupRepository.FindByIdAsync(id);
+
+            if (groupToUpdate == null)
+                return new SaveTasksGroupResponse("Category not found");
+
+            groupToUpdate.GroupName = newGroup.GroupName;
+
+            try
+            {
+                mTasksGroupRepository.Update(groupToUpdate);
+                await mUnitOfWork.CompleteAsync();
+
+                return new SaveTasksGroupResponse(groupToUpdate);
+            }
+            catch (Exception ex)
+            {
+                return new SaveTasksGroupResponse($"An error occurred when updating the category: {ex.Message}");
+            }
+        }
     }
 }

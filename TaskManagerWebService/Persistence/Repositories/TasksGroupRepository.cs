@@ -25,5 +25,15 @@ namespace TaskManagerWebService.Persistence.Repositories
         {
             return await mBaseRepository.Context.TasksGroups.ToListAsync();
         }
+
+        public async Task<TasksGroup> FindByIdAsync(string id)
+        {
+            return await mBaseRepository.Context.TasksGroups.FindAsync(id);
+        }
+
+        public void Update(TasksGroup group)
+        {
+            mBaseRepository.Context.TasksGroups.Update(group);
+        }
     }
 }

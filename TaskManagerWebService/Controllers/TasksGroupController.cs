@@ -43,8 +43,24 @@ namespace TaskManagerWebService.Controllers
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
 
-            var categoryResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
-            return Ok(categoryResource);
+            TasksGroupResource tasksGroupResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
+            return Ok(tasksGroupResource);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutAsync(string id, [FromBody] SaveTasksGroupResource resource)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
+
+            TasksGroup tasksGroup = mMapper.Map<SaveTasksGroupResource, TasksGroup>(resource);
+            SaveTasksGroupResponse result = await mTasksGroupService.UpdateAsync(id, tasksGroup);
+
+            if (!result.IsSuccess)
+                return BadRequest(result.Message);
+
+            TasksGroupResource tasksGroupResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
+            return Ok(tasksGroupResource);
         }
     }
 }

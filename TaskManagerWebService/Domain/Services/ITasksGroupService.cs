@@ -9,5 +9,6 @@ namespace TaskManagerWebService.Domain.Services
     {
         Task<IEnumerable<TasksGroup>> ListAsync();
         Task<SaveTasksGroupResponse> SaveAsync(TasksGroup group);
+        Task<SaveTasksGroupResponse> UpdateAsync(string id, TasksGroup group);
     }
 }

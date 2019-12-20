@@ -8,5 +8,7 @@ namespace TaskManagerWebService.Domain.Repositories
     {
         Task<IEnumerable<TasksGroup>> ListAsync();
         Task AddAsync(TasksGroup group);
+        Task<TasksGroup> FindByIdAsync(string id);
+        void Update(TasksGroup group);
     }
 }
