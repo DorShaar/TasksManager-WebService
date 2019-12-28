@@ -23,7 +23,7 @@ namespace TaskManagerWebService.Persistence.Repositories
 
         public async Task<IEnumerable<TasksGroup>> ListAsync()
         {
-            return await mBaseRepository.Context.TasksGroups.ToListAsync();
+            return await mBaseRepository.Context.TasksGroups.Include(p => p.Tasks).ToListAsync();
         }
 
         public async Task<TasksGroup> FindByIdAsync(string id)
@@ -34,6 +34,11 @@ namespace TaskManagerWebService.Persistence.Repositories
         public void Update(TasksGroup group)
         {
             mBaseRepository.Context.TasksGroups.Update(group);
+        }
+
+        public void Remove(TasksGroup group)
+        {
+            mBaseRepository.Context.TasksGroups.Remove(group);
         }
     }
 }

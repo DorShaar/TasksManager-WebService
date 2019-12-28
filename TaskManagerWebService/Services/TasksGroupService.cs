@@ -24,27 +24,27 @@ namespace TaskManagerWebService.Services
             return await mTasksGroupRepository.ListAsync();
         }
 
-        public async Task<SaveTasksGroupResponse> SaveAsync(TasksGroup group)
+        public async Task<TasksGroupResponse> SaveAsync(TasksGroup group)
         {
             try
             {
                 await mTasksGroupRepository.AddAsync(group);
                 await mUnitOfWork.CompleteAsync();
 
-                return new SaveTasksGroupResponse(group);
+                return new TasksGroupResponse(group);
             }
             catch (Exception ex)
             {
-                return new SaveTasksGroupResponse($"An error occurred when saving the category: {ex.Message}");
+                return new TasksGroupResponse($"An error occurred when saving the category: {ex.Message}");
             }
         }
 
-        public async Task<SaveTasksGroupResponse> UpdateAsync(string id, TasksGroup newGroup)
+        public async Task<TasksGroupResponse> UpdateAsync(string id, TasksGroup newGroup)
         {
             TasksGroup groupToUpdate = await mTasksGroupRepository.FindByIdAsync(id);
 
             if (groupToUpdate == null)
-                return new SaveTasksGroupResponse("Category not found");
+                return new TasksGroupResponse("Group not found");
 
             groupToUpdate.GroupName = newGroup.GroupName;
 
@@ -53,11 +53,30 @@ namespace TaskManagerWebService.Services
                 mTasksGroupRepository.Update(groupToUpdate);
                 await mUnitOfWork.CompleteAsync();
 
-                return new SaveTasksGroupResponse(groupToUpdate);
+                return new TasksGroupResponse(groupToUpdate);
             }
             catch (Exception ex)
             {
-                return new SaveTasksGroupResponse($"An error occurred when updating the category: {ex.Message}");
+                return new TasksGroupResponse($"An error occurred when updating the category: {ex.Message}");
+            }
+        }
+
+        public async Task<TasksGroupResponse> RemoveAsync(string id)
+        {
+            TasksGroup groupToRemove = await mTasksGroupRepository.FindByIdAsync(id);
+            if (groupToRemove == null)
+                return new TasksGroupResponse(groupToRemove, $"Entity group {id} not found. No deletion performed");
+
+            try
+            {
+                mTasksGroupRepository.Remove(groupToRemove);
+                await mUnitOfWork.CompleteAsync();
+
+                return new TasksGroupResponse(groupToRemove);
+            }
+            catch (Exception ex)
+            {
+                return new TasksGroupResponse($"An error occurred when updating the category: {ex.Message}");
             }
         }
     }

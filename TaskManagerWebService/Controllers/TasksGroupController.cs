@@ -38,7 +38,7 @@ namespace TaskManagerWebService.Controllers
 
             TasksGroup group = mMapper.Map<SaveTasksGroupResource, TasksGroup>(resource);
 
-            SaveTasksGroupResponse result = await mTasksGroupService.SaveAsync(group);
+            TasksGroupResponse result = await mTasksGroupService.SaveAsync(group);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
@@ -54,7 +54,22 @@ namespace TaskManagerWebService.Controllers
                 return BadRequest(ModelState.GetErrorMessages());
 
             TasksGroup tasksGroup = mMapper.Map<SaveTasksGroupResource, TasksGroup>(resource);
-            SaveTasksGroupResponse result = await mTasksGroupService.UpdateAsync(id, tasksGroup);
+            TasksGroupResponse result = await mTasksGroupService.UpdateAsync(id, tasksGroup);
+
+            if (!result.IsSuccess)
+                return BadRequest(result.Message);
+
+            TasksGroupResource tasksGroupResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
+            return Ok(tasksGroupResource);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> RemoveAsync(string id)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
+
+            TasksGroupResponse result = await mTasksGroupService.RemoveAsync(id);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Message);

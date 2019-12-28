@@ -2,7 +2,7 @@
 
 namespace TaskManagerWebService.Domain.Services.Communication
 {
-    public class SaveTasksGroupResponse
+    public class TasksGroupResponse
     {
         private readonly BaseResponse mBaseResponse;
 
@@ -11,17 +11,21 @@ namespace TaskManagerWebService.Domain.Services.Communication
 
         public TasksGroup Group { get; private set; }
 
-        private SaveTasksGroupResponse(bool isSuccess, string message, TasksGroup group)
+        private TasksGroupResponse(bool isSuccess, string message, TasksGroup group)
         {
             mBaseResponse = new BaseResponse(isSuccess, message);
             Group = group;
         }
 
-        public SaveTasksGroupResponse(TasksGroup group) : this(true, string.Empty, group)
+        public TasksGroupResponse(TasksGroup group, string message) : this(true, message, group)
         {
         }
 
-        public SaveTasksGroupResponse(string message) : this(false, message, null)
+        public TasksGroupResponse(TasksGroup group) : this(true, string.Empty, group)
+        {
+        }
+
+        public TasksGroupResponse(string message) : this(false, message, null)
         {
         }
     }

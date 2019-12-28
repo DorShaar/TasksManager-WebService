@@ -10,6 +10,7 @@ namespace TaskManagerWebService.Persistence.Context
         private const int MAXIMAL_TASK_NAME_LENGTH = 60;
 
         public DbSet<TasksGroup> TasksGroups { get; set; }
+        public DbSet<WorkTask> WorkTasks { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base (options) { }
 
@@ -49,6 +50,19 @@ namespace TaskManagerWebService.Persistence.Context
             builder.Entity<WorkTask>().HasKey(p => p.TaskId);
             builder.Entity<WorkTask>().Property(p => p.TaskId).IsRequired().ValueGeneratedOnAdd();
             builder.Entity<WorkTask>().Property(p => p.Name).IsRequired().HasMaxLength(MAXIMAL_TASK_NAME_LENGTH);
+
+            builder.Entity<WorkTask>().HasData(CreateTasks());
+        }
+
+        private WorkTask[] CreateTasks()
+        {
+            List<WorkTask> tasksGroups = new List<WorkTask>
+            {
+                new WorkTask { TaskId = "100", Name = "Clean house", GroupId = "100", },
+                new WorkTask { TaskId = "101", Name = "Update License", GroupId = "101" }
+            };
+
+            return tasksGroups.ToArray();
         }
     }
 }

@@ -4,8 +4,7 @@
     {
         public string TaskId { get; set; }
         public string Name { get; set; }
-
-        public string GroupId { get => ParentGroup.GroupId; set => GroupId = value; }
+        public string GroupId { get; set; }
         public TasksGroup ParentGroup { get; set; }
     }
 }

@@ -9,6 +9,10 @@ namespace TaskManagerWebService.Mapping
         public ModelToResourceProfile()
         {
             CreateMap<TasksGroup, TasksGroupResource>();
+
+            CreateMap<WorkTask, WorkTaskResource>()
+                .ForMember(src => src.GroupName, 
+                           opt => opt.MapFrom(src => src.ParentGroup.GroupName));
         }
     }
 }

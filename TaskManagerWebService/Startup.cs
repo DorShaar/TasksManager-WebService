@@ -36,6 +36,10 @@ namespace TaskManagerWebService
 
             services.AddScoped<ITasksGroupRepository, TasksGroupRepository>();
             services.AddScoped<ITasksGroupService, TasksGroupService>();
+
+            services.AddScoped<IWorkTaskRepository, WorkTaskRepository>();
+            services.AddScoped<IWorkTaskService, WorkTaskService>();
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.Configure<CookiePolicyOptions>(options =>

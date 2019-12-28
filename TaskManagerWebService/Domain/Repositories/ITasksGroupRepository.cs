@@ -10,5 +10,6 @@ namespace TaskManagerWebService.Domain.Repositories
         Task AddAsync(TasksGroup group);
         Task<TasksGroup> FindByIdAsync(string id);
         void Update(TasksGroup group);
+        void Remove(TasksGroup group);
     }
 }
