@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
+using Takser.Infra.Services;
 using Tasker.App.Mapping;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
@@ -22,6 +23,8 @@ namespace Takser.Infra.Extensions
 
             services.AddAutoMapper(typeof(ModelToResourceProfile));
             services.AddAutoMapper(typeof(ResourceToModelProfile));
+
+            services.AddHostedService<FileUploaderService>();
         }
     }
 }

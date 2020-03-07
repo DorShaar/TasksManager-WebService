@@ -10,7 +10,7 @@ namespace Takser.Infra.Services
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await UploadFile("");
+            await UploadFile(@"C:\Users\Dor Shaar\OneDrive\Desktop\TestFile.txt");
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -25,10 +25,17 @@ namespace Takser.Infra.Services
             byte[] fileContent = await File.ReadAllBytesAsync(filePath);
             multiContent.Add(new ByteArrayContent(fileContent), "files", Path.GetFileName(filePath));
 
-            HttpClient httpClient = new HttpClient();
-
-            HttpResponseMessage response = await httpClient.PostAsync($"{baseUrl}/api/FileUpload", multiContent)
+            using (HttpClient httpClient = new HttpClient())
+            {
+                HttpResponseMessage response = await httpClient.PostAsync(
+                $"https://localhost:44337/api/FileUpload", multiContent)
                 .ConfigureAwait(false);
+
+                using (response)
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+            }
         }
     }
 }

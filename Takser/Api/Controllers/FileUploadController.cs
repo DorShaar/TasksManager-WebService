@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace Takser.Api.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class FileUploadController : Controller
     {
-        [HttpPost("FileUpload")]
+        [HttpPost]
         public async Task<IActionResult> Index(List<IFormFile> files)
         {
             long totalSize = files.Sum(file => file.Length);

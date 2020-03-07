@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Tasker.App.Resources;
-using Tasker.App.Services;
-using Tasker.Domain.Models;
 
 namespace Takser.Api.Controllers
 {
