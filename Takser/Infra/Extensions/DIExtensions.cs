@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
-using Takser.Infra.Services;
+using TaskData;
+using TaskData.Contracts;
 using Tasker.App.Mapping;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
-using Tasker.Domain.Models;
 using Tasker.Infra.Persistence.Repositories;
+using Tasker.Infra.Services;
 using TaskManagerWebService.Persistence.Repositories;
-using TaskManagerWebService.Services;
 
 namespace Takser.Infra.Extensions
 {
@@ -15,11 +15,17 @@ namespace Takser.Infra.Extensions
     {
         public static void UseDI(this IServiceCollection services)
         {
-            services.AddSingleton<IDbRepository<TasksGroup>, TasksGroupRepository>();
+            services.AddSingleton<IDbRepository<ITasksGroup>, TasksGroupRepository>();
             services.AddSingleton<ITasksGroupService, TasksGroupService>();
 
-            services.AddSingleton<IDbRepository<WorkTask>, WorkTaskRepository>();
+            services.AddSingleton<IDbRepository<IWorkTask>, WorkTaskRepository>();
             services.AddSingleton<IWorkTaskService, WorkTaskService>();
+
+            services.AddSingleton<INoteBuilder, NoteBuilder>();
+            services.AddSingleton<INotesSubjectBuilder, NotesSubjectBuilder>();
+            services.AddSingleton<IWorkTask, Task>();
+            services.AddSingleton<ITasksGroup, TaskGroup>();
+            services.AddSingleton<ITasksGroupBuilder, TaskGroupBuilder>();
 
             services.AddAutoMapper(typeof(ModelToResourceProfile));
             services.AddAutoMapper(typeof(ResourceToModelProfile));

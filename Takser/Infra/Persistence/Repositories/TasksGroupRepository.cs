@@ -1,45 +1,51 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Logger.Contracts;
+using Microsoft.Extensions.Options;
+using ObjectSerializer.Contracts;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Takser.Infra.Options;
+using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
-using Tasker.Domain.Models;
 using Tasker.Infra.Persistence.Context;
 
 namespace Tasker.Infra.Persistence.Repositories
 {
-    public class TasksGroupRepository : IDbRepository<TasksGroup>
+    public class TasksGroupRepository : IDbRepository<ITasksGroup>
     {
-        private readonly BaseRepository mBaseRepository;
+        private readonly AppDbContext mDatabase;
 
-        public TasksGroupRepository(AppDbContext context)
+        public TasksGroupRepository(IOptions<DatabaseConfigurtaion> configuration, IObjectSerializer serializer, ILogger logger)
         {
-            mBaseRepository = new BaseRepository(context);
+            mDatabase = new AppDbContext(configuration, serializer, logger);
         }
 
-        public async Task AddAsync(TasksGroup group)
+        public async Task AddAsync(ITasksGroup group)
         {
-            await mBaseRepository.Context.TasksGroups.AddAsync(group);
+            mDatabase.
         }
 
-        public async Task<IEnumerable<TasksGroup>> ListAsync()
+        public async Task<IEnumerable<ITasksGroup>> ListAsync()
         {
-            return await mBaseRepository.Context.TasksGroups.Include(p => p.Tasks).ToListAsync();
+            throw new NotImplementedException();
+            // TODO
         }
 
-        public async Task<TasksGroup> FindByIdAsync(string id)
+        public async Task<ITasksGroup> FindByIdAsync(string id)
         {
-            return await mBaseRepository.Context.TasksGroups.FindAsync(id);
+            throw new NotImplementedException();
+            // TODO
         }
 
-        public Task UpdateAsync(TasksGroup group)
+        public Task UpdateAsync(ITasksGroup group)
         {
-            mBaseRepository.Context.TasksGroups.Update(group);
+            // TODO
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(TasksGroup group)
+        public Task RemoveAsync(ITasksGroup group)
         {
-            mBaseRepository.Context.TasksGroups.Remove(group);
+            // TODO
             return Task.CompletedTask;
         }
     }

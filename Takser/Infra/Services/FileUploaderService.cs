@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Takser.Infra.Services
+namespace Tasker.Infra.Services
 {
     public class FileUploaderService : IHostedService
     {

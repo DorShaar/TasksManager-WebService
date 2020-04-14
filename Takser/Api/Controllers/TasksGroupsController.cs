@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TaskData.Contracts;
 using Tasker.App.Resources;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Extensions;
-using Tasker.Domain.Models;
 
 namespace Takser.Api.Controllers
 {
@@ -22,12 +22,12 @@ namespace Takser.Api.Controllers
             mMapper = mapper;
         }
 
-        [HttpGet("action")]
-        public IEnumerable<TasksGroupResource> Groups()
+        [HttpGet("[action]")]
+        public async Task<IEnumerable<TasksGroupResource>> Groups()
         {
-            IEnumerable<TasksGroup> groups = mTasksGroupService.ListAsync().Result;
+            IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync();
             return mMapper
-                .Map<IEnumerable<TasksGroup>, IEnumerable<TasksGroupResource>>(groups);
+                .Map<IEnumerable<ITasksGroup>, IEnumerable<TasksGroupResource>>(groups);
         }
 
         [HttpPost]
@@ -36,14 +36,14 @@ namespace Takser.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());
 
-            TasksGroup group = mMapper.Map<SaveTasksGroupResource, TasksGroup>(resource);
+            ITasksGroup group = mMapper.Map<SaveTasksGroupResource, ITasksGroup>(resource);
 
             TasksGroupResponse result = await mTasksGroupService.SaveAsync(group);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
 
-            TasksGroupResource tasksGroupResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
+            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.TasksGroup);
             return Ok(tasksGroupResource);
         }
 
@@ -53,13 +53,13 @@ namespace Takser.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());
 
-            TasksGroup tasksGroup = mMapper.Map<SaveTasksGroupResource, TasksGroup>(resource);
-            TasksGroupResponse result = await mTasksGroupService.UpdateAsync(id, tasksGroup);
+            ITasksGroup tasksGroup = mMapper.Map<SaveTasksGroupResource, ITasksGroup>(resource);
+            TasksGroupResponse result = await mTasksGroupService.UpdateAsync(id, tasksGroup.Name);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
 
-            TasksGroupResource tasksGroupResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
+            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.TasksGroup);
             return Ok(tasksGroupResource);
         }
 
@@ -74,7 +74,7 @@ namespace Takser.Api.Controllers
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
 
-            TasksGroupResource tasksGroupResource = mMapper.Map<TasksGroup, TasksGroupResource>(result.Group);
+            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.TasksGroup);
             return Ok(tasksGroupResource);
         }
     }

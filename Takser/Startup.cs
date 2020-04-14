@@ -3,11 +3,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Takser.Infra.Extensions;
-using Tasker.Infra.Persistence.Context;
 
 namespace Takser
 {
@@ -23,12 +21,7 @@ namespace Takser
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("tasker-api-in-memory");
-            });
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

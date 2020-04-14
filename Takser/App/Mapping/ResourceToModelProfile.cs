@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
+using TaskData.Contracts;
 using Tasker.App.Resources;
-using Tasker.Domain.Models;
 
 namespace Tasker.App.Mapping
 {
@@ -8,7 +8,7 @@ namespace Tasker.App.Mapping
     {
         public ResourceToModelProfile()
         {
-            CreateMap<SaveTasksGroupResource, TasksGroup>();
+            CreateMap<SaveTasksGroupResource, ITasksGroup>();
         }
     }
 }

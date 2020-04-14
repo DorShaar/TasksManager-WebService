@@ -1,68 +1,84 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Logger.Contracts;
+using Microsoft.Extensions.Options;
+using ObjectSerializer.Contracts;
+using System;
 using System.Collections.Generic;
-using Tasker.Domain.Models;
+using System.IO;
+using Takser.Infra.Options;
+using TaskData.Contracts;
 
 namespace Tasker.Infra.Persistence.Context
 {
-    public class AppDbContext : DbContext
+    internal class AppDbContext
     {
-        private const int MAXIMAL_GROUP_NAME_LENGTH = 30;
-        private const int MAXIMAL_TASK_NAME_LENGTH = 60;
+        private const string DatabaseName = "tasks.db";
+        private const string NextIdHolderName = "id_producer.db";
 
-        public DbSet<TasksGroup> TasksGroups { get; set; }
-        public DbSet<WorkTask> WorkTasks { get; set; }
+        private readonly ILogger mLogger;
+        private readonly IObjectSerializer mSerializer;
+        private readonly DatabaseConfigurtaion mConfiguration;
 
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base (options) { }
+        public List<ITasksGroup> Entities;
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        private readonly string NextIdPath;
+        public string DatabaseFilePath { get; }
+        public string DefaultTasksGroup { get; }
+        public string NotesDirectoryPath { get => mConfiguration.NotesDirectoryPath; }
+        public string NotesTasksDirectoryPath { get => mConfiguration.NotesTasksDirectoryPath; }
+
+        public AppDbContext(IOptions<DatabaseConfigurtaion> configuration, IObjectSerializer serializer, ILogger logger)
         {
-            base.OnModelCreating(builder);
+            mConfiguration = configuration.Value;
+            mSerializer = serializer;
+            mLogger = logger;
 
-            BuildTasksGroupEntity(builder);
-            BuildTasksEntity(builder);
-        }
-
-        private void BuildTasksGroupEntity(ModelBuilder builder)
-        {
-            builder.Entity<TasksGroup>().ToTable("TasksGroups");
-            builder.Entity<TasksGroup>().HasKey(p => p.ID);
-            builder.Entity<TasksGroup>().Property(p => p.ID).IsRequired(true).ValueGeneratedOnAdd();
-            builder.Entity<TasksGroup>().Property(p => p.Name).IsRequired(true).HasMaxLength(MAXIMAL_GROUP_NAME_LENGTH);
-            builder.Entity<TasksGroup>().HasMany(p => p.Tasks).WithOne(p => p.ParentGroup).HasForeignKey(p => p.ID);
-
-            builder.Entity<TasksGroup>().HasData(CreateTasksGroups());
-        }
-
-        private TasksGroup[] CreateTasksGroups()
-        {
-            List<TasksGroup> tasksGroups = new List<TasksGroup>
+            if (!Directory.Exists(mConfiguration.DatabaseDirectoryPath))
             {
-                new TasksGroup { ID = "100", Name = "Free-Tasks" },
-                new TasksGroup { ID = "101", Name = "Work" }
-            };
+                mLogger.LogError($"No database directory found in path {mConfiguration.DatabaseDirectoryPath}");
+                return;
+            }
 
-            return tasksGroups.ToArray();
+            DefaultTasksGroup = mConfiguration.DefaultTasksGroup;
+            DatabaseFilePath = Path.Combine(mConfiguration.DatabaseDirectoryPath, DatabaseName);
+            NextIdPath = Path.Combine(mConfiguration.DatabaseDirectoryPath, NextIdHolderName);
+            LoadInformation();
         }
 
-        private void BuildTasksEntity(ModelBuilder builder)
+        private void LoadInformation()
         {
-            builder.Entity<WorkTask>().ToTable("Tasks");
-            builder.Entity<WorkTask>().HasKey(task => task.ID);
-            builder.Entity<WorkTask>().Property(task => task.ID).IsRequired().ValueGeneratedOnAdd();
-            builder.Entity<WorkTask>().Property(task => task.ID).IsRequired().HasMaxLength(MAXIMAL_TASK_NAME_LENGTH);
-
-            builder.Entity<WorkTask>().HasData(CreateTasks());
-        }
-
-        private WorkTask[] CreateTasks()
-        {
-            List<WorkTask> tasksGroups = new List<WorkTask>
+            try
             {
-                new WorkTask { ID = "100", Name = "Clean house" },
-                new WorkTask { ID = "101", Name = "Update License" }
-            };
+                LoadDatabase();
+                LoadNextIdToProduce();
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError($"Unable to deserialize whole information", ex);
+            }
+        }
 
-            return tasksGroups.ToArray();
+        private void LoadDatabase()
+        {
+            if (!File.Exists(DatabaseFilePath))
+            {
+                mLogger.LogError($"Database file {DatabaseFilePath} does not exists");
+                throw new FileNotFoundException("Database does not exists", DatabaseFilePath);
+            }
+
+            mLogger.LogInformation($"Going to load database from {DatabaseFilePath}");
+            Entities = mSerializer.Deserialize<List<ITasksGroup>>(DatabaseFilePath);
+        }
+
+        private void LoadNextIdToProduce()
+        {
+            if (!File.Exists(NextIdPath))
+            {
+                mLogger.LogError($"Database file {NextIdPath} does not exists");
+                throw new FileNotFoundException("Database does not exists", NextIdPath);
+            }
+
+            mLogger.LogInformation("Going to load next id");
+            IDProducer.IDProducer.SetNextID(mSerializer.Deserialize<int>(NextIdPath));
         }
     }
 }

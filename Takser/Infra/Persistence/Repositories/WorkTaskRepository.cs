@@ -1,43 +1,40 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
-using Tasker.Domain.Models;
 using Tasker.Infra.Persistence.Context;
-using Tasker.Infra.Persistence.Repositories;
 
 namespace TaskManagerWebService.Persistence.Repositories
 {
-    public class WorkTaskRepository : IDbRepository<WorkTask>
+    public class WorkTaskRepository : IDbRepository<IWorkTask>
     {
-        private readonly BaseRepository mBaseRepository;
+        private readonly AppDbContext mDatabase;
 
-        public WorkTaskRepository(AppDbContext context)
+        public WorkTaskRepository()
         {
-            mBaseRepository = new BaseRepository(context);
         }
 
-        public Task AddAsync(WorkTask entity)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<WorkTask> FindByIdAsync(string id)
+        public Task AddAsync(IWorkTask workTask)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<IEnumerable<WorkTask>> ListAsync()
-        {
-            return await mBaseRepository.Context.WorkTasks.Include(task => task.ParentGroup).ToListAsync();
-        }
-
-        public Task RemoveAsync(WorkTask entity)
+        public Task<IWorkTask> FindByIdAsync(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task UpdateAsync(WorkTask entity)
+        public async Task<IEnumerable<IWorkTask>> ListAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task RemoveAsync(IWorkTask workTask)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task UpdateAsync(IWorkTask workTask)
         {
             throw new System.NotImplementedException();
         }

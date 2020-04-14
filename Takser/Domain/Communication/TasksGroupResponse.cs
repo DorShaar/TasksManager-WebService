@@ -1,4 +1,4 @@
-﻿using Tasker.Domain.Models;
+﻿using TaskData.Contracts;
 
 namespace Tasker.Domain.Communication
 {
@@ -9,19 +9,19 @@ namespace Tasker.Domain.Communication
         public bool IsSuccess => mBaseResponse.IsSuccess;
         public string Message => mBaseResponse.Message;
 
-        public TasksGroup Group { get; private set; }
+        public ITasksGroup TasksGroup { get; private set; }
 
-        private TasksGroupResponse(bool isSuccess, string message, TasksGroup group)
+        private TasksGroupResponse(bool isSuccess, string message, ITasksGroup group)
         {
             mBaseResponse = new BaseResponse(isSuccess, message);
-            Group = group;
+            TasksGroup = group;
         }
 
-        public TasksGroupResponse(TasksGroup group, string message) : this(true, message, group)
+        public TasksGroupResponse(ITasksGroup group, string message) : this(true, message, group)
         {
         }
 
-        public TasksGroupResponse(TasksGroup group) : this(true, string.Empty, group)
+        public TasksGroupResponse(ITasksGroup group) : this(true, string.Empty, group)
         {
         }
 

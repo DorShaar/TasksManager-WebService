@@ -1,28 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Takser.Infra.Options;
+using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
-using Tasker.Domain.Models;
+using Tasker.Domain.Validators;
 
-namespace TaskManagerWebService.Services
+namespace Tasker.Infra.Services
 {
     public class TasksGroupService : ITasksGroupService
     {
-        private readonly IDbRepository<TasksGroup> mTasksGroupRepository;
+        private readonly IDbRepository<ITasksGroup> mTasksGroupRepository;
+        private readonly NameValidator mNameValidator;
 
-        public TasksGroupService(IDbRepository<TasksGroup> workTaskRepository)
+        public TasksGroupService(IDbRepository<ITasksGroup> TaskGroupRepository)
         {
-            mTasksGroupRepository = workTaskRepository;
+            mTasksGroupRepository = TaskGroupRepository;
+            mNameValidator = new NameValidator(NameLengths.MaximalGroupNameLength);
         }
 
-        public async Task<IEnumerable<TasksGroup>> ListAsync()
+        public async Task<IEnumerable<ITasksGroup>> ListAsync()
         {
             return await mTasksGroupRepository.ListAsync();
         }
 
-        public async Task<TasksGroupResponse> SaveAsync(TasksGroup group)
+        public async Task<TasksGroupResponse> SaveAsync(ITasksGroup group)
         {
             try
             {
@@ -32,19 +36,22 @@ namespace TaskManagerWebService.Services
             }
             catch (Exception ex)
             {
-                return new TasksGroupResponse($"An error occurred when saving the category: {ex.Message}");
+                return new TasksGroupResponse($"An error occurred when saving tasks groups id {group.ID}: {ex.Message}");
             }
         }
 
-        public async Task<TasksGroupResponse> UpdateAsync(string id, TasksGroup newGroup)
+        public async Task<TasksGroupResponse> UpdateAsync(string id, string newGroupName)
         {
-            TasksGroup groupToUpdate = 
+            ITasksGroup groupToUpdate = 
                 await mTasksGroupRepository.FindByIdAsync(id);
 
             if (groupToUpdate == null)
                 return new TasksGroupResponse("Group not found");
 
-            groupToUpdate.Name = newGroup.Name;
+            if (mNameValidator.IsNameValid(newGroupName))
+                return new TasksGroupResponse($"Group name '{newGroupName}' is invalid");
+
+            groupToUpdate.Name = newGroupName;
 
             try
             {
@@ -54,13 +61,13 @@ namespace TaskManagerWebService.Services
             }
             catch (Exception ex)
             {
-                return new TasksGroupResponse($"An error occurred when updating the category: {ex.Message}");
+                return new TasksGroupResponse($"An error occurred when updating tasks group id {id}: {ex.Message}");
             }
         }
 
         public async Task<TasksGroupResponse> RemoveAsync(string id)
         {
-            TasksGroup groupToRemove = await mTasksGroupRepository.FindByIdAsync(id);
+            ITasksGroup groupToRemove = await mTasksGroupRepository.FindByIdAsync(id);
             if (groupToRemove == null)
                 return new TasksGroupResponse(groupToRemove, $"Entity group {id} not found. No deletion performed");
 
@@ -72,7 +79,7 @@ namespace TaskManagerWebService.Services
             }
             catch (Exception ex)
             {
-                return new TasksGroupResponse($"An error occurred when updating the category: {ex.Message}");
+                return new TasksGroupResponse($"An error occurred when removing tasks group id {id}: {ex.Message}");
             }
         }
     }
