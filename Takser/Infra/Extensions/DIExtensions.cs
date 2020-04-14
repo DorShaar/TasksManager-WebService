@@ -7,7 +7,6 @@ using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
 using Tasker.Infra.Persistence.Repositories;
 using Tasker.Infra.Services;
-using TaskManagerWebService.Persistence.Repositories;
 
 namespace Takser.Infra.Extensions
 {
@@ -23,7 +22,7 @@ namespace Takser.Infra.Extensions
 
             services.AddSingleton<INoteBuilder, NoteBuilder>();
             services.AddSingleton<INotesSubjectBuilder, NotesSubjectBuilder>();
-            services.AddSingleton<IWorkTask, Task>();
+            services.AddSingleton<IWorkTask, WorkTask>();
             services.AddSingleton<ITasksGroup, TaskGroup>();
             services.AddSingleton<ITasksGroupBuilder, TaskGroupBuilder>();
 

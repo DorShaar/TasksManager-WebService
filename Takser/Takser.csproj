@@ -17,7 +17,7 @@
     <PackageReference Include="Tasker.Logger.Contracts" Version="1.0.0" />
     <PackageReference Include="Tasker.ObjectSerializer.Contracts" Version="1.0.0" />
     <PackageReference Include="Tasker.ObjectSerializer.JsonService" Version="1.0.0" />
-    <PackageReference Include="Tasker.TaskData" Version="1.0.0" />
+    <PackageReference Include="Tasker.TaskData" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

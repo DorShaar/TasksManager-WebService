@@ -9,7 +9,7 @@ using TaskData.Contracts;
 
 namespace Tasker.Infra.Persistence.Context
 {
-    internal class AppDbContext
+    public class AppDbContext
     {
         private const string DatabaseName = "tasks.db";
         private const string NextIdHolderName = "id_producer.db";
@@ -18,11 +18,10 @@ namespace Tasker.Infra.Persistence.Context
         private readonly IObjectSerializer mSerializer;
         private readonly DatabaseConfigurtaion mConfiguration;
 
-        public List<ITasksGroup> Entities;
-
         private readonly string NextIdPath;
+        public List<ITasksGroup> Entities { get; private set; } = new List<ITasksGroup>();
         public string DatabaseFilePath { get; }
-        public string DefaultTasksGroup { get; }
+        public string DefaultTasksGroup { get => mConfiguration.DefaultTasksGroup; }
         public string NotesDirectoryPath { get => mConfiguration.NotesDirectoryPath; }
         public string NotesTasksDirectoryPath { get => mConfiguration.NotesTasksDirectoryPath; }
 
@@ -38,7 +37,6 @@ namespace Tasker.Infra.Persistence.Context
                 return;
             }
 
-            DefaultTasksGroup = mConfiguration.DefaultTasksGroup;
             DatabaseFilePath = Path.Combine(mConfiguration.DatabaseDirectoryPath, DatabaseName);
             NextIdPath = Path.Combine(mConfiguration.DatabaseDirectoryPath, NextIdHolderName);
             LoadInformation();

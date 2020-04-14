@@ -1,10 +1,6 @@
-﻿using Logger.Contracts;
-using Microsoft.Extensions.Options;
-using ObjectSerializer.Contracts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Takser.Infra.Options;
 using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
 using Tasker.Infra.Persistence.Context;
@@ -15,14 +11,14 @@ namespace Tasker.Infra.Persistence.Repositories
     {
         private readonly AppDbContext mDatabase;
 
-        public TasksGroupRepository(IOptions<DatabaseConfigurtaion> configuration, IObjectSerializer serializer, ILogger logger)
+        public TasksGroupRepository(AppDbContext database)
         {
-            mDatabase = new AppDbContext(configuration, serializer, logger);
+            mDatabase = database;
         }
 
         public async Task AddAsync(ITasksGroup group)
         {
-            mDatabase.
+            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<ITasksGroup>> ListAsync()

@@ -4,7 +4,7 @@ using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
 using Tasker.Infra.Persistence.Context;
 
-namespace TaskManagerWebService.Persistence.Repositories
+namespace Tasker.Infra.Persistence.Repositories
 {
     public class WorkTaskRepository : IDbRepository<IWorkTask>
     {
