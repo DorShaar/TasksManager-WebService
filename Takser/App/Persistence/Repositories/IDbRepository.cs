@@ -7,7 +7,7 @@ namespace Tasker.App.Persistence.Repositories
     {
         Task<IEnumerable<T>> ListAsync();
         Task AddAsync(T entity);
-        Task<T> FindByIdAsync(string id);
+        Task<T> FindAsync(string entity);
         Task UpdateAsync(T entity);
         Task RemoveAsync(T entity);
     }

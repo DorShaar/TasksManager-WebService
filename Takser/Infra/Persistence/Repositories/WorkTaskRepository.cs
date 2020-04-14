@@ -1,42 +1,64 @@
-﻿using System.Collections.Generic;
+﻿using Logger.Contracts;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Takser.App.Persistence.Context;
 using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
-using Tasker.Infra.Persistence.Context;
 
 namespace Tasker.Infra.Persistence.Repositories
 {
     public class WorkTaskRepository : IDbRepository<IWorkTask>
     {
-        private readonly AppDbContext mDatabase;
+        private readonly ILogger mLogger;
+        private readonly IAppDbContext mDatabase;
 
-        public WorkTaskRepository()
+        public WorkTaskRepository(IAppDbContext database, ILogger logger)
         {
+            mDatabase = database;
+            mLogger = logger;
         }
 
-        public Task AddAsync(IWorkTask workTask)
+        public async Task AddAsync(IWorkTask _)
         {
-            throw new System.NotImplementedException();
+            await mDatabase.SaveCurrentDatabase();
         }
 
-        public Task<IWorkTask> FindByIdAsync(string id)
+        public async Task<IWorkTask> FindAsync(string workTaskId)
         {
-            throw new System.NotImplementedException();
+            foreach (ITasksGroup taskGroup in await ListAsync())
+            {
+                IWorkTask workTask = taskGroup.GetTask(workTaskId);
+                if (workTask != null)
+                    return workTask;
+            }
+
+            mLogger.LogError($"Task {workTaskId} was not found");
+            return null;
         }
 
         public async Task<IEnumerable<IWorkTask>> ListAsync()
         {
-            throw new System.NotImplementedException();
+            await mDatabase.LoadDatabase();
+
+            List<IWorkTask> allTasks = new List<IWorkTask>();
+
+            foreach (ITasksGroup taskGroup in mDatabase.Entities)
+            {
+                allTasks.AddRange(taskGroup.GetAllTasks());
+            }
+
+            return allTasks.AsEnumerable();
         }
 
-        public Task RemoveAsync(IWorkTask workTask)
+        public async Task RemoveAsync(IWorkTask _)
         {
-            throw new System.NotImplementedException();
+            await mDatabase.SaveCurrentDatabase();
         }
 
-        public Task UpdateAsync(IWorkTask workTask)
+        public async Task UpdateAsync(IWorkTask _)
         {
-            throw new System.NotImplementedException();
+            await mDatabase.SaveCurrentDatabase();
         }
     }
 }

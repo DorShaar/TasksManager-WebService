@@ -4,12 +4,14 @@ using ObjectSerializer.Contracts;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
 using TaskData.Contracts;
 
 namespace Tasker.Infra.Persistence.Context
 {
-    public class AppDbContext
+    public class AppDbContext : IAppDbContext
     {
         private const string DatabaseName = "tasks.db";
         private const string NextIdHolderName = "id_producer.db";
@@ -19,7 +21,7 @@ namespace Tasker.Infra.Persistence.Context
         private readonly DatabaseConfigurtaion mConfiguration;
 
         private readonly string NextIdPath;
-        public List<ITasksGroup> Entities { get; private set; } = new List<ITasksGroup>();
+        public List<ITasksGroup> Entities { get; private set; }
         public string DatabaseFilePath { get; }
         public string DefaultTasksGroup { get => mConfiguration.DefaultTasksGroup; }
         public string NotesDirectoryPath { get => mConfiguration.NotesDirectoryPath; }
@@ -39,23 +41,24 @@ namespace Tasker.Infra.Persistence.Context
 
             DatabaseFilePath = Path.Combine(mConfiguration.DatabaseDirectoryPath, DatabaseName);
             NextIdPath = Path.Combine(mConfiguration.DatabaseDirectoryPath, NextIdHolderName);
-            LoadInformation();
         }
 
-        private void LoadInformation()
+        public Task LoadDatabase()
         {
             try
             {
-                LoadDatabase();
+                LoadTaskskGroups();
                 LoadNextIdToProduce();
             }
             catch (Exception ex)
             {
                 mLogger.LogError($"Unable to deserialize whole information", ex);
             }
+
+            return Task.CompletedTask;
         }
 
-        private void LoadDatabase()
+        private void LoadTaskskGroups()
         {
             if (!File.Exists(DatabaseFilePath))
             {
@@ -77,6 +80,43 @@ namespace Tasker.Infra.Persistence.Context
 
             mLogger.LogInformation("Going to load next id");
             IDProducer.IDProducer.SetNextID(mSerializer.Deserialize<int>(NextIdPath));
+        }
+
+        public Task SaveCurrentDatabase()
+        {
+            if (string.IsNullOrEmpty(DatabaseFilePath))
+            {
+                mLogger.LogError("No database path was given");
+                return Task.CompletedTask;
+            }
+
+            if (string.IsNullOrEmpty(NextIdPath))
+            {
+                mLogger.LogError("No next id path was given");
+                return Task.CompletedTask;
+            }
+
+            try
+            {
+                SaveTasksGroups();
+                SaveNextId();
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError($"Unable to serialize database in {mConfiguration.DatabaseDirectoryPath}", ex);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void SaveTasksGroups()
+        {
+            mSerializer.Serialize(Entities, DatabaseFilePath);
+        }
+
+        private void SaveNextId()
+        {
+            mSerializer.Serialize(IDProducer.IDProducer.PeekForNextId(), NextIdPath);
         }
     }
 }

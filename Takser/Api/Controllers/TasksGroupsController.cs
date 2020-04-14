@@ -38,12 +38,12 @@ namespace Takser.Api.Controllers
 
             ITasksGroup group = mMapper.Map<SaveTasksGroupResource, ITasksGroup>(resource);
 
-            TasksGroupResponse result = await mTasksGroupService.SaveAsync(group);
+            Response<ITasksGroup> result = await mTasksGroupService.SaveAsync(group.Name);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
 
-            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.TasksGroup);
+            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
             return Ok(tasksGroupResource);
         }
 
@@ -54,12 +54,12 @@ namespace Takser.Api.Controllers
                 return BadRequest(ModelState.GetErrorMessages());
 
             ITasksGroup tasksGroup = mMapper.Map<SaveTasksGroupResource, ITasksGroup>(resource);
-            TasksGroupResponse result = await mTasksGroupService.UpdateAsync(id, tasksGroup.Name);
+            Response<ITasksGroup> result = await mTasksGroupService.UpdateAsync(id, tasksGroup.Name);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
 
-            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.TasksGroup);
+            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
             return Ok(tasksGroupResource);
         }
 
@@ -69,12 +69,12 @@ namespace Takser.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());
 
-            TasksGroupResponse result = await mTasksGroupService.RemoveAsync(id);
+            Response<ITasksGroup> result = await mTasksGroupService.RemoveAsync(id);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Message);
 
-            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.TasksGroup);
+            TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
             return Ok(tasksGroupResource);
         }
     }

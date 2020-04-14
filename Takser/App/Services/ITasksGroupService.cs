@@ -8,8 +8,8 @@ namespace Tasker.App.Services
     public interface ITasksGroupService
     {
         Task<IEnumerable<ITasksGroup>> ListAsync();
-        Task<TasksGroupResponse> SaveAsync(ITasksGroup group);
-        Task<TasksGroupResponse> UpdateAsync(string id, string newGroupName);
-        Task<TasksGroupResponse> RemoveAsync(string id);
+        Task<Response<ITasksGroup>> SaveAsync(string groupName);
+        Task<Response<ITasksGroup>> UpdateAsync(string id, string newGroupName);
+        Task<Response<ITasksGroup>> RemoveAsync(string id);
     }
 }
