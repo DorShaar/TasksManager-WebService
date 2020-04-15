@@ -19,17 +19,22 @@ namespace Tasker.Infra.Persistence.Repositories
             mLogger = logger;
         }
 
-        public async Task AddAsync(IWorkTask _)
+        public async Task AddAsync(IWorkTask workTask)
         {
+            if (workTask == null)
+            {
+                mLogger.LogError($"Work task given is null, no database adding performed");
+                return;
+            }
+
             await mDatabase.SaveCurrentDatabase();
         }
 
         public async Task<IWorkTask> FindAsync(string workTaskId)
         {
-            foreach (ITasksGroup taskGroup in await ListAsync())
+            foreach (IWorkTask workTask in await ListAsync())
             {
-                IWorkTask workTask = taskGroup.GetTask(workTaskId);
-                if (workTask != null)
+                if (workTask.ID == workTaskId)
                     return workTask;
             }
 
@@ -51,13 +56,25 @@ namespace Tasker.Infra.Persistence.Repositories
             return allTasks.AsEnumerable();
         }
 
-        public async Task RemoveAsync(IWorkTask _)
+        public async Task RemoveAsync(IWorkTask workTask)
         {
+            if (workTask == null)
+            {
+                mLogger.LogError($"Work task given is null, no database removing performed");
+                return;
+            }
+
             await mDatabase.SaveCurrentDatabase();
         }
 
-        public async Task UpdateAsync(IWorkTask _)
+        public async Task UpdateAsync(IWorkTask workTask)
         {
+            if (workTask == null)
+            {
+                mLogger.LogError($"Work task given is null, no database updaing performed");
+                return;
+            }
+
             await mDatabase.SaveCurrentDatabase();
         }
     }

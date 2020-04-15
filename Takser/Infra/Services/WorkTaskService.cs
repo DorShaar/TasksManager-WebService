@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Takser.Infra.Options;
 using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
+using Tasker.Domain.Options;
 using Tasker.Domain.Validators;
 
 namespace Tasker.Infra.Services

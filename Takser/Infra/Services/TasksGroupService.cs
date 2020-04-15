@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Takser.Infra.Options;
 using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
+using Tasker.Domain.Options;
 using Tasker.Domain.Validators;
 
 namespace Tasker.Infra.Services
@@ -30,7 +30,12 @@ namespace Tasker.Infra.Services
 
         public async Task<IEnumerable<ITasksGroup>> ListAsync()
         {
-            return await mTasksGroupRepository.ListAsync();
+            IEnumerable<ITasksGroup> tasksGroups = await mTasksGroupRepository.ListAsync();
+
+            if (tasksGroups == null)
+                return new List<ITasksGroup>();
+
+            return tasksGroups;
         }
 
         public async Task<Response<ITasksGroup>> SaveAsync(string groupName)
@@ -38,25 +43,28 @@ namespace Tasker.Infra.Services
             try
             {
                 ITasksGroup tasksGroup = mTaskGroupBuilder.Create(groupName, mLogger);
+
+                if (!mNameValidator.IsNameValid(tasksGroup.Name))
+                    return new Response<ITasksGroup>(isSuccess: false, $"Group name '{tasksGroup.Name}' exceeds the maximal group name length: {NameLengths.MaximalGroupNameLength}");
+
                 await mTasksGroupRepository.AddAsync(tasksGroup);
 
                 return new Response<ITasksGroup>(tasksGroup, isSuccess: true);
             }
             catch (Exception ex)
             {
-                return new Response<ITasksGroup>(isSuccess: false, $"An error occurred when saving tasks grou name {groupName}: {ex.Message}");
+                return new Response<ITasksGroup>(isSuccess: false, $"An error occurred when saving tasks group name {groupName}: {ex.Message}");
             }
         }
 
         public async Task<Response<ITasksGroup>> UpdateAsync(string id, string newGroupName)
         {
-            ITasksGroup groupToUpdate = 
-                await mTasksGroupRepository.FindAsync(id);
+            ITasksGroup groupToUpdate = await mTasksGroupRepository.FindAsync(id);
 
             if (groupToUpdate == null)
                 return new Response<ITasksGroup>(isSuccess: false, "Group not found");
 
-            if (mNameValidator.IsNameValid(newGroupName))
+            if (!mNameValidator.IsNameValid(newGroupName))
                 return new Response<ITasksGroup>(isSuccess: false, $"Group name '{newGroupName}' is invalid");
 
             groupToUpdate.Name = newGroupName;

@@ -14,6 +14,9 @@ namespace Tasker.Domain.Validators
 
         public bool IsNameValid(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return false;
+
             if (name.Length > mMaximalNameLength)
                 return false;
 

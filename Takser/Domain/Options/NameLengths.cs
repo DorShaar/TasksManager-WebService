@@ -1,4 +1,4 @@
-﻿namespace Takser.Infra.Options
+﻿namespace Tasker.Domain.Options
 {
     public static class NameLengths
     {

@@ -13,6 +13,20 @@ namespace Tasker.Tests.Domain.Validators
         }
 
         [Fact]
+        public void IsNameValid_NameIsNull_False()
+        {
+            NameValidator nameValidator = new NameValidator(5);
+            Assert.False(nameValidator.IsNameValid(null));
+        }
+
+        [Fact]
+        public void IsNameValid_NameIsEmpty_False()
+        {
+            NameValidator nameValidator = new NameValidator(5);
+            Assert.False(nameValidator.IsNameValid(string.Empty));
+        }
+
+        [Fact]
         public void IsNameValid_NameIsLongerThanMaximalLength_False()
         {
             NameValidator nameValidator = new NameValidator(5);

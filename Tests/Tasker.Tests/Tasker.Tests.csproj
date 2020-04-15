@@ -19,11 +19,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="TestFiles\" />
+    <Folder Include="TestFiles\NewDatabase\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestFiles\NewDatabase\id_producer.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\NewDatabase\tasks.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestFiles\tasks.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\tasks_other.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

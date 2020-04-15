@@ -14,11 +14,13 @@ namespace Takser.Api.Controllers
     public class TasksGroupsController : Controller
     {
         private readonly ITasksGroupService mTasksGroupService;
+        private readonly IWorkTaskService mWorkTaskService;
         private readonly IMapper mMapper;
 
-        public TasksGroupsController(ITasksGroupService taskService, IMapper mapper)
+        public TasksGroupsController(ITasksGroupService taskService, IWorkTaskService workTaskService, IMapper mapper)
         {
             mTasksGroupService = taskService;
+            mWorkTaskService = workTaskService;
             mMapper = mapper;
         }
 

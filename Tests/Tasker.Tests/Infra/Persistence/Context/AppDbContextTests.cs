@@ -88,36 +88,54 @@ namespace Tasker.Tests.Infra.Persistence.Context
         }
 
         [Fact]
-        public void LoadDatabase_EntitiesLoadedAsExpected()
+        public async Task LoadDatabase_EntitiesLoadedAsExpected()
         {
-            IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
+            string tempDirectory = CopyDirectoryToTempDirectory();
+
+            try
             {
-                DatabaseDirectoryPath = TestFilesDirectory
-            });
+                IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
+                {
+                    DatabaseDirectoryPath = tempDirectory
+                });
 
-            AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
-            database.LoadDatabase();
+                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                await database.LoadDatabase();
 
-            Assert.Equal(2, database.Entities.Count);
-            Assert.Equal(3, database.Entities[0].Size);
-            Assert.Equal(15, database.Entities[1].Size);
+                Assert.Equal(2, database.Entities.Count);
+                Assert.Equal(3, database.Entities[0].Size);
+                Assert.Equal(15, database.Entities[1].Size);
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
         }
 
         [Fact]
-        public void LoadDatabase_NextIdToProduceLoadedAsExpected()
+        public async Task LoadDatabase_NextIdToProduceLoadedAsExpected()
         {
-            IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
+            string tempDirectory = CopyDirectoryToTempDirectory();
+
+            try
             {
-                DatabaseDirectoryPath = TestFilesDirectory
-            });
+                IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
+                {
+                    DatabaseDirectoryPath = tempDirectory
+                });
 
-            AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
-            database.LoadDatabase();
+                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                await database.LoadDatabase();
 
-            ITasksGroupBuilder tasksGroupBuilder = new TaskGroupBuilder();
-            ITasksGroup tasksGroup = tasksGroupBuilder.Create("group", A.Fake<ILogger>());
+                ITasksGroupBuilder tasksGroupBuilder = new TaskGroupBuilder();
+                ITasksGroup tasksGroup = tasksGroupBuilder.Create("group", A.Fake<ILogger>());
 
-            Assert.Equal("1021", tasksGroup.ID);
+                Assert.Equal("1022", tasksGroup.ID);
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
         }
 
         [Fact]
@@ -157,27 +175,49 @@ namespace Tasker.Tests.Infra.Persistence.Context
         [Fact]
         public async Task SaveDatabase_NextIdToProduceSavedAsExpected()
         {
+            string tempDirectory = CopyDirectoryToTempDirectory();
+
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
             {
-                DatabaseDirectoryPath = TestFilesDirectory
+                DatabaseDirectoryPath = tempDirectory
             });
 
-            AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+            try
+            {
+                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                await database.LoadDatabase();
 
-            ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
-            ITasksGroup tasksGroup1 = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            tasksGroup1.CreateTask("workTask1");
-            tasksGroup1.CreateTask("workTask2");
+                ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
+                ITasksGroup tasksGroup1 = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
+                tasksGroup1.CreateTask("workTask1");
+                tasksGroup1.CreateTask("workTask2");
 
-            ITasksGroup tasksGroup2 = mTasksGroupBuilder.Create("group2", A.Fake<ILogger>());
-            tasksGroup2.CreateTask("workTask3");
+                ITasksGroup tasksGroup2 = mTasksGroupBuilder.Create("group2", A.Fake<ILogger>());
+                tasksGroup2.CreateTask("workTask3");
 
-            database.Entities.Add(tasksGroup1);
-            database.Entities.Add(tasksGroup2);
+                database.Entities.Add(tasksGroup1);
+                database.Entities.Add(tasksGroup2);
 
-            await database.SaveCurrentDatabase();
-            string dbContent = await File.ReadAllTextAsync(Path.Combine(TestFilesDirectory, "id_producer.db"));
-            Assert.Equal("\"1005\"", dbContent);
+                await database.SaveCurrentDatabase();
+                string dbContent = await File.ReadAllTextAsync(Path.Combine(tempDirectory, "id_producer.db"));
+                Assert.Equal("\"1027\"", dbContent);
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
+        }
+
+        private string CopyDirectoryToTempDirectory()
+        {
+            string tempDirectory = Directory.CreateDirectory(Guid.NewGuid().ToString()).FullName;
+
+            foreach (string filePath in Directory.EnumerateFiles(TestFilesDirectory))
+            {
+                File.Copy(filePath, Path.Combine(tempDirectory, Path.GetFileName(filePath)));
+            }
+
+            return tempDirectory;
         }
     }
 }

@@ -3,6 +3,7 @@ using FakeItEasy;
 using Logger.Contracts;
 using Microsoft.Extensions.Options;
 using ObjectSerializer.Contracts;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,29 +22,42 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
     {
         private const string TestFilesDirectory = "TestFiles";
         private readonly string mAlternateDatabasePath = Path.Combine("TestFiles", "tasks_other.db");
+        private readonly string mNewDatabaseDirectoryPath = Path.Combine("TestFiles", "NewDatabase");
         private readonly ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
 
         [Fact]
         public async Task AddAsync_WorkTaskNotExist_Success()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            string tempDirectory = CopyDirectoryToTempDirectory(mNewDatabaseDirectoryPath);
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            try
+            {
+                DatabaseConfigurtaion databaseConfigurtaion = new DatabaseConfigurtaion
+                {
+                    DatabaseDirectoryPath = tempDirectory
+                };
 
-            string tasksGroupName = "group1";
+                AppDbContext database = new AppDbContext(Options.Create(databaseConfigurtaion), new JsonSerializerWrapper(), A.Fake<ILogger>());
 
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create(tasksGroupName, A.Fake<ILogger>());
+                WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
 
-            database.Entities.Add(tasksGroup);
+                ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
 
-            WorkTask workTask = new WorkTask(tasksGroupName, "worktask1", A.Fake<ILogger>());
+                database.Entities.Add(tasksGroup);
 
-            Assert.False((await workTaskRepository.ListAsync()).Any());
+                //Assert.False((await workTaskRepository.ListAsync()).Any());
 
-            await workTaskRepository.AddAsync(workTask);
+                IWorkTask workTask = tasksGroup.CreateTask("worktask1");
 
-            Assert.NotNull(await workTaskRepository.FindAsync(workTask.ID));
-            Assert.Single(await workTaskRepository.ListAsync());
+                await workTaskRepository.AddAsync(workTask);
+
+                Assert.NotNull(await workTaskRepository.FindAsync(workTask.ID));
+                Assert.Single(await workTaskRepository.ListAsync());
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
         }
 
         [Fact]
@@ -69,53 +83,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         }
 
         [Fact]
-        public async Task AddAsync_ParentGroupNotExist_NotAdded()
-        {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
-
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
-
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            
-            database.Entities.Add(tasksGroup);
-
-            WorkTask workTask = new WorkTask("group2", "worktask1", A.Fake<ILogger>());
-
-            Assert.Empty(await workTaskRepository.ListAsync());
-
-            await workTaskRepository.AddAsync(workTask);
-
-            Assert.Null(await workTaskRepository.FindAsync(workTask.ID));
-            Assert.Empty(await workTaskRepository.ListAsync());
-        }
-
-        [Fact]
-        public async Task AddAsync_DescriptionExistsInTheSameGroup_NotAdded()
-        {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
-
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
-
-            string tasksGroupName = "group1";
-            string taskDescription = "workTask1";
-
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create(tasksGroupName, A.Fake<ILogger>());
-            tasksGroup.CreateTask(taskDescription);
-
-            database.Entities.Add(tasksGroup);
-
-            WorkTask workTask = new WorkTask(tasksGroupName, taskDescription, A.Fake<ILogger>());
-
-            Assert.Single(await workTaskRepository.ListAsync());
-
-            await workTaskRepository.AddAsync(workTask);
-
-            Assert.NotNull(await workTaskRepository.FindAsync(workTask.ID));
-            Assert.Single(await workTaskRepository.ListAsync());
-        }
-
-        [Fact]
-        public async Task AddAsync_DatabaseIsLoadedAndSavedOnce()
+        public async Task AddAsync_DatabaseNotLoadedButSavedOnce()
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
@@ -123,8 +91,20 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             await workTaskRepository.AddAsync(A.Fake<IWorkTask>());
 
-            A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => database.LoadDatabase()).MustNotHaveHappened();
             A.CallTo(() => database.SaveCurrentDatabase()).MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task AddAsync_NullWorkTask_DatabaseNotSaved()
+        {
+            IAppDbContext database = A.Fake<IAppDbContext>();
+
+            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+
+            await workTaskRepository.AddAsync(null);
+
+            A.CallTo(() => database.SaveCurrentDatabase()).MustNotHaveHappened();
         }
 
         [Fact]
@@ -201,20 +181,29 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task ListAsync_DatabaseChangedAfterInitialize_ReturnCorrectList()
         {
-            IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
+            string tempDirectory = CopyDirectoryToTempDirectory(TestFilesDirectory);
+
+            try
             {
-                DatabaseDirectoryPath = TestFilesDirectory
-            });
+                IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
+                {
+                    DatabaseDirectoryPath = tempDirectory
+                });
 
-            AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+                WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
 
-            Assert.Equal(17, (await workTaskRepository.ListAsync()).Count());
+                Assert.Equal(18, (await workTaskRepository.ListAsync()).Count());
 
-            File.Copy(mAlternateDatabasePath, database.DatabaseFilePath);
+                File.Copy(mAlternateDatabasePath, database.DatabaseFilePath, overwrite: true);
 
-            Assert.Equal(15, (await workTaskRepository.ListAsync()).Count());
+                Assert.Equal(16, (await workTaskRepository.ListAsync()).Count());
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
         }
 
         [Fact]
@@ -231,112 +220,19 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         }
 
         [Fact]
-        public async Task RemoveAsync_TaskExists_TaskRemoved()
-        {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
-
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
-
-            ITasksGroup tasksGroup1 = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            IWorkTask workTask = tasksGroup1.CreateTask("taskDescription");
-
-            database.Entities.Add(tasksGroup1);
-
-            Assert.Single(await workTaskRepository.ListAsync());
-
-            await workTaskRepository.RemoveAsync(workTask);
-
-            Assert.Empty(await workTaskRepository.ListAsync());
-        }
-
-        [Fact]
-        public async Task RemoveAsync_WorkTaskNotExists_RemoveNotPerformed()
-        {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
-
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
-
-            string taskDescription = "taskDescripition";
-
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            tasksGroup.CreateTask(taskDescription);
-
-            database.Entities.Add(tasksGroup);
-
-            Assert.Single(await workTaskRepository.ListAsync());
-
-            WorkTask differentWorkTaskWithSameGroupNameAndDescription = new WorkTask("group1", taskDescription, A.Fake<ILogger>());
-
-            await workTaskRepository.RemoveAsync(differentWorkTaskWithSameGroupNameAndDescription);
-
-            Assert.Single(await workTaskRepository.ListAsync());
-        }
-
-        [Fact]
-        public async Task RemoveAsync_DatabaseIsLoadedAndSavedOnce()
+        public async Task RemoveAsync_NullWorkTask_DatabaseNotSaved()
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
             WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
 
-            await workTaskRepository.RemoveAsync(A.Fake<IWorkTask>());
+            await workTaskRepository.RemoveAsync(null);
 
-            A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
-            A.CallTo(() => database.SaveCurrentDatabase()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => database.SaveCurrentDatabase()).MustNotHaveHappened();
         }
 
         [Fact]
-        public async Task UpdateAsync_WorkTaskExists_WorkTaskUpdated()
-        {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
-
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
-
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            IWorkTask workTask = tasksGroup.CreateTask("taskDescription");
-
-            database.Entities.Add(tasksGroup);
-
-            Assert.Single(await workTaskRepository.ListAsync());
-
-            IWorkTask workTaskWithUpdate = await workTaskRepository.FindAsync(workTask.ID);
-
-            string newTaskSecription = "description_changed";
-
-            workTaskWithUpdate.Description = newTaskSecription;
-
-            await workTaskRepository.UpdateAsync(workTaskWithUpdate);
-
-            Assert.Single(await workTaskRepository.ListAsync());
-
-            IWorkTask updatedTasksGroup = await workTaskRepository.FindAsync(workTaskWithUpdate.ID);
-
-            Assert.Equal(newTaskSecription, updatedTasksGroup.Description);
-        }
-
-        [Fact]
-        public async Task UpdateAsync_WorkTaskNotExists_WorkTaskNotAdded()
-        {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
-
-            WorkTaskRepository WorkTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
-
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            tasksGroup.CreateTask("description1");
-
-            database.Entities.Add(tasksGroup);
-
-            Assert.Single(await WorkTaskRepository.ListAsync());
-
-            WorkTask workTask = new WorkTask("group1", "description2", A.Fake<ILogger>());
-
-            await WorkTaskRepository.UpdateAsync(workTask);
-
-            Assert.Single(await WorkTaskRepository.ListAsync());
-        }
-
-        [Fact]
-        public async Task UpdateAsync_DatabaseIsLoadedAndSavedOnce()
+        public async Task UpdateAsync_DatabaseNotLoadedButSavedOnce()
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
@@ -344,8 +240,32 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             await WorkTaskRepository.UpdateAsync(A.Fake<IWorkTask>());
 
-            A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => database.LoadDatabase()).MustNotHaveHappened();
             A.CallTo(() => database.SaveCurrentDatabase()).MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task UpdateAsync_NullWorkTask_DatabaseNotSaved()
+        {
+            IAppDbContext database = A.Fake<IAppDbContext>();
+
+            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+
+            await workTaskRepository.UpdateAsync(null);
+
+            A.CallTo(() => database.SaveCurrentDatabase()).MustNotHaveHappened();
+        }
+
+        private string CopyDirectoryToTempDirectory(string sourceDirectory)
+        {
+            string tempDirectory = Directory.CreateDirectory(Guid.NewGuid().ToString()).FullName;
+
+            foreach (string filePath in Directory.EnumerateFiles(sourceDirectory))
+            {
+                File.Copy(filePath, Path.Combine(tempDirectory, Path.GetFileName(filePath)));
+            }
+
+            return tempDirectory;
         }
     }
 }
