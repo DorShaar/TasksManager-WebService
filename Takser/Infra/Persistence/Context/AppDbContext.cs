@@ -21,7 +21,7 @@ namespace Tasker.Infra.Persistence.Context
         private readonly DatabaseConfigurtaion mConfiguration;
 
         private readonly string NextIdPath;
-        public List<ITasksGroup> Entities { get; private set; }
+        public List<ITasksGroup> Entities { get; private set; } = new List<ITasksGroup>();
         public string DatabaseFilePath { get; }
         public string DefaultTasksGroup { get => mConfiguration.DefaultTasksGroup; }
         public string NotesDirectoryPath { get => mConfiguration.NotesDirectoryPath; }
