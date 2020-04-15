@@ -28,8 +28,11 @@ namespace Takser.Api.Controllers
         public async Task<IEnumerable<TasksGroupResource>> Groups()
         {
             IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync();
-            return mMapper
+            
+            var x = mMapper
                 .Map<IEnumerable<ITasksGroup>, IEnumerable<TasksGroupResource>>(groups);
+
+            return x;
         }
 
         [HttpPost]

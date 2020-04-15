@@ -6,8 +6,7 @@ export class FetchData extends Component {
   constructor (props) {
     super(props);
        this.state = { groups: [], loading: true };
-       fetch('api/SampleData/WeatherForecasts', {
-       //fetch('api/TasksGroups/Groups', {
+       fetch('api/TasksGroups/Groups', {
             headers: { "Content-Type": "application/json" },
             credentials: 'include'
        })
@@ -27,19 +26,19 @@ export class FetchData extends Component {
       <table className='table table-striped'>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
+            <th>Id</th>
+            <th>Name</th>
+            <th>IsClosed</th>
+            <th>Size</th>
           </tr>
         </thead>
         <tbody>
           {groups.map(group =>
-            <tr key={group.dateFormatted}>
-              <td>{group.dateFormatted}</td>
-              <td>{group.temperatureC}</td>
-              <td>{group.temperatureF}</td>
-              <td>{group.summary}</td>
+            <tr key={group.groupId}>
+              <td>{group.groupId}</td>
+              <td>{group.groupName}</td>
+              <td>{group.isFinished}</td>
+              <td>{group.size}</td>
             </tr>
           )}
         </tbody>
