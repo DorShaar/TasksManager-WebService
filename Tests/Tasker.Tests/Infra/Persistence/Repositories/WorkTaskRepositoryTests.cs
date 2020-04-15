@@ -45,8 +45,6 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
                 database.Entities.Add(tasksGroup);
 
-                //Assert.False((await workTaskRepository.ListAsync()).Any());
-
                 IWorkTask workTask = tasksGroup.CreateTask("worktask1");
 
                 await workTaskRepository.AddAsync(workTask);

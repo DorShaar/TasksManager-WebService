@@ -15,6 +15,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
     public class TasksGroupServiceTests
     {
         private const string mInvalidGroupName = "InvalidGroupNameInvalidGroupNameInvalidGroupNameInvalidGroupNameInvalidGroupName";
+        private const string mInvalidTaskName = "InvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskName" +
+            "InvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskName";
         private readonly ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
 
         [Fact]
@@ -118,7 +120,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
         }
 
         [Fact]
-        public async Task RemoveAsync_EmptyGroup_SucessResponseReturned()
+        public async Task RemoveAsync_EmptyGroup_SuccessResponseReturned()
         {
             ITasksGroup tasksGroup = mTasksGroupBuilder.Create("emptyGroup", A.Fake<ILogger>());
 
@@ -146,6 +148,64 @@ namespace Tasker.Tests.Infra.Persistence.Services
         }
 
         [Fact]
+        public async Task RemoveTaskAsync_TaskExists_SuccessResponseReturned()
+        {
+            IWorkTask taskToRemove = A.Fake<IWorkTask>();
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToRemove);
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<IWorkTask> response = await tasksGroupService.RemoveTaskAsync(tasksGroup.ID);
+            Assert.True(response.IsSuccess);
+            Assert.Equal(taskToRemove, response.ResponseObject);
+        }
+
+        [Fact]
+        public async Task RemoveTaskAsync_TaskExists_TaskRemoved()
+        {
+            IWorkTask taskToRemove = A.Fake<IWorkTask>();
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToRemove);
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            await tasksGroupService.RemoveTaskAsync(tasksGroup.ID);
+
+            A.CallTo(() => tasksGroup.RemoveTask(A<string>.Ignored)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => dbRepository.UpdateAsync(tasksGroup)).MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task RemoveTaskAsync_WorkTaskNotExists_FailResponseReturned()
+        {
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId");
+            Assert.False(response.IsSuccess);
+            Assert.Null(response.ResponseObject);
+        }
+
+        [Fact]
+        public async Task RemoveTaskAsync_WorkTaskNotExists_RemoveNotPerformed()
+        {
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId");
+            A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
+        }
+
+        [Fact]
         public async Task SaveAsync_InvalidGroupName_SaveNotPerformed()
         {
             ITasksGroup tasksGroup = mTasksGroupBuilder.Create(mInvalidGroupName, A.Fake<ILogger>());
@@ -156,6 +216,19 @@ namespace Tasker.Tests.Infra.Persistence.Services
             await tasksGroupService.SaveAsync(tasksGroup.Name);
 
             A.CallTo(() => dbRepository.AddAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
+        }
+
+        [Fact]
+        public async Task SaveAsync_ValidTasksGroupToAdd_SucessResponseReturned()
+        {
+            string groupName = "ValidGroupName";
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<ITasksGroup> response = await tasksGroupService.SaveAsync(groupName);
+            Assert.True(response.IsSuccess);
+            Assert.Equal(groupName, response.ResponseObject.Name);
         }
 
         [Fact]
@@ -172,16 +245,164 @@ namespace Tasker.Tests.Infra.Persistence.Services
         }
 
         [Fact]
-        public async Task SaveAsync_ValidTasksGroupToAdd_SucessResponseReturned()
+        public async Task SaveTaskAsync_InvalidTaskName_FailResponseReturned()
         {
-            string groupName = "ValidGroupName";
+            string groupName = "groupName";
+
+            IWorkTask workTask = A.Fake<IWorkTask>();
+            workTask.GroupName = groupName;
+            workTask.Description = mInvalidTaskName;
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            tasksGroup.Name = groupName;
+
+            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(workTask);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
+
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.SaveAsync(groupName);
+            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
+            Assert.False(response.IsSuccess);
+            Assert.Null(response.ResponseObject);
+        }
+
+        [Fact]
+        public async Task SaveTaskAsync_InvalidTaskName_SaveNotPerformed()
+        {
+            string groupName = "groupName";
+
+            IWorkTask workTask = A.Fake<IWorkTask>();
+            workTask.GroupName = groupName;
+            workTask.Description = mInvalidTaskName;
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            tasksGroup.Name = groupName;
+
+            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(workTask);
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
+
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
+
+            A.CallTo(() => dbRepository.AddAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
+        }
+
+        [Fact]
+        public async Task SaveTaskAsync_GroupIdentifierNotExists_FailResponseReturned()
+        {
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
+
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName);
+            Assert.False(response.IsSuccess);
+            Assert.Null(response.ResponseObject);
+        }
+
+        [Fact]
+        public async Task SaveTaskAsync_GroupIdentifierNotExists_SaveNotPerformed()
+        {
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
+
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName);
+
+            A.CallTo(() => dbRepository.AddAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
+        }
+
+        [Fact]
+        public async Task SaveTaskAsync_DescriptionExistsInTheSameGroup_FailResponseReturned()
+        {
+            IWorkTask workTask = A.Fake<IWorkTask>();
+            workTask.GroupName = "groupName";
+            workTask.Description = "description";
+
+            IWorkTask workTaskWithSameDescription = A.Fake<IWorkTask>();
+            workTask.GroupName = workTask.GroupName;
+            workTask.Description = workTask.Description;
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            tasksGroup.Name = workTask.GroupName;
+            A.CallTo(() => tasksGroup.GetAllTasks()).Returns(new List<IWorkTask> { workTask });
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
+            Assert.False(response.IsSuccess);
+            Assert.Null(response.ResponseObject);
+        }
+
+        [Fact]
+        public async Task SaveTaskAsync_DescriptionExistsInTheSameGroup_SaveNotPerformed()
+        {
+            IWorkTask workTask = A.Fake<IWorkTask>();
+            workTask.GroupName = "groupName";
+            workTask.Description = "description";
+
+            IWorkTask workTaskWithSameDescription = A.Fake<IWorkTask>();
+            workTask.GroupName = workTask.GroupName;
+            workTask.Description = workTask.Description;
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            tasksGroup.Name = workTask.GroupName;
+            A.CallTo(() => tasksGroup.GetAllTasks()).Returns(new List<IWorkTask> { workTask });
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
+            A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
+        }
+
+        [Fact]
+        public async Task SaveTaskAsync_ValidWorkTaskToAdd_SuccessResponseReturned()
+        {
+            IWorkTask validWorkTask = A.Fake<IWorkTask>();
+            validWorkTask.GroupName = "groupName";
+            validWorkTask.Description = "validDescription";
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            tasksGroup.Name = validWorkTask.GroupName;
+            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(validWorkTask);
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync(validWorkTask.GroupName, validWorkTask.Description);
             Assert.True(response.IsSuccess);
-            Assert.Equal(groupName, response.ResponseObject.Name);
+            Assert.Equal(validWorkTask, response.ResponseObject);
+        }
+
+        [Fact]
+        public async Task SaveTaskAsync_ValidWorkTaskToAdd_SavePerformed()
+        {
+            IWorkTask validWorkTask = A.Fake<IWorkTask>();
+            validWorkTask.GroupName = "groupName";
+            validWorkTask.Description = "validDescription";
+
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            tasksGroup.Name = validWorkTask.GroupName;
+            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(validWorkTask);
+
+            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
+            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            await tasksGroupService.SaveTaskAsync(validWorkTask.GroupName, validWorkTask.Description);
+
+            A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
         [Fact]
@@ -209,7 +430,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             await tasksGroupService.UpdateAsync(wrongID, "newGroupName");
 
-            A.CallTo(() => dbRepository.RemoveAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
+            A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
         }
 
         [Fact]

@@ -17,7 +17,8 @@ namespace Tasker.Infra.Services
     {
         private readonly IDbRepository<ITasksGroup> mTasksGroupRepository;
         private readonly ITasksGroupBuilder mTaskGroupBuilder;
-        private readonly NameValidator mNameValidator;
+        private readonly NameValidator mTasksGroupNameValidator;
+        private readonly NameValidator mWorkTaskNameValidator;
         private readonly ILogger mLogger;
 
         public TasksGroupService(IDbRepository<ITasksGroup> TaskGroupRepository, ITasksGroupBuilder tasksGroupBuilder, ILogger logger)
@@ -25,7 +26,36 @@ namespace Tasker.Infra.Services
             mTasksGroupRepository = TaskGroupRepository;
             mTaskGroupBuilder = tasksGroupBuilder;
             mLogger = logger;
-            mNameValidator = new NameValidator(NameLengths.MaximalGroupNameLength);
+            mTasksGroupNameValidator = new NameValidator(NameLengths.MaximalGroupNameLength);
+            mWorkTaskNameValidator = new NameValidator(NameLengths.MaximalTaskNameLength);
+        }
+
+        public async Task<IEnumerable<ITasksGroup>> FindTasksGroupsByConditionAsync(Func<ITasksGroup, bool> condition)
+        {
+            List<ITasksGroup> tasksGroups = new List<ITasksGroup>();
+
+            foreach (ITasksGroup taskGroup in await ListAsync())
+            {
+                if (condition(taskGroup))
+                    tasksGroups.Add(taskGroup);
+            }
+
+            mLogger.Log($"Found {tasksGroups.Count} tasks");
+            return tasksGroups;
+        }
+
+        public async Task<IEnumerable<IWorkTask>> FindWorkTasksByTasksGroupConditionAsync(Func<ITasksGroup, bool> condition)
+        {
+            List<IWorkTask> workTasks = new List<IWorkTask>();
+
+            foreach (ITasksGroup taskGroup in await ListAsync())
+            {
+                if (condition(taskGroup))
+                    workTasks.AddRange(taskGroup.GetAllTasks());
+            }
+
+            mLogger.Log($"Found {workTasks.Count} tasks");
+            return workTasks;
         }
 
         public async Task<IEnumerable<ITasksGroup>> ListAsync()
@@ -44,7 +74,7 @@ namespace Tasker.Infra.Services
             {
                 ITasksGroup tasksGroup = mTaskGroupBuilder.Create(groupName, mLogger);
 
-                if (!mNameValidator.IsNameValid(tasksGroup.Name))
+                if (!mTasksGroupNameValidator.IsNameValid(tasksGroup.Name))
                     return new Response<ITasksGroup>(isSuccess: false, $"Group name '{tasksGroup.Name}' exceeds the maximal group name length: {NameLengths.MaximalGroupNameLength}");
 
                 await mTasksGroupRepository.AddAsync(tasksGroup);
@@ -57,6 +87,35 @@ namespace Tasker.Infra.Services
             }
         }
 
+        public async Task<Response<IWorkTask>> SaveTaskAsync(string taskGroupIdentifier, string workTaskDescription)
+        {
+            try
+            {
+                ITasksGroup tasksGroup = (await FindTasksGroupsByConditionAsync(group => group.ID == taskGroupIdentifier)).FirstOrDefault();
+                if (tasksGroup == null)
+                    tasksGroup = (await FindTasksGroupsByConditionAsync(group => group.Name == taskGroupIdentifier)).FirstOrDefault();
+
+                if (tasksGroup == null)
+                    return new Response<IWorkTask>(isSuccess: false, $"Tasks group {taskGroupIdentifier} does not exist");
+
+                if (!ValidateUniqueTaskDescription(tasksGroup, workTaskDescription))
+                    return new Response<IWorkTask>(isSuccess: false, $"Tasks group {tasksGroup.Name} has already work task with description {workTaskDescription}");
+
+                IWorkTask workTask = tasksGroup.CreateTask(workTaskDescription);
+
+                if (!mWorkTaskNameValidator.IsNameValid(workTask.Description))
+                    return new Response<IWorkTask>(isSuccess: false, $"Group name '{workTask.Description}' is invalid");
+
+                await mTasksGroupRepository.UpdateAsync(tasksGroup);
+
+                return new Response<IWorkTask>(workTask, isSuccess: true);
+            }
+            catch (Exception ex)
+            {
+                return new Response<IWorkTask>(isSuccess: false, $"An error occurred when saving work task {taskGroupIdentifier}: {ex.Message}");
+            }
+        }
+
         public async Task<Response<ITasksGroup>> UpdateAsync(string id, string newGroupName)
         {
             ITasksGroup groupToUpdate = await mTasksGroupRepository.FindAsync(id);
@@ -64,7 +123,7 @@ namespace Tasker.Infra.Services
             if (groupToUpdate == null)
                 return new Response<ITasksGroup>(isSuccess: false, "Group not found");
 
-            if (!mNameValidator.IsNameValid(newGroupName))
+            if (!mTasksGroupNameValidator.IsNameValid(newGroupName))
                 return new Response<ITasksGroup>(isSuccess: false, $"Group name '{newGroupName}' is invalid");
 
             groupToUpdate.Name = newGroupName;
@@ -106,6 +165,41 @@ namespace Tasker.Infra.Services
             {
                 return new Response<ITasksGroup>(isSuccess: false, $"An error occurred when removing tasks group id {id}: {ex.Message}");
             }
+        }
+
+        public async Task<Response<IWorkTask>> RemoveTaskAsync(string workTaskId)
+        {
+            try
+            {
+                foreach (ITasksGroup group in await ListAsync())
+                {
+                    IWorkTask taskToRemove = group.GetTask(workTaskId);
+                    if (taskToRemove != null)
+                    {
+                        group.RemoveTask(workTaskId);
+                        await mTasksGroupRepository.UpdateAsync(group);
+
+                        return new Response<IWorkTask>(taskToRemove, isSuccess: true);
+                    }
+                }
+
+                return new Response<IWorkTask>(isSuccess: false, $"Work task {workTaskId} not found. No task deletion performed");
+            }
+            catch (Exception ex)
+            {
+                return new Response<IWorkTask>(isSuccess: false, $"An error occurred when removing work task id {workTaskId}: {ex.Message}");
+            }
+        }
+
+        private bool ValidateUniqueTaskDescription(ITasksGroup tasksGroup, string workTaskDescription)
+        {
+            foreach(IWorkTask workTask in tasksGroup.GetAllTasks())
+            {
+                if (workTask.Description.Equals(workTaskDescription))
+                    return false;
+            }
+
+            return true;
         }
     }
 }
