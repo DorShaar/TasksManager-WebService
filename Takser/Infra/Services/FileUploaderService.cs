@@ -8,9 +8,10 @@ namespace Tasker.Infra.Services
 {
     public class FileUploaderService : IHostedService
     {
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            await UploadFile(@"C:\Users\Dor Shaar\OneDrive\Desktop\TestFile.txt");
+            //await UploadFile(@"C:\Users\Dor Shaar\OneDrive\Desktop\TestFile.txt");
+            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

@@ -6,8 +6,8 @@ export class FetchData extends Component {
   constructor (props) {
     super(props);
        this.state = { groups: [], loading: true };
-       //fetch('api/SampleData/WeatherForecasts', {
-       fetch('api/TasksGroups/Groups', {
+       fetch('api/SampleData/WeatherForecasts', {
+       //fetch('api/TasksGroups/Groups', {
             headers: { "Content-Type": "application/json" },
             credentials: 'include'
        })
