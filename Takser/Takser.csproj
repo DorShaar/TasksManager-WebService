@@ -31,6 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\src\components\LoginPage.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Infra\Options\ConfigFile\TaskerConfig.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
