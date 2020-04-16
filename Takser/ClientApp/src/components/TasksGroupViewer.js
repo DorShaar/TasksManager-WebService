@@ -22,14 +22,15 @@ export class TasksGroupViewer extends Component {
             .then(data => this.setState({ groups: data, loading: false }))
     }
 
-    deleteGroup() {
-        fetch('api/TasksGroups/RemoveGroupAsync/1000',
+    deleteGroup(id) {
+        fetch('api/TasksGroups/' + id,
             {
                 method: 'DELETE'
             })
             .then(response => {
                 if (!response.ok) {
-                    throw response;
+                    alert("Status Code: " + response.status + "\n" +
+                        "Error Message: " + response.statusText);
                 }
 
                 return response.json();
@@ -58,7 +59,7 @@ export class TasksGroupViewer extends Component {
                             <td>
                                 <FunctionalButton /*onClickFunction={displayFunction}*/ buttonName="view" />
                                 <FunctionalButton /*onClickFunction={displayFunction}*/ buttonName="update" />
-                                <FunctionalButton onClickFunction={this.deleteGroup} buttonName="delete" />
+                                <FunctionalButton onClickFunction={() => this.deleteGroup(group.groupId)} buttonName="delete" />
                             </td>
                         </tr>
                     )}
