@@ -152,7 +152,7 @@ namespace Tasker.Infra.Services
                 StringBuilder idsInGroup = new StringBuilder();
                 groupToRemove.GetAllTasks().Select(task => task.ID).ToList().ForEach(id => idsInGroup.Append($"{id}, "));
                 return new Response<ITasksGroup>(groupToRemove, isSuccess: false, $"Entity group {id} cannot be deleted. Please move or remove" +
-                        $"the next work tasks ids: {idsInGroup}");
+                        $" the next work tasks ids: {idsInGroup}");
             }
 
             try
