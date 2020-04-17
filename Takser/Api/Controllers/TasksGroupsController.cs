@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Logger.Contracts;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -32,8 +31,8 @@ namespace Takser.Api.Controllers
             mLogger = logger;
         }
 
-        [HttpGet("[action]")]
-        public async Task<IEnumerable<TasksGroupResource>> Groups()
+        [HttpGet]
+        public async Task<IEnumerable<TasksGroupResource>> ListAsync()
         {
             mLogger.Log("Requesting groups");
 
@@ -47,22 +46,35 @@ namespace Takser.Api.Controllers
             return taskGroupResources;
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> PostAsync([FromBody] SaveTasksGroupResource resource)
-        //{
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState.GetErrorMessages());
+        [HttpPost("{id}")]
+        public async Task<IActionResult> PostAsync(string id, [FromBody] SaveTasksGroupResource saveTasksGroupResource)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
 
-        //    ITasksGroup group = mMapper.Map<SaveTasksGroupResource, ITasksGroup>(resource);
+            if (saveTasksGroupResource == null)
+                return BadRequest("New group name resource is null");
 
-        //    Response<ITasksGroup> result = await mTasksGroupService.SaveAsync(group.Name);
+            mLogger.Log($"Requesting updating group id {id} with name {saveTasksGroupResource.GroupName}");
 
-        //    if (!result.IsSuccess)
-        //        return BadRequest(result.Message);
+            try
+            {
+                Response<ITasksGroup> result = await mTasksGroupService.UpdateAsync(id, saveTasksGroupResource.GroupName);
 
-        //    TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
-        //    return Ok(tasksGroupResource);
-        //}
+                mLogger.Log($"Update result {(result.IsSuccess ? "succeeded" : "failed")}");
+
+                if (!result.IsSuccess)
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
+
+                TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
+                return Ok(tasksGroupResource);
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError($"Update operation failed with error", ex);
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+        }
 
         //[HttpPut("{id}")]
         //public async Task<IActionResult> PutAsync(string id, [FromBody] SaveTasksGroupResource resource)
@@ -95,7 +107,7 @@ namespace Takser.Api.Controllers
                 mLogger.Log($"Remove result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
-                    return Conflict(result.Message);
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
 
                 TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
                 return Ok(tasksGroupResource);

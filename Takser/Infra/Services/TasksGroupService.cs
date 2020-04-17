@@ -140,6 +140,16 @@ namespace Tasker.Infra.Services
             }
         }
 
+        private async Task<bool> IsNameAlreadyExist()
+        {
+            return true;
+        }
+
+        private async Task UpdateGroupNamesForAllChildren ()
+        {
+
+        }
+
         public async Task<Response<ITasksGroup>> RemoveAsync(string id)
         {
             ITasksGroup groupToRemove = await mTasksGroupRepository.FindAsync(id);

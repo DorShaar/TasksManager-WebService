@@ -13,8 +13,8 @@ namespace Tasker.App.Mapping
                             opt => opt.MapFrom(source => source.ID))
                 .ForMember(dest => dest.GroupName,
                             opt => opt.MapFrom(source => source.Name))
-                .ForMember(dest => dest.IsFinished,
-                                opt => opt.MapFrom(source => source.IsFinished))
+                .ForMember(dest => dest.Status,
+                                opt => opt.MapFrom(source => source.IsFinished ? "Closed" : "Open"))
                 .ForMember(dest => dest.Size,
                                 opt => opt.MapFrom(source => source.Size));
 

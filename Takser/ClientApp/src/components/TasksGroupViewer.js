@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
 import FunctionalButton from './FunctionalButton';
+import TaskerHttpRequester from '../utils/TasksFunctions'
 
 export class TasksGroupViewer extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { groups: [], loading: true };
+        this.state = {
+            groups: [],
+            loading: true,
+            url: 'api/TasksGroups/'
+        };
 
-        fetch('api/TasksGroups/Groups',
+        fetch(this.state.url,
             {
                 headers: { "Content-Type": "application/json" },
                 credentials: 'include'
@@ -20,21 +25,6 @@ export class TasksGroupViewer extends Component {
                 return response.json();
             })
             .then(data => this.setState({ groups: data, loading: false }))
-    }
-
-    deleteGroup(id) {
-        fetch('api/TasksGroups/' + id,
-            {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    alert("Status Code: " + response.status + "\n" +
-                        "Error Message: " + response.statusText);
-                }
-
-                return response.json();
-            })
     }
 
     renderTasksGroupsTable(groups) {
@@ -54,18 +44,30 @@ export class TasksGroupViewer extends Component {
                         <tr key={group.groupId}>
                             <td>{group.groupId}</td>
                             <td>{group.groupName}</td>
-                            <td>{group.isFinished}</td>
+                            <td>{group.status}</td>
                             <td>{group.size}</td>
                             <td>
                                 <FunctionalButton /*onClickFunction={displayFunction}*/ buttonName="view" />
-                                <FunctionalButton /*onClickFunction={displayFunction}*/ buttonName="update" />
-                                <FunctionalButton onClickFunction={() => this.deleteGroup(group.groupId)} buttonName="delete" />
+                                <FunctionalButton
+                                    onClickFunction={() => TaskerHttpRequester.postHttpRequest(
+                                        this.state.url + group.groupId, this.createNewGroupNameObject())}
+                                    buttonName="update"
+                                />
+                                <FunctionalButton
+                                    onClickFunction={() => TaskerHttpRequester.deleteHttpRequest(this.state.url + group.groupId)}
+                                    buttonName="delete"
+                                />
                             </td>
                         </tr>
                     )}
                 </tbody>
             </table>
         );
+    }
+
+    createNewGroupNameObject() {
+        let newGroupName = window.prompt('Type new group name');
+        return { GroupName: newGroupName };
     }
 
     render() {

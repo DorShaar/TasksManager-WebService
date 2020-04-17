@@ -3,12 +3,14 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
-using Takser;
 using TaskData.Contracts;
+using Tasker.App.Resources;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Xunit;
@@ -18,15 +20,63 @@ namespace Tasker.Tests.Api.Controllers
     public class TasksGroupsControllerTests
     {
         private const string MainRoute = "api/TasksGroups";
+        private const string PostMediaType = "application/json";
 
         [Fact]
-        public async Task Groups_SuccessStatusCode()
+        public async Task ListAsync_SuccessStatusCode()
         {
             using TestServer testServer = CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/Groups");
+            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}");
 
             response.EnsureSuccessStatusCode();
+        }
+
+        [Fact]
+        public async Task PostAsync_SuccessStatusCode()
+        {
+            ITasksGroupService fakeTasksGroupService = A.Fake<ITasksGroupService>();
+            A.CallTo(() => fakeTasksGroupService.UpdateAsync(A<string>.Ignored, A<string>.Ignored))
+                .Returns(new Response<ITasksGroup>(A.Fake<ITasksGroup>(), isSuccess: true));
+
+            using TestServer testServer = CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
+            using HttpClient httpClient = testServer.CreateClient();
+
+            SaveTasksGroupResource groupResource = new SaveTasksGroupResource { GroupName = "newGroupName" };
+            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
+            HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/some-id", jsonContent);
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        //[Fact]
+        //public async Task PostAsync_AlreadyExistingGroupName_MethodNotAllowedStatusCode()
+        //{
+        //    string realId = "1000";
+        //    string alreadyExistingGroupName = "bla";
+
+        //    using TestServer testServer = CreateTestServer();
+        //    using HttpClient httpClient = testServer.CreateClient();
+        //    HttpResponseMessage response = await httpClient.PostAsync(
+        //        $"{MainRoute}/{realId}", 
+        //        new StringContent($"resource: {alreadyExistingGroupName}", Encoding.UTF8, PostMediaType));
+
+        //    Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        //}
+
+        [Fact]
+        public async Task PostAsync_ThrowsException_InternalServerErrorStatusCode()
+        {
+            ITasksGroupService fakeTasksGroupService = A.Fake<ITasksGroupService>();
+            A.CallTo(() => fakeTasksGroupService.UpdateAsync(A<string>.Ignored, A<string>.Ignored))
+                .Throws<Exception>();
+
+            using TestServer testServer = CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
+            using HttpClient httpClient = testServer.CreateClient();
+            HttpResponseMessage response =
+                await httpClient.PostAsync($"{MainRoute}/some-id", new StringContent("content", Encoding.UTF8, PostMediaType));
+
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
 
         [Theory]
@@ -37,7 +87,7 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/{id}");
 
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
         }
 
         [Fact]
