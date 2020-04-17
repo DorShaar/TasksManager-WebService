@@ -17,7 +17,7 @@ using Tasker.Infra.Persistence.Context;
 using Tasker.Infra.Persistence.Repositories;
 using Tasker.Infra.Services;
 
-namespace Takser.Infra.Extensions
+namespace Tasker.Infra.Extensions
 {
     public static class DIExtensions
     {

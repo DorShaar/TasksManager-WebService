@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Takser
+namespace Tasker
 {
     public class Program
     {
