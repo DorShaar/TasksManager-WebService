@@ -17,7 +17,7 @@ namespace Takser.Areas.Identity
                     options.UseSqlServer(
                         context.Configuration.GetConnectionString("TaskerContextConnection")));
 
-                services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                services.AddDefaultIdentity<ApplicationUser>()
                     .AddEntityFrameworkStores<TaskerContext>();
             });
         }
