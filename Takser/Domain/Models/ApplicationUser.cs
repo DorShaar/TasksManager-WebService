@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace Takser.Domain.Models
+namespace Tasker.Domain.Models
 {
     public class ApplicationUser : IdentityUser
     {
