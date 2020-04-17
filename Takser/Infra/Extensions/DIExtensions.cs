@@ -7,10 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ObjectSerializer.Contracts;
 using System.IO;
 using Takser.App.Persistence.Context;
-using Takser.App.Persistence.Repositories;
 using Takser.Infra.Options;
-using Takser.Infra.Persistence.Context;
-using Takser.Infra.Persistence.Repositories;
 using TaskData;
 using TaskData.Contracts;
 using Tasker.App.Mapping;
@@ -49,13 +46,11 @@ namespace Takser.Infra.Extensions
         {
             services.AddSingleton<IDbRepository<ITasksGroup>, TasksGroupRepository>();
             services.AddSingleton<IDbRepository<IWorkTask>, WorkTaskRepository>();
-            services.AddSingleton<IUserRepository, UserRepository>();
         }
 
         private static void RegisterDadabases(IServiceCollection services)
         {
             services.AddSingleton<IAppDbContext, AppDbContext>();
-            services.AddSingleton<IUsersDbContext, UsersDbContext>();
         }
 
         private static void RegisterTaskerCoreComponents(IServiceCollection services)

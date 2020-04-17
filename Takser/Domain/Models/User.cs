@@ -1,11 +1,8 @@
-﻿namespace Takser.Domain.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace Takser.Domain.Models
 {
-    public class User
+    public class ApplicationUser : IdentityUser
     {
-        public string Id { get; set; }
-
-        public string Name { get; set; }
-
-        public string HashedPassword { get; set; }
     }
 }
