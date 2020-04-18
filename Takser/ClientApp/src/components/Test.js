@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
 
-export class WorkTaskViewer extends Component {
+export class TestViewer extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             tasks: [],
             loading: true,
-            url: 'api/TasksGroups/Tasks'
+            url: 'api/TasksGroups/' + props.groupId
         };
+    }
 
+    fetchWrapper() {
         fetch(this.state.url,
             {
                 headers: { "Content-Type": "application/json" },
@@ -54,6 +56,8 @@ export class WorkTaskViewer extends Component {
     }
 
     render() {
+        this.fetchWrapper(this.state.url);
+
         let contents = this.state.loading
             ? <p><em>Loading...</em></p>
             : this.renderWorkTasksTable(this.state.tasks);

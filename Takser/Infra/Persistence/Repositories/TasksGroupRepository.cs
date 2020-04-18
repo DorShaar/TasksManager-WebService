@@ -62,8 +62,6 @@ namespace Tasker.Infra.Persistence.Repositories
 
         public Task UpdateAsync(ITasksGroup newGroup)
         {
-            //mDatabase.LoadDatabase();
-
             ITasksGroup tasksGroupToUpdate = mDatabase.Entities.Find(entity => entity.ID == newGroup.ID);
 
             if (tasksGroupToUpdate == null)

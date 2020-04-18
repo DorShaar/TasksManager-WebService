@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import FunctionalButton from './FunctionalButton';
 import TaskerHttpRequester from '../utils/TasksFunctions'
-import { WorkTaskViewer } from './WorkTaskViewer';
+import { TestViewer } from './Test';
 
 export class TasksGroupViewer extends Component {
 
@@ -49,7 +49,7 @@ export class TasksGroupViewer extends Component {
                             <td>{group.size}</td>
                             <td>
                                 <FunctionalButton
-                                    onClickFunction={() => WorkTaskViewer.renderWorkTasks()}
+                                    onClickFunction={() => this.ViewGroupTasks(group.groupId)}
                                     buttonName="view"
                                 />
                                 <FunctionalButton
@@ -66,6 +66,12 @@ export class TasksGroupViewer extends Component {
                     )}
                 </tbody>
             </table>
+        );
+    }
+
+    ViewGroupTasks(groupId) {
+        return (
+            <TestViewer> groupId={groupId} </TestViewer>
         );
     }
 
