@@ -49,20 +49,21 @@ namespace Tasker.Tests.Api.Controllers
             response.EnsureSuccessStatusCode();
         }
 
-        //[Fact]
-        //public async Task PostAsync_AlreadyExistingGroupName_MethodNotAllowedStatusCode()
-        //{
-        //    string realId = "1000";
-        //    string alreadyExistingGroupName = "bla";
+        [Fact]
+        public async Task PostAsync_AlreadyExistingGroupName_MethodNotAllowedStatusCode()
+        {
+            string realGroupId = "1001";
+            string alreadyExistingGroupName = "Free";
 
-        //    using TestServer testServer = CreateTestServer();
-        //    using HttpClient httpClient = testServer.CreateClient();
-        //    HttpResponseMessage response = await httpClient.PostAsync(
-        //        $"{MainRoute}/{realId}", 
-        //        new StringContent($"resource: {alreadyExistingGroupName}", Encoding.UTF8, PostMediaType));
+            using TestServer testServer = CreateTestServer();
+            using HttpClient httpClient = testServer.CreateClient();
 
-        //    Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
-        //}
+            SaveTasksGroupResource groupResource = new SaveTasksGroupResource { GroupName = alreadyExistingGroupName };
+            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
+            HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/{realGroupId}", jsonContent);
+
+            Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        }
 
         [Fact]
         public async Task PostAsync_ThrowsException_InternalServerErrorStatusCode()
@@ -73,8 +74,10 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response =
-                await httpClient.PostAsync($"{MainRoute}/some-id", new StringContent("content", Encoding.UTF8, PostMediaType));
+
+            SaveTasksGroupResource groupResource = new SaveTasksGroupResource { GroupName = "newGroupName" };
+            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
+            HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/some-id", jsonContent);
 
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }

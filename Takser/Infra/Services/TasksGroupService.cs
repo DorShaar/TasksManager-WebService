@@ -118,18 +118,22 @@ namespace Tasker.Infra.Services
 
         public async Task<Response<ITasksGroup>> UpdateAsync(string id, string newGroupName)
         {
+            if (!mTasksGroupNameValidator.IsNameValid(newGroupName))
+                return new Response<ITasksGroup>(isSuccess: false, $"Group name '{newGroupName}' is invalid");
+
+            if (await IsTasksGroupNameAlreadyExist(newGroupName))
+                return new Response<ITasksGroup>(isSuccess: false, $"Group name '{newGroupName}' is already exists");
+
             ITasksGroup groupToUpdate = await mTasksGroupRepository.FindAsync(id);
 
             if (groupToUpdate == null)
                 return new Response<ITasksGroup>(isSuccess: false, "Group not found");
 
-            if (!mTasksGroupNameValidator.IsNameValid(newGroupName))
-                return new Response<ITasksGroup>(isSuccess: false, $"Group name '{newGroupName}' is invalid");
-
-            groupToUpdate.Name = newGroupName;
-
             try
             {
+                groupToUpdate.Name = newGroupName;
+                await UpdateGroupNamesForAllChildren(groupToUpdate);
+
                 await mTasksGroupRepository.UpdateAsync(groupToUpdate);
 
                 return new Response<ITasksGroup>(groupToUpdate, isSuccess: true);
@@ -140,14 +144,25 @@ namespace Tasker.Infra.Services
             }
         }
 
-        private async Task<bool> IsNameAlreadyExist()
+        private async Task<bool> IsTasksGroupNameAlreadyExist(string groupNameToCheck)
         {
-            return true;
+            IEnumerable<string> identicalNames =
+                (await ListAsync()).Select(group => group.Name)
+                                   .Where(groupName => groupName.ToLower()
+                                   .Equals(groupNameToCheck.ToLower()));
+
+            return identicalNames.Any();
         }
 
-        private async Task UpdateGroupNamesForAllChildren ()
+        private Task UpdateGroupNamesForAllChildren(ITasksGroup tasksGroup)
         {
+            foreach (IWorkTask workTaskChild in tasksGroup.GetAllTasks())
+            {
+                mLogger.Log($"Updating task's group name from {workTaskChild.GroupName} to {tasksGroup.Name}");
+                workTaskChild.GroupName = tasksGroup.Name;
+            }
 
+            return Task.CompletedTask;
         }
 
         public async Task<Response<ITasksGroup>> RemoveAsync(string id)
