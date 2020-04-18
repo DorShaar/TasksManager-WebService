@@ -71,7 +71,14 @@ export class TasksGroupViewer extends Component {
 
     ViewGroupTasks(groupId) {
         return (
-            <TestViewer> groupId={groupId} </TestViewer>
+            <div>
+                <h1>Tasks</h1>
+                <table className='tasks_table' id='tasks'>
+                    <tbody>
+                        haha
+                    </tbody>
+                </table>
+            </div>
         );
     }
 

@@ -42,9 +42,11 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
 
-            var x = response.Content.ReadAsStringAsync();
+            string stringResponse = await response.Content.ReadAsStringAsync();
+            IEnumerable<WorkTaskResource> workTaskResources =
+                JsonConvert.DeserializeObject<IEnumerable<WorkTaskResource>>(stringResponse);
 
-            Assert.True(false);
+            Assert.Empty(workTaskResources);
         }
 
         [Fact]
@@ -57,19 +59,28 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id");
 
-            var x = response.Content.ReadAsStringAsync();
-            Assert.True(false);
+            string stringResponse = await response.Content.ReadAsStringAsync();
+            IEnumerable<WorkTaskResource> workTaskResources =
+                JsonConvert.DeserializeObject<IEnumerable<WorkTaskResource>>(stringResponse);
+
+            Assert.Empty(workTaskResources);
         }
 
         [Fact]
         public async Task ListTasksOfSpecificGroupAsync_SuccessStatusCode()
         {
-            using TestServer testServer = CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
+            string groupId = "some-id";
+            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
+            A.CallTo(() => tasksGroup.ID).Returns(groupId);
+
+            ITasksGroupService tasksGroupService = A.Fake<ITasksGroupService>();
+            A.CallTo(() => tasksGroupService.ListAsync()).Returns(new List<ITasksGroup>());
+
+            using TestServer testServer = CreateTestServerWithFakes(tasksGroupService, A.Fake<IWorkTaskService>());
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id");
+            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
 
             response.EnsureSuccessStatusCode();
-            Assert.True(false);
         }
 
         [Fact]
