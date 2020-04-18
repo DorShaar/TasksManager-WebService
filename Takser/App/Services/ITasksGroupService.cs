@@ -11,10 +11,10 @@ namespace Tasker.App.Services
         Task<IEnumerable<ITasksGroup>> FindTasksGroupsByConditionAsync(Func<ITasksGroup, bool> condition);
         Task<IEnumerable<IWorkTask>> FindWorkTasksByTasksGroupConditionAsync(Func<ITasksGroup, bool> condition);
         Task<IEnumerable<ITasksGroup>> ListAsync();
-        Task<Response<ITasksGroup>> SaveAsync(string groupName);
-        Task<Response<IWorkTask>> SaveTaskAsync(string taskGroupIdentifier, string workTaskDescription);
-        Task<Response<ITasksGroup>> UpdateAsync(string id, string newGroupName);
-        Task<Response<ITasksGroup>> RemoveAsync(string id);
-        Task<Response<IWorkTask>> RemoveTaskAsync(string id);
+        Task<IResponse<ITasksGroup>> SaveAsync(string groupName);
+        Task<IResponse<IWorkTask>> SaveTaskAsync(string taskGroupIdentifier, string workTaskDescription);
+        Task<IResponse<ITasksGroup>> UpdateAsync(string id, string newGroupName);
+        Task<IResponse<ITasksGroup>> RemoveAsync(string id);
+        Task<IResponse<IWorkTask>> RemoveTaskAsync(string id);
     }
 }

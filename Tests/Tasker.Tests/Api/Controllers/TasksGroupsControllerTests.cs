@@ -37,7 +37,7 @@ namespace Tasker.Tests.Api.Controllers
         {
             ITasksGroupService fakeTasksGroupService = A.Fake<ITasksGroupService>();
             A.CallTo(() => fakeTasksGroupService.UpdateAsync(A<string>.Ignored, A<string>.Ignored))
-                .Returns(new Response<ITasksGroup>(A.Fake<ITasksGroup>(), isSuccess: true));
+                .Returns(new SuccessResponse<ITasksGroup>(A.Fake<ITasksGroup>()));
 
             using TestServer testServer = CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
             using HttpClient httpClient = testServer.CreateClient();
@@ -98,7 +98,7 @@ namespace Tasker.Tests.Api.Controllers
         {
             ITasksGroupService fakeTasksGroupService = A.Fake<ITasksGroupService>();
             A.CallTo(() => fakeTasksGroupService.RemoveAsync(A<string>.Ignored))
-                .Returns(new Response<ITasksGroup>(isSuccess: true, ""));
+                .Returns(new SuccessResponse<ITasksGroup>(A.Fake<ITasksGroup>(), ""));
 
             using TestServer testServer = CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
             using HttpClient httpClient = testServer.CreateClient();

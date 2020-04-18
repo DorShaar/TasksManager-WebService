@@ -68,26 +68,27 @@ namespace Tasker.Infra.Services
             return tasksGroups;
         }
 
-        public async Task<Response<ITasksGroup>> SaveAsync(string groupName)
+        public async Task<IResponse<ITasksGroup>> SaveAsync(string groupName)
         {
             try
             {
                 ITasksGroup tasksGroup = mTaskGroupBuilder.Create(groupName, mLogger);
 
                 if (!mTasksGroupNameValidator.IsNameValid(tasksGroup.Name))
-                    return new Response<ITasksGroup>(isSuccess: false, $"Group name '{tasksGroup.Name}' exceeds the maximal group name length: {NameLengths.MaximalGroupNameLength}");
+                    return new FailResponse<ITasksGroup>(
+                        $"Group name '{tasksGroup.Name}' exceeds the maximal group name length: {NameLengths.MaximalGroupNameLength}");
 
                 await mTasksGroupRepository.AddAsync(tasksGroup);
 
-                return new Response<ITasksGroup>(tasksGroup, isSuccess: true);
+                return new SuccessResponse<ITasksGroup>(tasksGroup);
             }
             catch (Exception ex)
             {
-                return new Response<ITasksGroup>(isSuccess: false, $"An error occurred when saving tasks group name {groupName}: {ex.Message}");
+                return new FailResponse<ITasksGroup>($"An error occurred when saving tasks group name {groupName}: {ex.Message}");
             }
         }
 
-        public async Task<Response<IWorkTask>> SaveTaskAsync(string taskGroupIdentifier, string workTaskDescription)
+        public async Task<IResponse<IWorkTask>> SaveTaskAsync(string taskGroupIdentifier, string workTaskDescription)
         {
             try
             {
@@ -96,38 +97,38 @@ namespace Tasker.Infra.Services
                     tasksGroup = (await FindTasksGroupsByConditionAsync(group => group.Name == taskGroupIdentifier)).FirstOrDefault();
 
                 if (tasksGroup == null)
-                    return new Response<IWorkTask>(isSuccess: false, $"Tasks group {taskGroupIdentifier} does not exist");
+                    return new FailResponse<IWorkTask>($"Tasks group {taskGroupIdentifier} does not exist");
 
                 if (!ValidateUniqueTaskDescription(tasksGroup, workTaskDescription))
-                    return new Response<IWorkTask>(isSuccess: false, $"Tasks group {tasksGroup.Name} has already work task with description {workTaskDescription}");
+                    return new FailResponse<IWorkTask>($"Tasks group {tasksGroup.Name} has already work task with description {workTaskDescription}");
 
                 IWorkTask workTask = tasksGroup.CreateTask(workTaskDescription);
 
                 if (!mWorkTaskNameValidator.IsNameValid(workTask.Description))
-                    return new Response<IWorkTask>(isSuccess: false, $"Group name '{workTask.Description}' is invalid");
+                    return new FailResponse<IWorkTask>($"Group name '{workTask.Description}' is invalid");
 
                 await mTasksGroupRepository.UpdateAsync(tasksGroup);
 
-                return new Response<IWorkTask>(workTask, isSuccess: true);
+                return new SuccessResponse<IWorkTask>(workTask);
             }
             catch (Exception ex)
             {
-                return new Response<IWorkTask>(isSuccess: false, $"An error occurred when saving work task {taskGroupIdentifier}: {ex.Message}");
+                return new FailResponse<IWorkTask>($"An error occurred when saving work task {taskGroupIdentifier}: {ex.Message}");
             }
         }
 
-        public async Task<Response<ITasksGroup>> UpdateAsync(string id, string newGroupName)
+        public async Task<IResponse<ITasksGroup>> UpdateAsync(string id, string newGroupName)
         {
             if (!mTasksGroupNameValidator.IsNameValid(newGroupName))
-                return new Response<ITasksGroup>(isSuccess: false, $"Group name '{newGroupName}' is invalid");
+                return new FailResponse<ITasksGroup>($"Group name '{newGroupName}' is invalid");
 
             if (await IsTasksGroupNameAlreadyExist(newGroupName))
-                return new Response<ITasksGroup>(isSuccess: false, $"Group name '{newGroupName}' is already exists");
+                return new FailResponse<ITasksGroup>($"Group name '{newGroupName}' is already exists");
 
             ITasksGroup groupToUpdate = await mTasksGroupRepository.FindAsync(id);
 
             if (groupToUpdate == null)
-                return new Response<ITasksGroup>(isSuccess: false, "Group not found");
+                return new FailResponse<ITasksGroup>("Group not found");
 
             try
             {
@@ -136,11 +137,11 @@ namespace Tasker.Infra.Services
 
                 await mTasksGroupRepository.UpdateAsync(groupToUpdate);
 
-                return new Response<ITasksGroup>(groupToUpdate, isSuccess: true);
+                return new SuccessResponse<ITasksGroup>(groupToUpdate);
             }
             catch (Exception ex)
             {
-                return new Response<ITasksGroup>(isSuccess: false, $"An error occurred when updating tasks group id {id}: {ex.Message}");
+                return new FailResponse<ITasksGroup>($"An error occurred when updating tasks group id {id}: {ex.Message}");
             }
         }
 
@@ -165,18 +166,18 @@ namespace Tasker.Infra.Services
             return Task.CompletedTask;
         }
 
-        public async Task<Response<ITasksGroup>> RemoveAsync(string id)
+        public async Task<IResponse<ITasksGroup>> RemoveAsync(string id)
         {
             ITasksGroup groupToRemove = await mTasksGroupRepository.FindAsync(id);
 
             if (groupToRemove == null)
-                return new Response<ITasksGroup>(isSuccess: false, $"Entity group {id} not found. No deletion performed");
+                return new FailResponse<ITasksGroup>($"Entity group {id} not found. No deletion performed");
 
             if (groupToRemove.Size > 0)
             {
                 StringBuilder idsInGroup = new StringBuilder();
                 groupToRemove.GetAllTasks().Select(task => task.ID).ToList().ForEach(id => idsInGroup.Append($"{id}, "));
-                return new Response<ITasksGroup>(groupToRemove, isSuccess: false, $"Entity group {id} cannot be deleted. Please move or remove" +
+                return new FailResponse<ITasksGroup>(groupToRemove, $"Entity group {id} cannot be deleted. Please move or remove" +
                         $" the next work tasks ids: {idsInGroup}");
             }
 
@@ -184,15 +185,15 @@ namespace Tasker.Infra.Services
             {
                 await mTasksGroupRepository.RemoveAsync(groupToRemove);
 
-                return new Response<ITasksGroup>(groupToRemove, isSuccess: true);
+                return new SuccessResponse<ITasksGroup>(groupToRemove);
             }
             catch (Exception ex)
             {
-                return new Response<ITasksGroup>(isSuccess: false, $"An error occurred when removing tasks group id {id}: {ex.Message}");
+                return new FailResponse<ITasksGroup>($"An error occurred when removing tasks group id {id}: {ex.Message}");
             }
         }
 
-        public async Task<Response<IWorkTask>> RemoveTaskAsync(string workTaskId)
+        public async Task<IResponse<IWorkTask>> RemoveTaskAsync(string workTaskId)
         {
             try
             {
@@ -204,15 +205,15 @@ namespace Tasker.Infra.Services
                         group.RemoveTask(workTaskId);
                         await mTasksGroupRepository.UpdateAsync(group);
 
-                        return new Response<IWorkTask>(taskToRemove, isSuccess: true);
+                        return new SuccessResponse<IWorkTask>(taskToRemove);
                     }
                 }
 
-                return new Response<IWorkTask>(isSuccess: false, $"Work task {workTaskId} not found. No task deletion performed");
+                return new FailResponse<IWorkTask>($"Work task {workTaskId} not found. No task deletion performed");
             }
             catch (Exception ex)
             {
-                return new Response<IWorkTask>(isSuccess: false, $"An error occurred when removing work task id {workTaskId}: {ex.Message}");
+                return new FailResponse<IWorkTask>($"An error occurred when removing work task id {workTaskId}: {ex.Message}");
             }
         }
 

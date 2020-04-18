@@ -70,7 +70,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.FindAsync(wrongID)).Returns<ITasksGroup>(null);
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.RemoveAsync(wrongID);
+            IResponse<ITasksGroup> response = await tasksGroupService.RemoveAsync(wrongID);
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -99,7 +99,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.RemoveAsync(tasksGroup.ID);
+            IResponse<ITasksGroup> response = await tasksGroupService.RemoveAsync(tasksGroup.ID);
             Assert.False(response.IsSuccess);
             Assert.Equal(tasksGroup, response.ResponseObject);
         }
@@ -128,7 +128,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.RemoveAsync(tasksGroup.ID);
+            IResponse<ITasksGroup> response = await tasksGroupService.RemoveAsync(tasksGroup.ID);
             Assert.True(response.IsSuccess);
             Assert.Equal(tasksGroup, response.ResponseObject);
         }
@@ -159,7 +159,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.RemoveTaskAsync(tasksGroup.ID);
+            IResponse<IWorkTask> response = await tasksGroupService.RemoveTaskAsync(tasksGroup.ID);
             Assert.True(response.IsSuccess);
             Assert.Equal(taskToRemove, response.ResponseObject);
         }
@@ -189,7 +189,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId");
+            IResponse<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId");
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -201,7 +201,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId");
+            IResponse<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId");
             A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
         }
 
@@ -226,7 +226,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.SaveAsync(groupName);
+            IResponse<ITasksGroup> response = await tasksGroupService.SaveAsync(groupName);
             Assert.True(response.IsSuccess);
             Assert.Equal(groupName, response.ResponseObject.Name);
         }
@@ -263,7 +263,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
+            IResponse<IWorkTask> response = await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -300,7 +300,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName);
+            IResponse<IWorkTask> response = await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName);
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -313,7 +313,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName);
+            IResponse<IWorkTask> response = await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName);
 
             A.CallTo(() => dbRepository.AddAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
         }
@@ -337,7 +337,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
+            IResponse<IWorkTask> response = await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description);
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -380,7 +380,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<IWorkTask> response = await tasksGroupService.SaveTaskAsync(validWorkTask.GroupName, validWorkTask.Description);
+            IResponse<IWorkTask> response = await tasksGroupService.SaveTaskAsync(validWorkTask.GroupName, validWorkTask.Description);
             Assert.True(response.IsSuccess);
             Assert.Equal(validWorkTask, response.ResponseObject);
         }
@@ -414,7 +414,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.FindAsync(wrongID)).Returns<ITasksGroup>(null);
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.UpdateAsync(wrongID, "newGroupName");
+            IResponse<ITasksGroup> response = await tasksGroupService.UpdateAsync(wrongID, "newGroupName");
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -442,7 +442,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, mInvalidGroupName);
+            IResponse<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, mInvalidGroupName);
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -471,7 +471,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, groupName);
+            IResponse<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, groupName);
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -486,7 +486,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, groupName);
+            IResponse<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, groupName);
 
             A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
         }
@@ -500,7 +500,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            Response<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, "newGroupName");
+            IResponse<ITasksGroup> response = await tasksGroupService.UpdateAsync(tasksGroup.ID, "newGroupName");
             Assert.True(response.IsSuccess);
             Assert.Equal(tasksGroup, response.ResponseObject);
         }

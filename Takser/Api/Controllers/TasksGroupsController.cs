@@ -59,7 +59,7 @@ namespace Takser.Api.Controllers
 
             try
             {
-                Response<ITasksGroup> result = await mTasksGroupService.UpdateAsync(id, saveTasksGroupResource.GroupName);
+                IResponse<ITasksGroup> result = await mTasksGroupService.UpdateAsync(id, saveTasksGroupResource.GroupName);
 
                 mLogger.Log($"Update result {(result.IsSuccess ? "succeeded" : "failed")}");
 
@@ -102,7 +102,7 @@ namespace Takser.Api.Controllers
 
             try
             {
-                Response<ITasksGroup> result = await mTasksGroupService.RemoveAsync(id);
+                IResponse<ITasksGroup> result = await mTasksGroupService.RemoveAsync(id);
 
                 mLogger.Log($"Remove result {(result.IsSuccess ? "succeeded" : "failed")}");
 
