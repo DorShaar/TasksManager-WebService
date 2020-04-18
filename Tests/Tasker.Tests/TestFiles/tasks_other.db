@@ -1,0 +1,406 @@
+[
+  {
+    "mLogger": {
+      "ShouldLogInformation": false
+    },
+    "mTasksChildren": {
+      "1033": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1033",
+        "GroupName": null,
+        "Description": "trip-scheduler C# application integrates with Go application",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:33:28.3094265+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-11-12T18:31:57.2298827+02:00",
+              "Status": 2,
+              "Reason": ""
+            },
+            {
+              "DateTime": "2019-12-01T22:18:44.2618112+02:00",
+              "Status": 0,
+              "Reason": ""
+            },
+            {
+              "DateTime": "2019-12-07T21:20:39.9495113+02:00",
+              "Status": 1,
+              "Reason": "Have other priorities"
+            }
+          ]
+        }
+      },
+      "1042": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1042",
+        "GroupName": "Free",
+        "Description": "Delete old NuGet packages",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2020-01-12T20:26:19.6885573+02:00",
+              "Status": 0,
+              "Reason": "Created"
+            }
+          ]
+        }
+      },
+      "1043": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": {
+          "mNoteDirecoryPath": "C:\\Dor\\My Computing Programs\\DevWorld\\Tasks",
+          "mNoteName": "1043-Create coverlet json parser"
+        },
+        "ID": "1043",
+        "GroupName": "Free",
+        "Description": "Create coverlet json parser",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2020-01-12T20:26:52.0540341+02:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2020-01-12T20:26:57.8955256+02:00",
+              "Status": 2,
+              "Reason": ""
+            },
+            {
+              "DateTime": "2020-01-13T01:15:10.154724+02:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      }
+    },
+    "ID": "1000",
+    "Name": "Free"
+  },
+  {
+    "mLogger": {
+      "ShouldLogInformation": false
+    },
+    "mTasksChildren": {
+      "1004": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1004",
+        "GroupName": null,
+        "Description": "add notes to task (with default task name)",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-08-06T21:28:28.6923261+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-08-06T21:31:24.6476084+03:00",
+              "Status": 1,
+              "Reason": "Done working"
+            }
+          ]
+        }
+      },
+      "1005": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1005",
+        "GroupName": null,
+        "Description": "use dictionary to find tasks and GroupNames in database",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-08-06T21:28:43.5230494+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-09-26T00:30:58.6293198+03:00",
+              "Status": 1,
+              "Reason": "Done working"
+            }
+          ]
+        }
+      },
+      "1006": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1006",
+        "GroupName": null,
+        "Description": "add move of task functionality",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-08-06T21:29:09.734932+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-08-06T21:31:18.5814539+03:00",
+              "Status": 1,
+              "Reason": "Done working"
+            }
+          ]
+        }
+      },
+      "1007": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1007",
+        "GroupName": null,
+        "Description": "create console printer",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-08-06T21:29:21.1670044+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-08-06T21:31:15.2724186+03:00",
+              "Status": 1,
+              "Reason": "Done working"
+            }
+          ]
+        }
+      },
+      "1008": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1008",
+        "GroupName": null,
+        "Description": "show GroupName name next to each task",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-08-06T21:30:09.9914564+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-09-26T00:26:41.3657643+03:00",
+              "Status": 1,
+              "Reason": "Done working"
+            }
+          ]
+        }
+      },
+      "1009": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1009",
+        "GroupName": null,
+        "Description": "when creating, deleting, ... on task, show description",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-08-06T21:30:59.0470817+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-03T00:03:36.824528+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      },
+      "1025": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1025",
+        "GroupName": null,
+        "Description": "Change order of taskName and GroupName at create-task",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:23:59.6313922+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-03T00:02:43.4808522+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      },
+      "1026": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1026",
+        "GroupName": null,
+        "Description": "each task will have history of status",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:24:37.0726798+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-03T00:03:40.3824258+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      },
+      "1027": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1027",
+        "GroupName": null,
+        "Description": "printing tasks after GroupName names, instead of each task have parent GroupName",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:26:31.4281186+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-03T00:03:45.8343234+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      },
+      "1028": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1028",
+        "GroupName": null,
+        "Description": "Creating notes will be with their task number AND their task name",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:27:30.2364281+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-05T20:44:55.1258567+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      },
+      "1029": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1029",
+        "GroupName": null,
+        "Description": "Validate that create-note on existing note does not ruin existing note",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:30:07.1092472+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-03T00:04:23.7797475+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      },
+      "1030": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1030",
+        "GroupName": null,
+        "Description": "Make notes system with directories",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:30:18.5608108+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-03T00:03:58.4122539+03:00",
+              "Status": 2,
+              "Reason": ""
+            },
+            {
+              "DateTime": "2019-10-05T20:44:59.1448904+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      },
+      "1031": {
+        "mLogger": {
+          "ShouldLogInformation": false
+        },
+        "mNote": null,
+        "ID": "1031",
+        "GroupName": null,
+        "Description": "remove - from commands",
+        "TaskStatusHistory": {
+          "StatusHistory": [
+            {
+              "DateTime": "2019-09-26T00:31:48.2419192+03:00",
+              "Status": 0,
+              "Reason": "Created"
+            },
+            {
+              "DateTime": "2019-10-03T00:03:26.5984217+03:00",
+              "Status": 1,
+              "Reason": ""
+            }
+          ]
+        }
+      }
+    },
+    "ID": "1001",
+    "Name": "Task-Manager-Work"
+  }
+]
