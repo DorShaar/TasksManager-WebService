@@ -282,7 +282,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         }
 
         [Fact]
-        public async Task UpdateAsync_GroupNotExists_DatabaseIsLoadedOnceAndNotSaved()
+        public async Task UpdateAsync_GroupNotExists_DatabaseIsNotLoadedNorSaved()
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
@@ -290,24 +290,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             await tasksGroupRepository.UpdateAsync(A.Fake<ITasksGroup>());
 
-            A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => database.LoadDatabase()).MustNotHaveHappened();
             A.CallTo(() => database.SaveCurrentDatabase()).MustNotHaveHappened();
-        }
-
-        [Fact]
-        public async Task UpdateAsync_GroupNotExistsDatabaseIsLoadedAndSavedOnce()
-        {
-            IAppDbContext database = A.Fake<IAppDbContext>();
-
-            TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
-
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            database.Entities.Add(tasksGroup);
-
-            await tasksGroupRepository.UpdateAsync(tasksGroup);
-
-            A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
-            A.CallTo(() => database.SaveCurrentDatabase()).MustHaveHappenedOnceExactly();
         }
     }
 }

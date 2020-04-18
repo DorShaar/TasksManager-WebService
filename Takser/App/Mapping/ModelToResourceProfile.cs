@@ -19,8 +19,14 @@ namespace Tasker.App.Mapping
                                 opt => opt.MapFrom(source => source.Size));
 
             CreateMap<IWorkTask, WorkTaskResource>()
-                .ForMember(dest => dest.GroupName, 
-                           option => option.MapFrom(source => source.GroupName));
+                .ForMember(dest => dest.TaskId,
+                           option => option.MapFrom(source => source.ID))
+                .ForMember(dest => dest.GroupName,
+                           option => option.MapFrom(source => source.GroupName))
+                .ForMember(dest => dest.Description,
+                           option => option.MapFrom(source => source.Description))
+                .ForMember(dest => dest.Status,
+                           option => option.MapFrom(source => source.Status.ToString()));
         }
     }
 }

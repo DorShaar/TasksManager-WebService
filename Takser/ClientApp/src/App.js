@@ -3,6 +3,7 @@ import { Route } from 'react-router';
 import { Layout } from './components/Layout';
 import { Home } from './components/Home';
 import { TasksGroupViewer } from './components/TasksGroupViewer';
+import { WorkTaskViewer } from './components/WorkTaskViewer';
 
 export default class App extends Component {
     static displayName = App.name;
@@ -11,7 +12,8 @@ export default class App extends Component {
         return (
             <Layout>
                 <Route exact path='/' component={Home} />
-                <Route path='/tasks-groups' component={TasksGroupViewer} />
+                <Route exact path='/tasks-groups' component={TasksGroupViewer} />
+                <Route exact path='/tasks-groups/tasks' component={WorkTaskViewer} />
             </Layout>
         );
     }

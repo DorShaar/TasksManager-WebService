@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import FunctionalButton from './FunctionalButton';
 import TaskerHttpRequester from '../utils/TasksFunctions'
+import { WorkTaskViewer } from './WorkTaskViewer';
 
 export class TasksGroupViewer extends Component {
 
@@ -47,7 +48,10 @@ export class TasksGroupViewer extends Component {
                             <td>{group.status}</td>
                             <td>{group.size}</td>
                             <td>
-                                <FunctionalButton /*onClickFunction={displayFunction}*/ buttonName="view" />
+                                <FunctionalButton
+                                    onClickFunction={() => WorkTaskViewer.renderWorkTasks()}
+                                    buttonName="view"
+                                />
                                 <FunctionalButton
                                     onClickFunction={() => TaskerHttpRequester.postHttpRequest(
                                         this.state.url + group.groupId, this.createNewGroupNameObject())}

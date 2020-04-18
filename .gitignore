@@ -268,3 +268,4 @@ __pycache__/
 .database/
 Properties/
 Database.JsonService/
+Takser/Infra/Options/ConfigFile/

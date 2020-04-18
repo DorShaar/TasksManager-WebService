@@ -32,7 +32,7 @@ namespace Takser.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<TasksGroupResource>> ListAsync()
+        public async Task<IEnumerable<TasksGroupResource>> ListGroupsAsync()
         {
             mLogger.Log("Requesting groups");
 
@@ -44,6 +44,29 @@ namespace Takser.Api.Controllers
             mLogger.Log($"Found {taskGroupResources.Count()} groups");
 
             return taskGroupResources;
+        }
+
+        [HttpGet("{groupId}")]
+        public async Task<IEnumerable<WorkTaskResource>> ListTasksOfSpecificGroupAsync(string groupId)
+        {
+            IEnumerable<WorkTaskResource> workTaskResources = new List<WorkTaskResource>();
+
+            if (string.IsNullOrEmpty(groupId))
+                return workTaskResources;
+
+            mLogger.Log($"Requesting all tasks from group id {groupId}");
+
+            ITasksGroup group = (await mTasksGroupService.ListAsync())
+                .Where(group => group.ID.Equals(groupId)).SingleOrDefault();
+
+            if (group == null)
+                return workTaskResources;
+
+            workTaskResources = mMapper.Map<IEnumerable<IWorkTask>, IEnumerable<WorkTaskResource>>(group.GetAllTasks());
+
+            mLogger.Log($"Found {workTaskResources.Count()} work tasks");
+
+            return workTaskResources;
         }
 
         [HttpPost("{id}")]

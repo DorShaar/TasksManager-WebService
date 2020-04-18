@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -23,13 +24,52 @@ namespace Tasker.Tests.Api.Controllers
         private const string PostMediaType = "application/json";
 
         [Fact]
-        public async Task ListAsync_SuccessStatusCode()
+        public async Task ListGroupsAsync_SuccessStatusCode()
         {
             using TestServer testServer = CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}");
 
             response.EnsureSuccessStatusCode();
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public async Task ListTasksOfSpecificGroupAsync_groupIdNullOrEmpty_EmptyListReturned(string groupId)
+        {
+            using TestServer testServer = CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
+            using HttpClient httpClient = testServer.CreateClient();
+            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
+
+            var x = response.Content.ReadAsStringAsync();
+
+            Assert.True(false);
+        }
+
+        [Fact]
+        public async Task ListTasksOfSpecificGroupAsync_groupNotFound_EmptyListReturned()
+        {
+            ITasksGroupService tasksGroupService = A.Fake<ITasksGroupService>();
+            A.CallTo(() => tasksGroupService.ListAsync()).Returns(new List<ITasksGroup>());
+
+            using TestServer testServer = CreateTestServerWithFakes(tasksGroupService, A.Fake<IWorkTaskService>());
+            using HttpClient httpClient = testServer.CreateClient();
+            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id");
+
+            var x = response.Content.ReadAsStringAsync();
+            Assert.True(false);
+        }
+
+        [Fact]
+        public async Task ListTasksOfSpecificGroupAsync_SuccessStatusCode()
+        {
+            using TestServer testServer = CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
+            using HttpClient httpClient = testServer.CreateClient();
+            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id");
+
+            response.EnsureSuccessStatusCode();
+            Assert.True(false);
         }
 
         [Fact]
