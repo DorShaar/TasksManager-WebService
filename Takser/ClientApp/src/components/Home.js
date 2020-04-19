@@ -7,7 +7,7 @@ export class Home extends Component {
     return (
       <div>
         <h1>Hello, Welcome to Tasker!</h1>
-        <p>Here you can manage your tasks and notes</p>
+        <p>Here you can manage your tasks and notes.</p>
       </div>
     );
   }

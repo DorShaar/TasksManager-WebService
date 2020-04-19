@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import TaskerHttpRequester from '../utils/TasksFunctions';
 
 export class WorkTaskViewer extends Component {
 
@@ -7,22 +8,13 @@ export class WorkTaskViewer extends Component {
         this.state = {
             tasks: [],
             loading: true,
-            url: 'api/TasksGroups/Tasks'
+            url: 'api/TasksGroups/'
         };
+    }
 
-        fetch(this.state.url,
-            {
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw response;
-                }
-
-                return response.json();
-            })
-            .then(data => this.setState({ tasks: data, loading: false }))
+    async componentDidMount() {
+        const data = await TaskerHttpRequester.getHttpRequest(this.state.url + window.location.pathname.split('/')[2]);
+        this.setState({ tasks: data, loading: false });
     }
 
     renderWorkTasksTable(tasks) {

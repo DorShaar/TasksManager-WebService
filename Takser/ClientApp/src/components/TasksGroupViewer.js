@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import FunctionalButton from './FunctionalButton';
-import TaskerHttpRequester from '../utils/TasksFunctions'
-import { TestViewer } from './Test';
+import TaskerHttpRequester from '../utils/TasksFunctions';
 
 export class TasksGroupViewer extends Component {
 
@@ -12,20 +11,11 @@ export class TasksGroupViewer extends Component {
             loading: true,
             url: 'api/TasksGroups/'
         };
+    }
 
-        fetch(this.state.url,
-            {
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw response;
-                }
-
-                return response.json();
-            })
-            .then(data => this.setState({ groups: data, loading: false }))
+    async componentDidMount() {
+        const data = await TaskerHttpRequester.getHttpRequest(this.state.url);
+        this.setState({ groups: data, loading: false });
     }
 
     renderTasksGroupsTable(groups) {
@@ -70,16 +60,7 @@ export class TasksGroupViewer extends Component {
     }
 
     ViewGroupTasks(groupId) {
-        return (
-            <div>
-                <h1>Tasks</h1>
-                <table className='tasks_table' id='tasks'>
-                    <tbody>
-                        haha
-                    </tbody>
-                </table>
-            </div>
-        );
+        window.location.pathname += "/" + groupId;
     }
 
     createNewGroupNameObject() {

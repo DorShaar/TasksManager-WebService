@@ -78,8 +78,6 @@ namespace Tasker.Infra.Persistence.Repositories
 
         public Task RemoveAsync(ITasksGroup group)
         {
-            mDatabase.LoadDatabase();
-
             if (!mDatabase.Entities.Contains(group))
             {
                 mLogger.LogError($"Group ID: {group.ID} Group name: {group.Name} - No such entity was found in database");

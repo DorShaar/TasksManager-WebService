@@ -1,40 +1,55 @@
 ﻿import React from 'react';
 
-class TaskerHttpRequester extends React.Component {
+function alertError(response) {
+    alert("Response status code: " + response.status + "\n" +
+        "Error Message: " + response.statusText);
+}
 
-    static deleteHttpRequest(httpRequest) {
-        fetch(httpRequest,
+export default class TaskerHttpRequester extends React.Component {
+
+    static async getHttpRequest(url) {
+        const response = await fetch(url, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            alertError(response);
+            return;
+        }
+
+        return await response.json();
+    }
+
+    static async deleteHttpRequest(url) {
+        const response = await fetch(url,
             {
                 method: 'DELETE'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    alert("Response status code: " + response.status + "\n" +
-                        "Error Message: " + response.statusText);
-                    return;
-                }
+            });
 
-                return response.json();
-            })
+        if (!response.ok) {
+            alertError(response);
+            return;
+        }
+
+        return await response.json();
     };
 
-    static postHttpRequest(httpRequest, jsonObject) {
-        fetch(httpRequest,
+    static async postHttpRequest(url, jsonObject) {
+        const response = await fetch(url,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(jsonObject)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    alert("Response status code: " + response.status + "\n" +
-                        "Error Message: " + response.statusText);
-                    return;
-                }
+            });
 
-                return response.json();
-            })
+        if (!response.ok) {
+            alertError(response);
+            return;
+        }
+
+        return await response.json();
     };
 }
-
-export default TaskerHttpRequester;

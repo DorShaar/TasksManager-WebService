@@ -13,7 +13,7 @@ export default class App extends Component {
             <Layout>
                 <Route exact path='/' component={Home} />
                 <Route exact path='/tasks-groups' component={TasksGroupViewer} />
-                <Route exact path='/tasks-groups/tasks' component={WorkTaskViewer} />
+                <Route path='/tasks-groups/:groupId' component={WorkTaskViewer} />
             </Layout>
         );
     }
