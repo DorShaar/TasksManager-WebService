@@ -75,6 +75,36 @@ namespace Takser.Api.Controllers
             return workTaskResources;
         }
 
+        [HttpPost("{id}")]
+        public async Task<IActionResult> PostTaskAsync(string id, [FromBody] WorkTaskResource saveWorkTaskResource)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
+
+            if (saveWorkTaskResource == null)
+                return BadRequest("Work task resource is null");
+
+            mLogger.Log($"Requesting updating work task id {id} with new description name {saveWorkTaskResource.Description}");
+
+            try
+            {
+                IResponse<IWorkTask> result = await mTasksGroupService.UpdateTaskAsync(id, saveWorkTaskResource.Description);
+
+                mLogger.Log($"Update result {(result.IsSuccess ? "succeeded" : "failed")}");
+
+                if (!result.IsSuccess)
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
+
+                WorkTaskResource workTaskResource = mMapper.Map<IWorkTask, WorkTaskResource>(result.ResponseObject);
+                return Ok(workTaskResource);
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError($"Update operation failed with error", ex);
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         [HttpPut]
         public async Task<IActionResult> PutWorkTaskAsync([FromBody] WorkTaskResource newWorkTaskResource)
         {
