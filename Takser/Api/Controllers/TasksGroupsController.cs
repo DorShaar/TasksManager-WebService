@@ -69,6 +69,26 @@ namespace Takser.Api.Controllers
             return workTaskResources;
         }
 
+        [HttpGet]
+        [Route("Tasks")]
+        public async Task<IEnumerable<WorkTaskResource>> ListTasksAsync()
+        {
+            IEnumerable<WorkTaskResource> workTaskResources = new List<WorkTaskResource>();
+
+            mLogger.Log("Requesting all tasks");
+
+            IEnumerable<IWorkTask> tasks = await mWorkTaskService.ListAsync();
+
+            if (tasks == null)
+                return workTaskResources;
+
+            workTaskResources = mMapper.Map<IEnumerable<IWorkTask>, IEnumerable<WorkTaskResource>>(tasks);
+
+            mLogger.Log($"Found {workTaskResources.Count()} work tasks");
+
+            return workTaskResources;
+        }
+
         [HttpPost("{id}")]
         public async Task<IActionResult> PostAsync(string id, [FromBody] SaveTasksGroupResource saveTasksGroupResource)
         {

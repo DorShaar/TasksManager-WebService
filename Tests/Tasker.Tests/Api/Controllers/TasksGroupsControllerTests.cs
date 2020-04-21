@@ -21,6 +21,7 @@ namespace Tasker.Tests.Api.Controllers
     public class TasksGroupsControllerTests
     {
         private const string MainRoute = "api/TasksGroups";
+        private const string TasksRoute = "api/TasksGroups/Tasks";
         private const string PostMediaType = "application/json";
 
         [Fact]
@@ -79,6 +80,40 @@ namespace Tasker.Tests.Api.Controllers
             using TestServer testServer = CreateTestServerWithFakes(tasksGroupService, A.Fake<IWorkTaskService>());
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        [Fact]
+        public async Task ListTasksAsync_NullListReturned_EmptyListReturned()
+        {
+            List<IWorkTask> tasksList = null;
+
+            IWorkTaskService tasksGroupService = A.Fake<IWorkTaskService>();
+            A.CallTo(() => tasksGroupService.ListAsync()).Returns(tasksList);
+
+            using TestServer testServer = CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), tasksGroupService);
+            using HttpClient httpClient = testServer.CreateClient();
+            HttpResponseMessage response = await httpClient.GetAsync(TasksRoute);
+
+            string stringResponse = await response.Content.ReadAsStringAsync();
+            IEnumerable<WorkTaskResource> workTaskResources =
+                JsonConvert.DeserializeObject<IEnumerable<WorkTaskResource>>(stringResponse);
+
+            Assert.Empty(workTaskResources);
+        }
+
+        [Fact]
+        public async Task ListTasksAsync_SuccessStatusCode()
+        {
+            List<IWorkTask> tasksList = new List<IWorkTask>();
+
+            IWorkTaskService tasksGroupService = A.Fake<IWorkTaskService>();
+            A.CallTo(() => tasksGroupService.ListAsync()).Returns(tasksList);
+
+            using TestServer testServer = CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), tasksGroupService);
+            using HttpClient httpClient = testServer.CreateClient();
+            HttpResponseMessage response = await httpClient.GetAsync(TasksRoute);
 
             response.EnsureSuccessStatusCode();
         }
