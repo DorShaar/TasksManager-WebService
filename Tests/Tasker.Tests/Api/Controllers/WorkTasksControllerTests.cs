@@ -118,7 +118,7 @@ namespace Tasker.Tests.Api.Controllers
         }
 
         [Fact]
-        public async Task PutWorkTaskAsync_RequestNotSuccess_BadRequestReturned()
+        public async Task PutWorkTaskAsync_RequestNotSuccess_MethodNotAllowedReturned()
         {
             ITasksGroupService taskGroupService = A.Fake<ITasksGroupService>();
             A.CallTo(() => taskGroupService.SaveTaskAsync(A<string>.Ignored, A<string>.Ignored))
@@ -132,7 +132,7 @@ namespace Tasker.Tests.Api.Controllers
             HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent);
 
             A.CallTo(() => taskGroupService.SaveTaskAsync(A<string>.Ignored, A<string>.Ignored)).MustHaveHappenedOnceExactly();
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
         }
 
         [Fact]

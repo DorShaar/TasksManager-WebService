@@ -9,18 +9,22 @@ export class WorkTaskViewer extends Component {
         this.state = {
             tasks: [],
             loading: true,
-            url: 'api/TasksGroups/'
+            url: 'api/WorkTasks/'
         };
     }
 
     async componentDidMount() {
-        const newUrl = this.state.url + window.location.pathname.split('/')[2];
-        const data = await TaskerHttpRequester.getHttpRequest(newUrl);
+        const urlRequestParameter = window.location.pathname.split('/')[2];
+        let tasksUrlRequest = this.state.url;
+
+        if (urlRequestParameter !== "tasks")
+            tasksUrlRequest += urlRequestParameter;
+
+        const data = await TaskerHttpRequester.getHttpRequest(tasksUrlRequest);
 
         this.setState({
             tasks: data,
-            loading: false,
-            url: newUrl
+            loading: false
         });
     }
 
@@ -61,19 +65,19 @@ export class WorkTaskViewer extends Component {
         );
     }
 
-    createNewWorkTaskDescriptionObject() {
-        let taskDescription = window.prompt('Type new task description');
-        return { TaskDescription: taskDescription};
-    }
-
-    //addTask() {
-    //    let taskDescription = window.prompt('Type task description');
-    //    let groupName = window.prompt('Type group name');
-    //    return {
-    //        TaskDescription: taskDescription,
-    //        groupName: groupName
-    //    };
+    //createNewWorkTaskDescriptionObject() {
+    //    let taskDescription = window.prompt('Type new task description');
+    //    return { TaskDescription: taskDescription};
     //}
+
+    addTask() {
+        let taskDescription = window.prompt('Type task description');
+        let groupName = window.prompt('Type group name');
+        return {
+            description: taskDescription,
+            groupName: groupName
+        };
+    }
 
     render() {
         let contents = this.state.loading
@@ -85,7 +89,7 @@ export class WorkTaskViewer extends Component {
                 <h1>Work Tasks</h1>
                 <p> </p>
                 <FunctionalButton
-                    onClickFunction={() => TaskerHttpRequester.postHttpRequest(
+                    onClickFunction={() => TaskerHttpRequester.putHttpRequest(
                         this.state.url, this.addTask())}
                     buttonName="Add Task"
                 />

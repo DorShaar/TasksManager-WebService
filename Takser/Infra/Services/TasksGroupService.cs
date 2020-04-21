@@ -94,7 +94,10 @@ namespace Tasker.Infra.Services
             {
                 ITasksGroup tasksGroup = (await FindTasksGroupsByConditionAsync(group => group.ID == taskGroupIdentifier)).FirstOrDefault();
                 if (tasksGroup == null)
-                    tasksGroup = (await FindTasksGroupsByConditionAsync(group => group.Name == taskGroupIdentifier)).FirstOrDefault();
+                {
+                    tasksGroup = (await FindTasksGroupsByConditionAsync(
+                        group => group.Name.ToLower() == taskGroupIdentifier.ToLower())).FirstOrDefault();
+                }
 
                 if (tasksGroup == null)
                     return new FailResponse<IWorkTask>($"Tasks group {taskGroupIdentifier} does not exist");

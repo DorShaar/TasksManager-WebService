@@ -92,7 +92,7 @@ namespace Takser.Api.Controllers
                         await mTasksGroupService.SaveTaskAsync(newWorkTaskResource.GroupName, newWorkTaskResource.Description);
 
                 if (!result.IsSuccess)
-                    return BadRequest(result.Message);
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
 
                 WorkTaskResource workTaskResource = mMapper.Map<IWorkTask, WorkTaskResource>(result.ResponseObject);
                 return Ok(workTaskResource);

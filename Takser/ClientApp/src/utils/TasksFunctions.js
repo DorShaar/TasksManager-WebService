@@ -52,4 +52,20 @@ export default class TaskerHttpRequester extends React.Component {
 
         return await response.json();
     };
+
+    static async putHttpRequest(url, jsonObject) {
+        const response = await fetch(url,
+            {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(jsonObject)
+            });
+
+        if (!response.ok) {
+            alertError(response);
+            return;
+        }
+
+        return await response.json();
+    };
 }
