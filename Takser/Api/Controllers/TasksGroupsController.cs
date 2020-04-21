@@ -18,15 +18,12 @@ namespace Takser.Api.Controllers
     public class TasksGroupsController : Controller
     {
         private readonly ITasksGroupService mTasksGroupService;
-        private readonly IWorkTaskService mWorkTaskService;
         private readonly IMapper mMapper;
         private readonly ILogger mLogger;
 
-        public TasksGroupsController(ITasksGroupService taskService, IWorkTaskService workTaskService,
-            IMapper mapper, ILogger logger)
+        public TasksGroupsController(ITasksGroupService taskService, IMapper mapper, ILogger logger)
         {
             mTasksGroupService = taskService;
-            mWorkTaskService = workTaskService;
             mMapper = mapper;
             mLogger = logger;
         }
@@ -46,51 +43,8 @@ namespace Takser.Api.Controllers
             return taskGroupResources;
         }
 
-        [HttpGet("{groupId}")]
-        public async Task<IEnumerable<WorkTaskResource>> ListTasksOfSpecificGroupAsync(string groupId)
-        {
-            IEnumerable<WorkTaskResource> workTaskResources = new List<WorkTaskResource>();
-
-            if (string.IsNullOrEmpty(groupId))
-                return workTaskResources;
-
-            mLogger.Log($"Requesting all tasks from group id {groupId}");
-
-            ITasksGroup group = (await mTasksGroupService.ListAsync())
-                .Where(group => group.ID.Equals(groupId)).SingleOrDefault();
-
-            if (group == null)
-                return workTaskResources;
-
-            workTaskResources = mMapper.Map<IEnumerable<IWorkTask>, IEnumerable<WorkTaskResource>>(group.GetAllTasks());
-
-            mLogger.Log($"Found {workTaskResources.Count()} work tasks");
-
-            return workTaskResources;
-        }
-
-        [HttpGet]
-        [Route("Tasks")]
-        public async Task<IEnumerable<WorkTaskResource>> ListTasksAsync()
-        {
-            IEnumerable<WorkTaskResource> workTaskResources = new List<WorkTaskResource>();
-
-            mLogger.Log("Requesting all tasks");
-
-            IEnumerable<IWorkTask> tasks = await mWorkTaskService.ListAsync();
-
-            if (tasks == null)
-                return workTaskResources;
-
-            workTaskResources = mMapper.Map<IEnumerable<IWorkTask>, IEnumerable<WorkTaskResource>>(tasks);
-
-            mLogger.Log($"Found {workTaskResources.Count()} work tasks");
-
-            return workTaskResources;
-        }
-
         [HttpPost("{id}")]
-        public async Task<IActionResult> PostAsync(string id, [FromBody] SaveTasksGroupResource saveTasksGroupResource)
+        public async Task<IActionResult> PostGroupAsync(string id, [FromBody] TasksGroupResource saveTasksGroupResource)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());
@@ -118,22 +72,6 @@ namespace Takser.Api.Controllers
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
-
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutAsync(string id, [FromBody] SaveTasksGroupResource resource)
-        //{
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState.GetErrorMessages());
-
-        //    ITasksGroup tasksGroup = mMapper.Map<SaveTasksGroupResource, ITasksGroup>(resource);
-        //    Response<ITasksGroup> result = await mTasksGroupService.UpdateAsync(id, tasksGroup.Name);
-
-        //    if (!result.IsSuccess)
-        //        return BadRequest(result.Message);
-
-        //    TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
-        //    return Ok(tasksGroupResource);
-        //}
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveGroup(string id)

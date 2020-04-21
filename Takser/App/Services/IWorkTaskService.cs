@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TaskData.Contracts;
-using Tasker.Domain.Communication;
 
 namespace Tasker.App.Services
 {

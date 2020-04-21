@@ -29,7 +29,6 @@ namespace Tasker.Infra.Extensions
             RegisterDadabases(services);
 
             services.AddAutoMapper(typeof(ModelToResourceProfile));
-            services.AddAutoMapper(typeof(ResourceToModelProfile));
 
             AddConfiguration(services);
 
