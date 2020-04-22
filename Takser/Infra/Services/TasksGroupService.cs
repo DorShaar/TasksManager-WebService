@@ -176,23 +176,24 @@ namespace Tasker.Infra.Services
                 if (!mWorkTaskNameValidator.IsNameValid(newTaskDescription))
                     return new FailResponse<IWorkTask>($"Task description'{newTaskDescription}' is invalid");
 
-                foreach (ITasksGroup group in await ListAsync())
+                ITasksGroup groupParent;
+                IWorkTask taskToUpdate;
+
+                (groupParent, taskToUpdate) = await FindWorkTaskAndItsParentGroup(workTaskId);
+
+                if (taskToUpdate != null)
                 {
-                    IWorkTask taskToUpdate = group.GetTask(workTaskId);
-                    if (taskToUpdate != null)
+                    if (IsWorkTaskDescriptionAlreadyExist(groupParent, newTaskDescription))
                     {
-                        if (IsWorkTaskDescriptionAlreadyExist(group, newTaskDescription))
-                        {
-                            return new FailResponse<IWorkTask>(
-                                $"Task description'{newTaskDescription}' is already exist in group {group.ID}");
-                        }
-
-                        taskToUpdate.Description = newTaskDescription;
-                        group.UpdateTask(taskToUpdate);
-                        await mTasksGroupRepository.UpdateAsync(group);
-
-                        return new SuccessResponse<IWorkTask>(taskToUpdate);
+                        return new FailResponse<IWorkTask>(
+                            $"Task description'{newTaskDescription}' is already exist in group {groupParent.ID}");
                     }
+
+                    taskToUpdate.Description = newTaskDescription;
+                    groupParent.UpdateTask(taskToUpdate);
+                    await mTasksGroupRepository.UpdateAsync(groupParent);
+
+                    return new SuccessResponse<IWorkTask>(taskToUpdate);
                 }
 
                 return new FailResponse<IWorkTask>($"Work task {workTaskId} not found. No task update performed");
@@ -200,6 +201,44 @@ namespace Tasker.Infra.Services
             catch (Exception ex)
             {
                 return new FailResponse<IWorkTask>($"An error occurred when updating work task id {workTaskId}: {ex.Message}");
+            }
+        }
+
+        public async Task<IResponse<IWorkTask>> MoveTaskAsync(string workTaskId, string tasksGroupId)
+        {
+            ITasksGroup destinationGroup = await mTasksGroupRepository.FindAsync(tasksGroupId);
+            if (destinationGroup == null)
+                return new FailResponse<IWorkTask>($"Entity group {tasksGroupId} not found. No move performed");
+
+            try
+            {
+                ITasksGroup OldParentGroup;
+                IWorkTask taskToMove;
+
+                (OldParentGroup, taskToMove) = await FindWorkTaskAndItsParentGroup(workTaskId);
+
+                if (taskToMove != null)
+                {
+                    if (IsWorkTaskDescriptionAlreadyExist(destinationGroup, taskToMove.Description))
+                    {
+                        return new FailResponse<IWorkTask>(
+                            $"Task description'{taskToMove.Description}' is already exist in group {destinationGroup.ID}");
+                    }
+
+                    destinationGroup.AddTask(taskToMove);
+                    await mTasksGroupRepository.UpdateAsync(destinationGroup);
+
+                    OldParentGroup.RemoveTask(taskToMove.ID);
+                    await mTasksGroupRepository.UpdateAsync(OldParentGroup);
+
+                    return new SuccessResponse<IWorkTask>(taskToMove);
+                }
+
+                return new FailResponse<IWorkTask>($"Work task {workTaskId} not found. No task move performed");
+            }
+            catch (Exception ex)
+            {
+                return new FailResponse<IWorkTask>($"An error occurred when moving task id {workTaskId}: {ex.Message}");
             }
         }
 
@@ -240,16 +279,17 @@ namespace Tasker.Infra.Services
         {
             try
             {
-                foreach (ITasksGroup group in await ListAsync())
-                {
-                    IWorkTask taskToRemove = group.GetTask(workTaskId);
-                    if (taskToRemove != null)
-                    {
-                        group.RemoveTask(workTaskId);
-                        await mTasksGroupRepository.UpdateAsync(group);
+                ITasksGroup groupParent;
+                IWorkTask taskToRemove;
 
-                        return new SuccessResponse<IWorkTask>(taskToRemove);
-                    }
+                (groupParent, taskToRemove) = await FindWorkTaskAndItsParentGroup(workTaskId);
+
+                if (taskToRemove != null)
+                {
+                    groupParent.RemoveTask(workTaskId);
+                    await mTasksGroupRepository.UpdateAsync(groupParent);
+
+                    return new SuccessResponse<IWorkTask>(taskToRemove);
                 }
 
                 return new FailResponse<IWorkTask>($"Work task {workTaskId} not found. No task deletion performed");
@@ -260,9 +300,21 @@ namespace Tasker.Infra.Services
             }
         }
 
+        private async Task<(ITasksGroup, IWorkTask)> FindWorkTaskAndItsParentGroup(string workTaskId)
+        {
+            foreach (ITasksGroup group in await ListAsync())
+            {
+                IWorkTask task = group.GetTask(workTaskId);
+                if (task != null)
+                    return (group, task);
+            }
+
+            return (null, null);
+        }
+
         private bool ValidateUniqueTaskDescription(ITasksGroup tasksGroup, string workTaskDescription)
         {
-            foreach(IWorkTask workTask in tasksGroup.GetAllTasks())
+            foreach (IWorkTask workTask in tasksGroup.GetAllTasks())
             {
                 if (workTask.Description.Equals(workTaskDescription))
                     return false;
