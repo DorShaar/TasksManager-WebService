@@ -65,10 +65,10 @@ export class WorkTaskViewer extends Component {
         );
     }
 
-    //createNewWorkTaskDescriptionObject() {
-    //    let taskDescription = window.prompt('Type new task description');
-    //    return { TaskDescription: taskDescription};
-    //}
+    createNewWorkTaskDescriptionObject() {
+        let taskDescription = window.prompt('Type new task description');
+        return { description: taskDescription};
+    }
 
     addTask() {
         let taskDescription = window.prompt('Type task description');
