@@ -13,7 +13,8 @@ namespace Tasker.App.Services
         Task<IEnumerable<ITasksGroup>> ListAsync();
         Task<IResponse<ITasksGroup>> SaveAsync(string groupName);
         Task<IResponse<IWorkTask>> SaveTaskAsync(string taskGroupIdentifier, string workTaskDescription);
-        Task<IResponse<ITasksGroup>> UpdateAsync(string id, string newGroupName);
+        Task<IResponse<ITasksGroup>> UpdateGroupAsync(string id, string newGroupName);
+        Task<IResponse<IWorkTask>> UpdateTaskAsync(string id, string newWorkTaskDescription);
         Task<IResponse<ITasksGroup>> RemoveAsync(string id);
         Task<IResponse<IWorkTask>> RemoveTaskAsync(string id);
     }

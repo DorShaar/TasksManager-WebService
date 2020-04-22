@@ -108,7 +108,7 @@ namespace Tasker.Infra.Services
                 IWorkTask workTask = tasksGroup.CreateTask(workTaskDescription);
 
                 if (!mWorkTaskNameValidator.IsNameValid(workTask.Description))
-                    return new FailResponse<IWorkTask>($"Group name '{workTask.Description}' is invalid");
+                    return new FailResponse<IWorkTask>($"Task description'{workTask.Description}' is invalid");
 
                 await mTasksGroupRepository.UpdateAsync(tasksGroup);
 
@@ -120,7 +120,7 @@ namespace Tasker.Infra.Services
             }
         }
 
-        public async Task<IResponse<ITasksGroup>> UpdateAsync(string id, string newGroupName)
+        public async Task<IResponse<ITasksGroup>> UpdateGroupAsync(string id, string newGroupName)
         {
             if (!mTasksGroupNameValidator.IsNameValid(newGroupName))
                 return new FailResponse<ITasksGroup>($"Group name '{newGroupName}' is invalid");
@@ -167,6 +167,46 @@ namespace Tasker.Infra.Services
             }
 
             return Task.CompletedTask;
+        }
+
+        public async Task<IResponse<IWorkTask>> UpdateTaskAsync(string workTaskId, string newTaskDescription)
+        {
+            try
+            {
+                if (!mWorkTaskNameValidator.IsNameValid(newTaskDescription))
+                    return new FailResponse<IWorkTask>($"Task description'{newTaskDescription}' is invalid");
+
+                foreach (ITasksGroup group in await ListAsync())
+                {
+                    IWorkTask taskToUpdate = group.GetTask(workTaskId);
+                    if (taskToUpdate != null)
+                    {
+                        if (IsWorkTaskDescriptionAlreadyExist(group, newTaskDescription))
+                        {
+                            return new FailResponse<IWorkTask>(
+                                $"Task description'{newTaskDescription}' is already exist in group {group.ID}");
+                        }
+
+                        taskToUpdate.Description = newTaskDescription;
+                        group.UpdateTask(taskToUpdate);
+                        await mTasksGroupRepository.UpdateAsync(group);
+
+                        return new SuccessResponse<IWorkTask>(taskToUpdate);
+                    }
+                }
+
+                return new FailResponse<IWorkTask>($"Work task {workTaskId} not found. No task update performed");
+            }
+            catch (Exception ex)
+            {
+                return new FailResponse<IWorkTask>($"An error occurred when updating work task id {workTaskId}: {ex.Message}");
+            }
+        }
+
+        private bool IsWorkTaskDescriptionAlreadyExist(ITasksGroup tasksGroup, string workTaskDescription)
+        {
+            return tasksGroup.GetAllTasks().FirstOrDefault(
+                task => task.Description.ToLower().Equals(workTaskDescription.ToLower())) != null;
         }
 
         public async Task<IResponse<ITasksGroup>> RemoveAsync(string id)

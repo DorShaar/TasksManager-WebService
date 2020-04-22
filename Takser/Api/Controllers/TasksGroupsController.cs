@@ -56,7 +56,7 @@ namespace Takser.Api.Controllers
 
             try
             {
-                IResponse<ITasksGroup> result = await mTasksGroupService.UpdateAsync(id, saveTasksGroupResource.GroupName);
+                IResponse<ITasksGroup> result = await mTasksGroupService.UpdateGroupAsync(id, saveTasksGroupResource.GroupName);
 
                 mLogger.Log($"Update result {(result.IsSuccess ? "succeeded" : "failed")}");
 

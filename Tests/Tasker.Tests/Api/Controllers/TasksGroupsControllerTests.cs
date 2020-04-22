@@ -33,7 +33,7 @@ namespace Tasker.Tests.Api.Controllers
         public async Task PostGroupAsync_SuccessStatusCode()
         {
             ITasksGroupService fakeTasksGroupService = A.Fake<ITasksGroupService>();
-            A.CallTo(() => fakeTasksGroupService.UpdateAsync(A<string>.Ignored, A<string>.Ignored))
+            A.CallTo(() => fakeTasksGroupService.UpdateGroupAsync(A<string>.Ignored, A<string>.Ignored))
                 .Returns(new SuccessResponse<ITasksGroup>(A.Fake<ITasksGroup>()));
 
             using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
@@ -66,7 +66,7 @@ namespace Tasker.Tests.Api.Controllers
         public async Task PostGroupAsync_ThrowsException_InternalServerErrorStatusCode()
         {
             ITasksGroupService fakeTasksGroupService = A.Fake<ITasksGroupService>();
-            A.CallTo(() => fakeTasksGroupService.UpdateAsync(A<string>.Ignored, A<string>.Ignored))
+            A.CallTo(() => fakeTasksGroupService.UpdateGroupAsync(A<string>.Ignored, A<string>.Ignored))
                 .Throws<Exception>();
 
             using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
