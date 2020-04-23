@@ -133,5 +133,32 @@ namespace Takser.Api.Controllers
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> RemoveTask(string id)
+        {
+            mLogger.Log($"Requesting deleting task id {id}");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
+
+            try
+            {
+                IResponse<IWorkTask> result = await mTasksGroupService.RemoveTaskAsync(id);
+
+                mLogger.Log($"Remove result {(result.IsSuccess ? "succeeded" : "failed")}");
+
+                if (!result.IsSuccess)
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
+
+                WorkTaskResource workTaskResource = mMapper.Map<IWorkTask, WorkTaskResource>(result.ResponseObject);
+                return Ok(workTaskResource);
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError($"Remove operation failed with error", ex);
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+        }
     }
 }

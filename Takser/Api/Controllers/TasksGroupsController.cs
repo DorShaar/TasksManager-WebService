@@ -73,6 +73,34 @@ namespace Takser.Api.Controllers
             }
         }
 
+        [HttpPut]
+        public async Task<IActionResult> PutWorkTaskAsync([FromBody] TasksGroupResource newTaskGroupResource)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
+
+            if (newTaskGroupResource == null)
+                return BadRequest("New tasks group resource is null");
+
+            mLogger.Log($"Requesting putting new group {newTaskGroupResource.GroupName}");
+
+            try
+            {
+                IResponse<ITasksGroup> result = await mTasksGroupService.SaveAsync(newTaskGroupResource.GroupName);
+
+                if (!result.IsSuccess)
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
+
+                TasksGroupResource tasksGroupResource = mMapper.Map<ITasksGroup, TasksGroupResource>(result.ResponseObject);
+                return Ok(tasksGroupResource);
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError($"Put operation failed with error", ex);
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveGroup(string id)
         {

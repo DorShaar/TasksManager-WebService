@@ -92,8 +92,9 @@ namespace Tasker.Infra.Services
         {
             try
             {
-                ITasksGroup tasksGroup = (await FindTasksGroupsByConditionAsync(group => group.ID == taskGroupIdentifier)).FirstOrDefault();
-                if (tasksGroup == null)
+                ITasksGroup tasksGroup = 
+                    (await FindTasksGroupsByConditionAsync(group => group.ID == taskGroupIdentifier)).FirstOrDefault();
+                if (tasksGroup == null && taskGroupIdentifier != null)
                 {
                     tasksGroup = (await FindTasksGroupsByConditionAsync(
                         group => group.Name.ToLower() == taskGroupIdentifier.ToLower())).FirstOrDefault();

@@ -77,7 +77,11 @@ export class TasksGroupViewer extends Component {
             <div>
                 <h1>Task Groups</h1>
                 <p> </p>
-                <button>Add Group</button>
+                <FunctionalButton
+                    onClickFunction={() => TaskerHttpRequester.putHttpRequest(
+                        this.state.url, this.createNewGroupNameObject())}
+                    buttonName="Add Task"
+                />
                 <p> </p>
                 {contents}
             </div>
