@@ -62,15 +62,15 @@ namespace Tasker.Infra.Persistence.Repositories
 
         public Task UpdateAsync(ITasksGroup newGroup)
         {
-            ITasksGroup tasksGroupToUpdate = mDatabase.Entities.Find(entity => entity.ID == newGroup.ID);
+            int tasksGroupToUpdateIndex = mDatabase.Entities.FindIndex(entity => entity.ID == newGroup.ID);
 
-            if (tasksGroupToUpdate == null)
+            if (tasksGroupToUpdateIndex < 0)
             {
                 mLogger.LogError($"Group ID: {newGroup.ID} Group name: {newGroup.Name} - No such entity was found in database");
                 return Task.CompletedTask;
             }
 
-            tasksGroupToUpdate = newGroup;
+            mDatabase.Entities[tasksGroupToUpdateIndex] = newGroup;
 
             mDatabase.SaveCurrentDatabase();
             return Task.CompletedTask;

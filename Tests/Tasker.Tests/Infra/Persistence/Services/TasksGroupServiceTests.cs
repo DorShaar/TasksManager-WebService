@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TaskData;
 using TaskData.Contracts;
 using Tasker.App.Persistence.Repositories;
+using Tasker.App.Resources;
 using Tasker.Domain.Communication;
 using Tasker.Infra.Services;
 using Xunit;
@@ -210,6 +211,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IWorkTask taskToUpdate = A.Fake<IWorkTask>();
             A.CallTo(() => taskToUpdate.Description).Returns("some-description");
+            A.CallTo(() => taskToUpdate.ID).Returns("some-id");
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
             A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToUpdate);
@@ -218,7 +220,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(taskToUpdate.ID, taskToUpdate.Description);
+            IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
+                new WorkTaskResource
+                {
+                    TaskId = taskToUpdate.ID,
+                    Description = taskToUpdate.Description
+                });
+
             Assert.True(response.IsSuccess);
             Assert.Equal(taskToUpdate, response.ResponseObject);
         }
@@ -228,6 +236,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IWorkTask taskToUpdate = A.Fake<IWorkTask>();
             A.CallTo(() => taskToUpdate.Description).Returns("some-description");
+            A.CallTo(() => taskToUpdate.ID).Returns("some-id");
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
             A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToUpdate);
@@ -236,7 +245,12 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            await tasksGroupService.UpdateTaskAsync(taskToUpdate.ID, taskToUpdate.Description);
+            await tasksGroupService.UpdateTaskAsync(
+                new WorkTaskResource
+                {
+                    TaskId = taskToUpdate.ID,
+                    Description = taskToUpdate.Description
+                });
 
             A.CallTo(() => dbRepository.UpdateAsync(tasksGroup)).MustHaveHappenedOnceExactly();
         }
@@ -248,7 +262,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync("notExistingId", "some-description");
+            IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
+                new WorkTaskResource
+                {
+                    TaskId = "notExistingId",
+                    Description = "some-description"
+                });
+
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
         }
@@ -260,7 +280,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync("notExistingId", "some-description");
+            IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
+                new WorkTaskResource
+                {
+                    TaskId = "notExistingId",
+                    Description = "some-description"
+                });
+
             A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
         }
 
@@ -269,6 +295,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IWorkTask taskToUpdate = A.Fake<IWorkTask>();
             A.CallTo(() => taskToUpdate.Description).Returns("some-description");
+            A.CallTo(() => taskToUpdate.ID).Returns("some-id");
 
             IWorkTask taskWithSameDescription = A.Fake<IWorkTask>();
             A.CallTo(() => taskWithSameDescription.Description).Returns("existing-description");
@@ -280,8 +307,12 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            IResponse<IWorkTask> response = 
-                await tasksGroupService.UpdateTaskAsync(taskToUpdate.ID, taskWithSameDescription.Description);
+            IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
+                new WorkTaskResource
+                {
+                    TaskId = taskToUpdate.ID,
+                    Description = taskWithSameDescription.Description
+                });
 
             A.CallTo(() => tasksGroup.GetAllTasks()).MustHaveHappenedOnceExactly();
             Assert.False(response.IsSuccess);
@@ -293,7 +324,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IWorkTask taskToUpdate = A.Fake<IWorkTask>();
             A.CallTo(() => taskToUpdate.Description).Returns("some-description");
-            
+            A.CallTo(() => taskToUpdate.ID).Returns("some-id");
+
             IWorkTask taskWithSameDescription= A.Fake<IWorkTask>();
             A.CallTo(() => taskWithSameDescription.Description).Returns("existing-description");
 
@@ -304,7 +336,12 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
             TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
 
-            await tasksGroupService.UpdateTaskAsync(taskToUpdate.ID, taskWithSameDescription.Description);
+            await tasksGroupService.UpdateTaskAsync(
+                new WorkTaskResource
+                {
+                    TaskId = taskToUpdate.ID,
+                    Description = taskWithSameDescription.Description
+                });
 
             A.CallTo(() => tasksGroup.GetAllTasks()).MustHaveHappenedOnceExactly();
             A.CallTo(() => dbRepository.UpdateAsync(tasksGroup)).MustNotHaveHappened();

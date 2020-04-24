@@ -84,11 +84,12 @@ namespace Takser.Api.Controllers
             if (saveWorkTaskResource == null)
                 return BadRequest("Work task resource is null");
 
-            mLogger.Log($"Requesting updating work task id {id} with new description name {saveWorkTaskResource.Description}");
+            mLogger.Log($"Requesting updating work task id {id}");
 
             try
             {
-                IResponse<IWorkTask> result = await mTasksGroupService.UpdateTaskAsync(id, saveWorkTaskResource.Description);
+                saveWorkTaskResource.TaskId = id;
+                IResponse<IWorkTask> result = await mTasksGroupService.UpdateTaskAsync(saveWorkTaskResource);
 
                 mLogger.Log($"Update result {(result.IsSuccess ? "succeeded" : "failed")}");
 

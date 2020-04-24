@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import FunctionalButton from './FunctionalButton';
-import TaskerHttpRequester from '../utils/TasksFunctions';
+import FunctionalButton from '../ui-components/FunctionalButton'
+import TaskerHttpRequester from '../../utils/TasksFunctions';
+import TaskerApiUrls from '../../common/TaskerApiUrls';
 
 export class TasksGroupViewer extends Component {
 
@@ -9,12 +10,12 @@ export class TasksGroupViewer extends Component {
         this.state = {
             groups: [],
             loading: true,
-            url: 'api/TasksGroups/'
+            tasksGroupsUrl: TaskerApiUrls.getTasksGroupsUrl()
         };
     }
 
     async componentDidMount() {
-        const data = await TaskerHttpRequester.getHttpRequest(this.state.url);
+        const data = await TaskerHttpRequester.getHttpRequest(this.state.tasksGroupsUrl);
         this.setState({ groups: data, loading: false });
     }
 
@@ -44,11 +45,11 @@ export class TasksGroupViewer extends Component {
                                 />
                                 <FunctionalButton
                                     onClickFunction={() => TaskerHttpRequester.postHttpRequest(
-                                            this.state.url + group.groupId, this.createNewGroupNameObject())}
+                                            this.state.tasksGroupsUrl + group.groupId, this.createNewGroupNameObject())}
                                     buttonName="update"
                                 />
                                 <FunctionalButton
-                                    onClickFunction={() => TaskerHttpRequester.deleteHttpRequest(this.state.url + group.groupId)}
+                                    onClickFunction={() => TaskerHttpRequester.deleteHttpRequest(this.state.tasksGroupsUrl + group.groupId)}
                                     buttonName="delete"
                                 />
                             </td>
@@ -79,7 +80,7 @@ export class TasksGroupViewer extends Component {
                 <p> </p>
                 <FunctionalButton
                     onClickFunction={() => TaskerHttpRequester.putHttpRequest(
-                        this.state.url, this.createNewGroupNameObject())}
+                        this.state.tasksGroupsUrl, this.createNewGroupNameObject())}
                     buttonName="Add Task"
                 />
                 <p> </p>

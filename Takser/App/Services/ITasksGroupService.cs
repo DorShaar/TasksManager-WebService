@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TaskData.Contracts;
+using Tasker.App.Resources;
 using Tasker.Domain.Communication;
 
 namespace Tasker.App.Services
@@ -14,7 +15,7 @@ namespace Tasker.App.Services
         Task<IResponse<ITasksGroup>> SaveAsync(string groupName);
         Task<IResponse<IWorkTask>> SaveTaskAsync(string taskGroupIdentifier, string workTaskDescription);
         Task<IResponse<ITasksGroup>> UpdateGroupAsync(string id, string newGroupName);
-        Task<IResponse<IWorkTask>> UpdateTaskAsync(string id, string newWorkTaskDescription);
+        Task<IResponse<IWorkTask>> UpdateTaskAsync(WorkTaskResource workTaskResource);
         Task<IResponse<IWorkTask>> MoveTaskAsync(string taskId, string tasksGroupId);
         Task<IResponse<ITasksGroup>> RemoveAsync(string id);
         Task<IResponse<IWorkTask>> RemoveTaskAsync(string id);
