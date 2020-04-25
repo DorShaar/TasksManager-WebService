@@ -18,7 +18,7 @@ export default class App extends Component {
             <Layout>
                 <Route exact path='/' component={Home} />
                 <Route exact path='/tasks-groups' render={() => <TasksGroupViewer cache={taskerCache} />} />
-                <Route eaxt path='/tasks-groups/:groupIdOrTasks' render={() => <WorkTaskViewer cache={taskerCache} />} />
+                <Route exact path='/tasks-groups/:groupIdOrTasks' render={() => <WorkTaskViewer cache={taskerCache} />} />
             </Layout>
         );
     }

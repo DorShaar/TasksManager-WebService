@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import FunctionalButton from '../ui-components/FunctionalButton'
-import AutoCompleteTextField from '../ui-components/AutocompleteTextField'
+import FunctionalButton from '../ui-components/FunctionalButton';
+import AutoCompleteTextField from '../ui-components/AutocompleteTextField';
+import SwitchLabel from '../ui-components/SwitchLabel';
 
 export class WorkTaskViewer extends Component {
 
@@ -10,9 +11,10 @@ export class WorkTaskViewer extends Component {
         this.state = {
             tasks: [],
             groupsNames: [],
-            isLoading: true,
             cache: props.cache,
             moveState: { isMoving: false, movingTaskId: null, destinationGroup: null },
+            shouldDisplayAllGroups: false,
+            isLoading: true,
         };
     }
 
@@ -43,6 +45,10 @@ export class WorkTaskViewer extends Component {
     }
 
     renderWorkTasksTable(tasks) {
+        const tasksToDisplay = !this.state.shouldDisplayAllGroups
+            ? tasks.filter(group => group.status !== "Closed")
+            : tasks;
+
         return (
             <table className='table table-striped'>
                 <thead>
@@ -55,7 +61,7 @@ export class WorkTaskViewer extends Component {
                     </tr>
                 </thead>
                 <tbody>
-                    {tasks.map(task =>
+                    {tasksToDisplay.map(task =>
                         <tr key={task.taskId}>
                             <td>{task.taskId}</td>
                             <td>{task.groupName}</td>
@@ -92,7 +98,7 @@ export class WorkTaskViewer extends Component {
             return;
         }
 
-        if (this.state.moveState.movingTaskId != taskId) {
+        if (this.state.moveState.movingTaskId !== taskId) {
             this.setMovingStateWithTaskId(taskId);
             return;
         }
@@ -151,6 +157,10 @@ export class WorkTaskViewer extends Component {
         };
     }
 
+    toggleGroupsDisplay() {
+        this.setState({ shouldDisplayAllGroups: !this.state.shouldDisplayAllGroups });
+    }
+
     render() {
         let contents = this.state.isLoading
             ? <p><em>Loading...</em></p>
@@ -164,6 +174,8 @@ export class WorkTaskViewer extends Component {
                     onClickFunction={() => this.state.cache.addTask(this.addTask())}
                     buttonName="Add Task"
                 />
+                <p> </p>
+                <SwitchLabel label="view all" action={this.toggleGroupsDisplay.bind(this)} />
                 <p> </p>
                 {contents}
             </div>

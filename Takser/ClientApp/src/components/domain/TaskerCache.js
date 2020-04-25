@@ -33,8 +33,10 @@ export default class TaskerCache {
     }
 
     async deleteGroup(groupId) {
-        await TaskerHttpRequester.deleteHttpRequest(this.tasksGroupsUrl + groupId);
-        this.groupsCache.isSync = false;
+        if (window.confirm("Are you sure you want to delete group " + groupId)) {
+            await TaskerHttpRequester.deleteHttpRequest(this.tasksGroupsUrl + groupId);
+            this.groupsCache.isSync = false;
+        }
     }
 
     async syncGroups() {
@@ -65,6 +67,8 @@ export default class TaskerCache {
     }
 
     async deleteTask(taskId) {
-        await TaskerHttpRequester.deleteHttpRequest(this.workTasksUrl + taskId);
+        if (window.confirm("Are you sure you want to delete task " + taskId)) {
+            await TaskerHttpRequester.deleteHttpRequest(this.workTasksUrl + taskId);
+        }
     }
 }

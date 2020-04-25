@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import FunctionalButton from '../ui-components/FunctionalButton'
+import FunctionalButton from '../ui-components/FunctionalButton';
+import SwitchLabel from '../ui-components/SwitchLabel';
 
 export class TasksGroupViewer extends Component {
 
@@ -8,8 +9,9 @@ export class TasksGroupViewer extends Component {
 
         this.state = {
             groups: [],
+            cache: props.cache,
             loading: true,
-            cache: props.cache
+            shouldDisplayAllGroups: false 
         };
     }
 
@@ -19,6 +21,10 @@ export class TasksGroupViewer extends Component {
     }
 
     renderTasksGroupsTable(groups) {
+        const groupsToDisplay = !this.state.shouldDisplayAllGroups
+            ? groups.filter(group => group.status !== "Closed")
+            : groups;
+
         return (
             <table className='table table-striped'>
                 <thead>
@@ -31,7 +37,7 @@ export class TasksGroupViewer extends Component {
                     </tr>
                 </thead>
                 <tbody>
-                    {groups.map(group =>
+                    {groupsToDisplay.map(group =>
                         <tr key={group.groupId}>
                             <td>{group.groupId}</td>
                             <td>{group.groupName}</td>
@@ -69,6 +75,10 @@ export class TasksGroupViewer extends Component {
         return window.prompt('Type new group name');
     }
 
+    toggleGroupsDisplay() {
+        this.setState({ shouldDisplayAllGroups: !this.state.shouldDisplayAllGroups });
+    }
+
     render() {
         let contents = this.state.loading
             ? <p><em>Loading...</em></p>
@@ -82,6 +92,8 @@ export class TasksGroupViewer extends Component {
                     onClickFunction={() => this.state.cache.addGroup(this.createNewGroupName())}
                     buttonName="Add Group"
                 />
+                <p> </p>
+                <SwitchLabel label="view all" action={this.toggleGroupsDisplay.bind(this)} />
                 <p> </p>
                 {contents}
             </div>
