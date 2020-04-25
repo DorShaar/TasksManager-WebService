@@ -4,17 +4,21 @@ import { Layout } from './components/Layout';
 import { Home } from './components/Home';
 import { TasksGroupViewer } from './components/viewers/TasksGroupViewer';
 import { WorkTaskViewer } from './components/viewers/WorkTaskViewer';
+import TaskerCache from './components/domain/TaskerCache';
+import TaskerApiUrls from './common/TaskerApiUrls';
 
 export default class App extends Component {
     static displayName = App.name;
 
     render() {
 
+        var taskerCache = new TaskerCache(TaskerApiUrls.getTasksGroupsUrl(), TaskerApiUrls.getWorkTaskUrl());
+
         return (
             <Layout>
                 <Route exact path='/' component={Home} />
-                <Route exact path='/tasks-groups' component={TasksGroupViewer} />
-                <Route eaxt path='/tasks-groups/:groupIdOrTasks' component={WorkTaskViewer} />
+                <Route exact path='/tasks-groups' render={() => <TasksGroupViewer cache={taskerCache} />} />
+                <Route eaxt path='/tasks-groups/:groupIdOrTasks' render={() => <WorkTaskViewer cache={taskerCache} />} />
             </Layout>
         );
     }

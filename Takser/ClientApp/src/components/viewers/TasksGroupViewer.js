@@ -1,21 +1,20 @@
 import React, { Component } from 'react';
 import FunctionalButton from '../ui-components/FunctionalButton'
-import TaskerHttpRequester from '../../utils/TasksFunctions';
-import TaskerApiUrls from '../../common/TaskerApiUrls';
 
 export class TasksGroupViewer extends Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             groups: [],
             loading: true,
-            tasksGroupsUrl: TaskerApiUrls.getTasksGroupsUrl()
+            cache: props.cache
         };
     }
 
     async componentDidMount() {
-        const data = await TaskerHttpRequester.getHttpRequest(this.state.tasksGroupsUrl);
+        const data = await this.state.cache.getGroups();
         this.setState({ groups: data, loading: false });
     }
 
@@ -40,16 +39,18 @@ export class TasksGroupViewer extends Component {
                             <td>{group.size}</td>
                             <td>
                                 <FunctionalButton
-                                    onClickFunction={() => this.ViewGroupTasks(group.groupId)}
+                                    onClickFunction={() => this.viewGroupTasks(group.groupId)}
                                     buttonName="view"
                                 />
                                 <FunctionalButton
-                                    onClickFunction={() => TaskerHttpRequester.postHttpRequest(
-                                            this.state.tasksGroupsUrl + group.groupId, this.createNewGroupNameObject())}
+                                    onClickFunction={() => this.state.cache.updateGroupName(
+                                        group.groupId,
+                                        this.createNewGroupName()
+                                    )}
                                     buttonName="update"
                                 />
                                 <FunctionalButton
-                                    onClickFunction={() => TaskerHttpRequester.deleteHttpRequest(this.state.tasksGroupsUrl + group.groupId)}
+                                    onClickFunction={() => this.state.cache.deleteGroup(group.groupId)}
                                     buttonName="delete"
                                 />
                             </td>
@@ -60,13 +61,12 @@ export class TasksGroupViewer extends Component {
         );
     }
 
-    ViewGroupTasks(groupId) {
+    viewGroupTasks(groupId) {
         window.location.pathname += "/" + groupId;
     }
 
-    createNewGroupNameObject() {
-        let newGroupName = window.prompt('Type new group name');
-        return { GroupName: newGroupName };
+    createNewGroupName() {
+        return window.prompt('Type new group name');
     }
 
     render() {
@@ -79,9 +79,8 @@ export class TasksGroupViewer extends Component {
                 <h1>Task Groups</h1>
                 <p> </p>
                 <FunctionalButton
-                    onClickFunction={() => TaskerHttpRequester.putHttpRequest(
-                        this.state.tasksGroupsUrl, this.createNewGroupNameObject())}
-                    buttonName="Add Task"
+                    onClickFunction={() => this.state.cache.addGroup(this.createNewGroupName())}
+                    buttonName="Add Group"
                 />
                 <p> </p>
                 {contents}

@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import FunctionalButton from '../ui-components/FunctionalButton'
 import AutoCompleteTextField from '../ui-components/AutocompleteTextField'
-import TaskerHttpRequester from '../../utils/TasksFunctions';
-import TaskerApiUrls from '../../common/TaskerApiUrls';
 
 export class WorkTaskViewer extends Component {
 
@@ -13,26 +11,35 @@ export class WorkTaskViewer extends Component {
             tasks: [],
             groupsNames: [],
             isLoading: true,
+            cache: props.cache,
             moveState: { isMoving: false, movingTaskId: null, destinationGroup: null },
-            workTaskUrl: TaskerApiUrls.getWorkTaskUrl(),
-            tasksGroupsUrl: TaskerApiUrls.getTasksGroupsUrl(),
         };
     }
 
     async componentDidMount() {
-        const urlRequestParameter = window.location.pathname.split('/')[2];
-        let tasksUrlRequest = this.state.workTaskUrl;
+        const taskRequestIdentifier = window.location.pathname.split('/')[2];
+        let data;
 
-        if (urlRequestParameter !== "tasks")
-            tasksUrlRequest += urlRequestParameter;
-
-        const data = await TaskerHttpRequester.getHttpRequest(tasksUrlRequest);
+        if (taskRequestIdentifier === "tasks") {
+            data = await this.state.cache.getTasks();
+        }
+        else {
+            data = await this.state.cache.getTasks(taskRequestIdentifier);
+        }
 
         this.setState({
             tasks: data,
             groupsNames: await this.getGroupsNames(),
             isLoading: false
         });
+    }
+
+    async getGroupsNames() {
+        const groups = await this.state.cache.getGroups();
+        let groupsNames = [];
+        groups.map(group => groupsNames.push(group.groupName));
+
+        return groupsNames;
     }
 
     renderWorkTasksTable(tasks) {
@@ -56,12 +63,14 @@ export class WorkTaskViewer extends Component {
                             <td>{task.status}</td>
                             <td>
                                 <FunctionalButton
-                                    onClickFunction={() => TaskerHttpRequester.postHttpRequest(
-                                        this.state.workTaskUrl + task.taskId, this.createNewWorkTaskDescriptionObject())}
+                                    onClickFunction={() => this.state.cache.updateTask(
+                                        task.taskId,
+                                        this.createNewWorkTaskDescriptionObject()
+                                    )}
                                     buttonName="update"
                                 />
                                 <FunctionalButton
-                                    onClickFunction={() => TaskerHttpRequester.deleteHttpRequest(this.state.workTaskUrl + task.taskId)}
+                                    onClickFunction={() => this.state.cache.deleteTask(task.taskId)}
                                     buttonName="delete"
                                 />
                                 <FunctionalButton
@@ -77,7 +86,7 @@ export class WorkTaskViewer extends Component {
         );
     }
 
-    handleMove(taskId) {
+    async handleMove(taskId) {
         if (!this.state.moveState.isMoving) {
             this.setMovingStateWithTaskId(taskId);
             return;
@@ -93,8 +102,7 @@ export class WorkTaskViewer extends Component {
             return;
         }
 
-        TaskerHttpRequester.postHttpRequest(
-            this.state.workTaskUrl + taskId, this.createNewWorkTaskParentGroupObject(this.state.moveState.destinationGroup));
+        await this.state.cache.moveTask(taskId, this.state.moveState.destinationGroup);
     }
 
     setMovingStateWithTaskId(taskId) {
@@ -131,12 +139,7 @@ export class WorkTaskViewer extends Component {
     }
 
     createNewWorkTaskDescriptionObject() {
-        let taskDescription = window.prompt('Type new task description');
-        return { description: taskDescription };
-    }
-
-    createNewWorkTaskParentGroupObject(groupName) {
-        return { groupName: groupName };
+        return window.prompt('Type new task description');
     }
 
     addTask() {
@@ -146,14 +149,6 @@ export class WorkTaskViewer extends Component {
             description: taskDescription,
             groupName: groupName
         };
-    }
-
-    async getGroupsNames() {
-        const groups = await TaskerHttpRequester.getHttpRequest(this.state.tasksGroupsUrl);
-        let groupsNames = [];
-        groups.map(group => groupsNames.push(group.groupName));
-
-        return groupsNames;
     }
 
     render() {
@@ -166,8 +161,7 @@ export class WorkTaskViewer extends Component {
                 <h1>Work Tasks</h1>
                 <p> </p>
                 <FunctionalButton
-                    onClickFunction={() => TaskerHttpRequester.putHttpRequest(
-                        this.state.workTaskUrl, this.addTask())}
+                    onClickFunction={() => this.state.cache.addTask(this.addTask())}
                     buttonName="Add Task"
                 />
                 <p> </p>
