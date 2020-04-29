@@ -19,14 +19,13 @@ export class WorkTaskViewer extends Component {
     }
 
     async componentDidMount() {
-        const taskRequestIdentifier = window.location.pathname.split('/')[2];
         let data;
 
-        if (taskRequestIdentifier === "tasks") {
+        if (window.location.pathname.split('/')[2] === "tasks") {
             data = await this.state.cache.getTasks();
         }
         else {
-            data = await this.state.cache.getTasks(taskRequestIdentifier);
+            data = await this.state.cache.getTasks(window.location.pathname.split('/')[3]);
         }
 
         this.setState({

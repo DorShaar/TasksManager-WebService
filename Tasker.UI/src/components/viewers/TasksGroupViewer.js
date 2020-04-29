@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import FunctionalButton from '../ui-components/FunctionalButton';
 import SwitchLabel from '../ui-components/SwitchLabel';
+import TaskerUrls from '../../common/TaskerUrls';
 
 export class TasksGroupViewer extends Component {
 
@@ -68,7 +69,8 @@ export class TasksGroupViewer extends Component {
     }
 
     viewGroupTasks(groupId) {
-        window.location.pathname += "/" + groupId;
+        const newUrlLocation = TaskerUrls.getTasksViewerUrlByGroup().replace(":groupId", groupId);
+        window.location.pathname = newUrlLocation;
     }
 
     getGroupsPageView(tasksGroupsTable) {
