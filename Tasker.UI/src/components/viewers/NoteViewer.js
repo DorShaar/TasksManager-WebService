@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import FunctionalButton from '../ui-components/FunctionalButton';
+import CustomTreeItem from '../ui-components/CustomTreeItem';
 
 export class NoteViewer extends Component {
 
@@ -35,11 +35,7 @@ export class NoteViewer extends Component {
             <div>
                 <h1>Notes</h1>
                 <p> </p>
-                <FunctionalButton
-                    //onClickFunction={() => this.state.cache.addGroup(this.createNewGroupName())}
-                    buttonName="Edit"
-                />
-                <p> </p>
+                {<CustomTreeItem />}
                 {contents}
             </div>
         );

@@ -7,28 +7,5 @@ yarn add bootstrap
 yarn add react-router
 yarn add react-router-dom
 yarn add reactstrap
+yarn add 
 yarn start
-
-
-
-for add-notes:
-
-        <Switch>
-          <Route path="/:id" children={<Child />} />
-        </Switch>
-      </div>
-    </Router>
-  );
-}
-
-function Child() {
-  // We can use the `useParams` hook here to access
-  // the dynamic pieces of the URL.
-  let { id } = useParams();
-
-  return (
-    <div>
-      <h3>ID: {id}</h3>
-    </div>
-  );
-}
