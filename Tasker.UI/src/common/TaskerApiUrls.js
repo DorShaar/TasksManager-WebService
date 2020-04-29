@@ -3,10 +3,10 @@
 export default class TaskerApiUrls extends React.Component {
 
     static getWorkTaskUrl() {
-        return 'api/WorkTasks/';
+        return 'https://localhost:5001/api/WorkTasks/';
     }
 
     static getTasksGroupsUrl() {
-        return 'api/TasksGroups/';
+        return 'https://localhost:5001/api/TasksGroups/';
     }
 }

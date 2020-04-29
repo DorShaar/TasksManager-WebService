@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,10 +23,16 @@ namespace Tasker
             services.AddControllersWithViews(/*option => option.Filters.Add(new AuthorizeFilter())*/);
             services.AddRazorPages();
 
-            // In production, the React files will be served from this directory
-            services.AddSpaStaticFiles(configuration =>
+            // Adds "Access-Control-Allow-Origin" header to request.
+            services.AddCors(options =>
             {
-                configuration.RootPath = "ClientApp/build";
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000", "https://localhost:3000")
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials();
+                });
             });
 
             services.UseDI();
@@ -49,9 +54,10 @@ namespace Tasker
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseSpaStaticFiles();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -62,16 +68,6 @@ namespace Tasker
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
-            });
-
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "ClientApp";
-
-                if (env.IsDevelopment())
-                {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
-                }
             });
         }
     }
