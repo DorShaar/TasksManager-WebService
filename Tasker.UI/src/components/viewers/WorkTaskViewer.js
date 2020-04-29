@@ -44,7 +44,7 @@ export class WorkTaskViewer extends Component {
         return groupsNames;
     }
 
-    renderWorkTasksTable(tasks) {
+    getWorkTasksTable(tasks) {
         const tasksToDisplay = !this.state.shouldDisplayAllGroups
             ? tasks.filter(group => group.status !== "Closed")
             : tasks;
@@ -148,6 +148,22 @@ export class WorkTaskViewer extends Component {
         return window.prompt('Type new task description');
     }
 
+    getTasksPageView(workTasksTable) {
+        return (
+            <div>
+                <p> </p>
+                <FunctionalButton
+                    onClickFunction={() => this.state.cache.addTask(this.addTask())}
+                    buttonName="Add Task"
+                />
+                <p> </p>
+                <SwitchLabel label="view all" action={this.toggleGroupsDisplay.bind(this)} />
+                <p> </p>
+                {workTasksTable}
+            </div>
+        );
+    }
+
     addTask() {
         let taskDescription = window.prompt('Type task description');
         let groupName = window.prompt('Type group name');
@@ -162,22 +178,14 @@ export class WorkTaskViewer extends Component {
     }
 
     render() {
-        let contents = this.state.isLoading
+        let tasksPageView = this.state.isLoading
             ? <p><em>Loading...</em></p>
-            : this.renderWorkTasksTable(this.state.tasks);
+            : this.getTasksPageView(this.getWorkTasksTable(this.state.tasks));
 
         return (
             <div>
                 <h1>Work Tasks</h1>
-                <p> </p>
-                <FunctionalButton
-                    onClickFunction={() => this.state.cache.addTask(this.addTask())}
-                    buttonName="Add Task"
-                />
-                <p> </p>
-                <SwitchLabel label="view all" action={this.toggleGroupsDisplay.bind(this)} />
-                <p> </p>
-                {contents}
+                {tasksPageView}
             </div>
         );
     }

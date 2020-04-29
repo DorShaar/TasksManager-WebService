@@ -20,7 +20,7 @@ export class TasksGroupViewer extends Component {
         this.setState({ groups: data, loading: false });
     }
 
-    renderTasksGroupsTable(groups) {
+    getTasksGroupsTable(groups) {
         const groupsToDisplay = !this.state.shouldDisplayAllGroups
             ? groups.filter(group => group.status !== "Closed")
             : groups;
@@ -71,22 +71,9 @@ export class TasksGroupViewer extends Component {
         window.location.pathname += "/" + groupId;
     }
 
-    createNewGroupName() {
-        return window.prompt('Type new group name');
-    }
-
-    toggleGroupsDisplay() {
-        this.setState({ shouldDisplayAllGroups: !this.state.shouldDisplayAllGroups });
-    }
-
-    render() {
-        let contents = this.state.loading
-            ? <p><em>Loading...</em></p>
-            : this.renderTasksGroupsTable(this.state.groups);
-
+    getGroupsPageView(tasksGroupsTable) {
         return (
             <div>
-                <h1>Task Groups</h1>
                 <p> </p>
                 <FunctionalButton
                     onClickFunction={() => this.state.cache.addGroup(this.createNewGroupName())}
@@ -95,7 +82,28 @@ export class TasksGroupViewer extends Component {
                 <p> </p>
                 <SwitchLabel label="view all" action={this.toggleGroupsDisplay.bind(this)} />
                 <p> </p>
-                {contents}
+                {tasksGroupsTable}
+            </div>
+        );
+    }
+
+    toggleGroupsDisplay() {
+        this.setState({ shouldDisplayAllGroups: !this.state.shouldDisplayAllGroups });
+    }
+
+    createNewGroupName() {
+        return window.prompt('Type new group name');
+    }
+
+    render() {
+        const pageView = this.state.loading
+            ? <p><em>Loading...</em></p>
+            : this.getGroupsPageView(this.getTasksGroupsTable(this.state.groups));
+
+        return (
+            <div>
+                <h1>Task Groups</h1>
+                {pageView}
             </div>
         );
     }
