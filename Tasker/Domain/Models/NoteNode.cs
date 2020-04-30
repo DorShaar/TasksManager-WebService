@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Tasker.App.Resources
+namespace Tasker.Domain.Models
 {
     public class NoteNode
     {

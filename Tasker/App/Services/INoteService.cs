@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using TaskData.Contracts;
-using Tasker.App.Resources;
+using Tasker.Domain.Models;
 
 namespace Tasker.App.Services
 {

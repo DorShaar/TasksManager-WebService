@@ -2,8 +2,8 @@
 using Logger.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Tasker.App.Resources;
 using Tasker.App.Services;
+using Tasker.Domain.Models;
 
 namespace Tasker.Api.Controllers
 {

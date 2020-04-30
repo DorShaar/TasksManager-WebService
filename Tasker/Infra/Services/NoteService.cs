@@ -3,8 +3,8 @@ using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData.Contracts;
-using Tasker.App.Resources;
 using Tasker.App.Services;
+using Tasker.Domain.Models;
 
 namespace Tasker.Infra.Services
 {

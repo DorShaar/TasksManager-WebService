@@ -5,8 +5,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData.Contracts;
-using Tasker.App.Resources;
 using Tasker.App.Services;
+using Tasker.Domain.Models;
 using Tasker.Infra.Services;
 using Xunit;
 

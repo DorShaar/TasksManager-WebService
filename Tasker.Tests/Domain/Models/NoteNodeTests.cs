@@ -1,8 +1,8 @@
 ﻿using System.IO;
-using Tasker.App.Resources;
+using Tasker.Domain.Models;
 using Xunit;
 
-namespace Tasker.Tests.App.Resources
+namespace Tasker.Tests.Domain.Models
 {
     public class NoteNodeTests
     {
