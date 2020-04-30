@@ -1,40 +1,36 @@
 ﻿using AutoMapper;
 using Logger.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using TaskData.Contracts;
+using Tasker.App.Resources;
+using Tasker.App.Services;
 
 namespace Tasker.Api.Controllers
 {
     [Route("api/[controller]")]
     public class NotesController : Controller
     {
-        private readonly INotesService mNotesService;
+        private readonly INoteService mNoteService;
         private readonly IMapper mMapper;
         private readonly ILogger mLogger;
 
-        public NotesController(INotesService notesService, IMapper mapper, ILogger logger)
+        public NotesController(INoteService noteService, IMapper mapper, ILogger logger)
         {
-            mNotesService = notesService;
+            mNoteService = noteService;
             mMapper = mapper;
             mLogger = logger;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<NoteResource>> ListGeneralNotesAsync()
+        public async Task<NoteNode> ListGeneralNotesAsync()
         {
             mLogger.Log("Requesting general notes");
 
-            IEnumerable<INote> notes = await mNotesService.ListAsync();
+            NoteNode notesResource = await mNoteService.GetNotesStructure();
 
-            IEnumerable<NoteResource> notesResources = mMapper
-                .Map<IEnumerable<ITasksGroup>, IEnumerable<NoteResource>>(notes);
+            mLogger.Log($"Found general notes");
 
-            mLogger.Log($"Found {notesResources.Count()} notes");
-
-            return notesResources;
+            return notesResource;
         }
     }
 }

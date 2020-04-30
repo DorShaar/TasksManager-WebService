@@ -24,6 +24,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestFiles\GeneralNotes\generalNote3.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\GeneralNotes\subject1\generalNote1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\GeneralNotes\subject1\generalNote2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestFiles\id_producer.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
