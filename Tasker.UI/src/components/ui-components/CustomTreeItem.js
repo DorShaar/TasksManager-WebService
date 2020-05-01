@@ -7,20 +7,21 @@ import TreeItem from '@material-ui/lab/TreeItem';
 import Collapse from '@material-ui/core/Collapse';
 import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is required for IE 11 support
 
-export default function CustomizedTreeView() {
-  const classes = useStyles();
+export default function CustomizedTreeView(props) {
+    const classes = useStyles();
+    props.treeData.parent = null;
 
-  return (
-    <TreeView
-      className={classes.root}
-      defaultExpanded={['1']}
-      defaultCollapseIcon={<MinusSquare />}
-      defaultExpandIcon={<PlusSquare />}
-      defaultEndIcon={<CloseSquare />}
-    >
-    {buildTree()}
-    </TreeView>
-  );
+    return (
+      <TreeView
+        className={classes.root}
+        defaultExpanded={['1']}
+        defaultCollapseIcon={<MinusSquare />}
+        defaultExpandIcon={<PlusSquare />}
+        defaultEndIcon={<CloseSquare />}
+      >
+      {buildTree(0, props.treeData, props.onClickEvent)}
+      </TreeView>
+    );
 }
 
 const useStyles = makeStyles({
@@ -31,73 +32,68 @@ const useStyles = makeStyles({
     },
   });
 
-function buildTree() {
-    const file1 = "notes/folder1/abc.txt";
-    const file2 = "notes/folder1/def.txt";
-    const file3 = "notes/folder1/folder2/tata.txt";
+function buildTree(id, treeNode, onClickEvent) {
+    const nodeId = id.toString();
+    const nextId = nodeId + 1;
 
-    // const nodes = ["notes", "notes/folder1", "notes/folder1/folder2", "notes/folder1/abc.txt", "notes/folder1/def.txt", "notes/folder1/folder2/tata.txt"];
-    // for (const node of nodes) {
-    //     console.log(color);
-    // }
+    const styledTreeItem = hasChildren(treeNode)
+      ? <StyledTreeItem nodeId={nodeId} label={treeNode.name} children={createChildren(nextId, treeNode, onClickEvent)}/>
+      : <StyledTreeItem nodeId={nodeId} label={renderLabel(treeNode, () => onClickEvent(getNodeTreePath(treeNode)))} />;
 
     return (
-    <StyledTreeItem nodeId="1" label="Main">
-        <StyledTreeItem nodeId="2" label="Hello" />
-        <StyledTreeItem nodeId="3" label="Subtree with children">
-          <StyledTreeItem nodeId="6" label="Hello" />
-          <StyledTreeItem nodeId="7" label="Sub-subtree with children" children={test()}/>
-          <StyledTreeItem nodeId="8" label="Hello" />
-        </StyledTreeItem>
-        <StyledTreeItem nodeId="4" label="World" />
-        <StyledTreeItem nodeId="5" label="Something something" />
-    </StyledTreeItem>
+      styledTreeItem
     )
 }
 
-function test() {
-    const nodes = ["brother1", "brother2", "brother3"];
+function hasChildren(object) {
+    for (var i in object.children) {
+        return true;
+      } 
+
+    return false;
+}
+
+function createChildren(id, treeNode, onClickEvent) {
     let elements = [];
-    let id = 9;
-    for (const node of nodes) {
-        elements.push(createBrother(id, node));
+
+    for (const childName in treeNode.children) {
         id++;
+        treeNode.children[childName].parent = treeNode;
+        elements.push(buildTree(id, treeNode.children[childName], onClickEvent));
     }
 
     return (
         <div>
             {elements}
         </div>
-        // <div>
-        //     <StyledTreeItem nodeId="9" label="Child 1" />
-        //     <StyledTreeItem nodeId="10" label="Child 2" />
-        //     <StyledTreeItem nodeId="11" label={renderLabel("bla")}  />
-        // </div>
     )
 }
 
-function createBrother(id, node) {
-    return (
-        <div>
-            <StyledTreeItem nodeId={id} label={renderLabel({node})} />
-        </div>
-    )
-}
-
-function renderLabel(text) {
+function renderLabel(node, onClickEvent) {
     return (
         <span
           onClick={event => {
-            window.prompt(text);
-            //setActiveItemId(item.id);
-            // if you want after click do expand/collapse comment this two line
+            onClickEvent();
             event.stopPropagation();
             event.preventDefault();
           }}
         >
-          text
+          {node.name}
         </span>
       );
+}
+
+function getNodeTreePath(node) {
+  let nodePath = node.name;
+
+  let currentNode = node;
+
+  while (currentNode.parent != null) {
+    currentNode = currentNode.parent;
+    nodePath = currentNode.name + '-' + nodePath;
+  }
+
+  return nodePath;
 }
 
 function MinusSquare(props) {

@@ -13,7 +13,10 @@ export default class App extends Component {
 
     render() {
 
-        var taskerCache = new TaskerCache(TaskerUrls.getTasksGroupsApiUrl(), TaskerUrls.getWorkTaskApiUrl());
+        var taskerCache = new TaskerCache(
+            TaskerUrls.getTasksGroupsApiUrl(), 
+            TaskerUrls.getWorkTaskApiUrl(),
+            TaskerUrls.getNotesApiUrl());
 
         return (
             <Layout>
@@ -21,7 +24,7 @@ export default class App extends Component {
                 <Route exact path= {TaskerUrls.getGroupsViewerUrl()} render={() => <TasksGroupViewer cache={taskerCache} />} />
                 <Route exact path= {TaskerUrls.getTasksViewerUrlByGroup()} render={() => <WorkTaskViewer cache={taskerCache}/>} />
                 <Route exact path= {TaskerUrls.getTasksViewerUrl()} render={() => <WorkTaskViewer cache={taskerCache}/>} />
-                <Route exact path= {TaskerUrls.getNoteViewerUrl()} render={() => <NoteViewer />} />
+                <Route exact path= {TaskerUrls.getNoteViewerUrl()} render={() => <NoteViewer cache={taskerCache}/>} />
             </Layout>
         );
     }

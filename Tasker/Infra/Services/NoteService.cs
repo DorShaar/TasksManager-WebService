@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData.Contracts;
 using Tasker.App.Services;
+using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
 
 namespace Tasker.Infra.Services
 {
     public class NoteService : INoteService
     {
+        private const string TextFileExtension = ".txt";
+
         private readonly string mGeneralNotesDirectory;
         private readonly string mTasksNotesDirectory;
         private readonly INoteBuilder mNoteBuilder;
@@ -24,18 +27,19 @@ namespace Tasker.Infra.Services
             mLogger = logger;
         }
 
-        public Task<INote> GetNote(string noteIdentifier)
+        public async Task<IResponse<INote>> GetNote(string noteIdentifier)
         {
             mLogger.Log($"Creating notes file system structure from {mGeneralNotesDirectory}");
-            INote note = mNoteBuilder.Load(noteIdentifier);
+
+            if (!Path.GetExtension(noteIdentifier).Equals(TextFileExtension))
+                noteIdentifier = $"{noteIdentifier}{TextFileExtension}";
+
+            INote note = mNoteBuilder.Load(Path.Combine(Path.GetDirectoryName(mGeneralNotesDirectory), noteIdentifier));
 
             if (!File.Exists(note.NotePath))
-            {
-                mLogger.Log($"No note found in path {note.NotePath}");
-                note = null;
-            }
+                return new FailResponse<INote>($"No note found in path {note.NotePath}");
 
-            return Task.FromResult(note);
+            return new SuccessResponse<INote>(note);
         }
 
         public Task<NoteNode> GetNotesStructure()

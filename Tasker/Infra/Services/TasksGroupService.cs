@@ -76,8 +76,10 @@ namespace Tasker.Infra.Services
                 ITasksGroup tasksGroup = mTaskGroupBuilder.Create(groupName, mLogger);
 
                 if (!mTasksGroupNameValidator.IsNameValid(tasksGroup.Name))
+                {
                     return new FailResponse<ITasksGroup>(
                         $"Group name '{tasksGroup.Name}' exceeds the maximal group name length: {NameLengths.MaximalGroupNameLength}");
+                }
 
                 await mTasksGroupRepository.AddAsync(tasksGroup);
 

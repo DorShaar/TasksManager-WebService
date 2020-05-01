@@ -23,6 +23,22 @@ export default class TaskerHttpRequester extends React.Component {
         return await response.json();
     }
 
+    static async getHttpTextRequest(url) {
+        const response = await fetch(url, {
+            headers: {
+                "Content-Type": "text/plain",
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            alertError(response);
+            return;
+        }
+
+        return await response.text();
+    }
+
     static async deleteHttpRequest(url) {
         const response = await fetch(url,
             {

@@ -39,6 +39,7 @@ namespace Tasker.Infra.Extensions
         {
             services.AddSingleton<ITasksGroupService, TasksGroupService>();
             services.AddSingleton<IWorkTaskService, WorkTaskService>();
+            services.AddSingleton<INoteService, NoteService>();
         }
 
         private static void RegisterRepositories(IServiceCollection services)

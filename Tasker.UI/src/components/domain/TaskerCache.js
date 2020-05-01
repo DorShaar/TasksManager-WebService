@@ -2,9 +2,10 @@
 
 export default class TaskerCache {
 
-    constructor(tasksGroupsUrl, workTasksUrl) {
+    constructor(tasksGroupsUrl, workTasksUrl, notesUrl) {
         this.tasksGroupsUrl = tasksGroupsUrl;
         this.workTasksUrl = workTasksUrl;
+        this.notesUrl = notesUrl;
 
         this.groupsCache = {
             isSync: false,
@@ -70,5 +71,15 @@ export default class TaskerCache {
         if (window.confirm("Are you sure you want to delete task " + taskId)) {
             await TaskerHttpRequester.deleteHttpRequest(this.workTasksUrl + taskId);
         }
+    }
+
+    // Notes methods.
+
+    async getGeneralNotes() {
+        return await TaskerHttpRequester.getHttpRequest(this.notesUrl);
+    }
+
+    async getNoteText(notePath) {
+        return await TaskerHttpRequester.getHttpTextRequest(this.notesUrl + notePath);
     }
 }

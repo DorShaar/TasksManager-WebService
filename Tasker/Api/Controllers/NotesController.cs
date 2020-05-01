@@ -1,8 +1,13 @@
 ﻿using AutoMapper;
 using Logger.Contracts;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.IO;
 using System.Threading.Tasks;
+using TaskData.Contracts;
 using Tasker.App.Services;
+using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
 
 namespace Tasker.Api.Controllers
@@ -22,15 +27,42 @@ namespace Tasker.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<NoteNode> ListGeneralNotesAsync()
+        public async Task<NoteNode> GetGeneralNotesStructureAsync()
         {
-            mLogger.Log("Requesting general notes");
+            mLogger.Log("Requesting for general notes structure");
 
-            NoteNode notesResource = await mNoteService.GetNotesStructure();
+            NoteNode notesStructure = await mNoteService.GetNotesStructure();
 
-            mLogger.Log($"Found general notes");
+            return notesStructure;
+        }
 
-            return notesResource;
+        [HttpGet("{notePath}")]
+        public async Task<IActionResult> GetGeneralNoteAsync(string notePath)
+        {
+            if (notePath == null)
+                return BadRequest("Note path is null");
+
+            notePath = notePath.Replace('-', Path.DirectorySeparatorChar);
+
+            mLogger.Log($"Requesting text of general note {notePath}");
+
+            try
+            {
+                IResponse<INote> result = await mNoteService.GetNote(notePath);
+
+                mLogger.Log($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
+
+                if (!result.IsSuccess)
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
+
+                mLogger.Log($"Note text: {result.ResponseObject.Text}");
+                return Ok(result.ResponseObject.Text);
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError($"Update operation failed with error", ex);
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }

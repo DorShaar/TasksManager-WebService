@@ -10,6 +10,10 @@ export default class TaskerUrls extends React.Component {
         return 'https://localhost:5001/api/TasksGroups/';
     }
 
+    static getNotesApiUrl() {
+        return 'https://localhost:5001/api/Notes/';
+    }
+
     static getGroupsViewerUrl() {
         return '/tasker/groups';
     }
