@@ -24,7 +24,7 @@ RUN dotnet publish ./Tasker/Tasker.csproj \
 	-o /artifacts
 
 #Create image from compiled project.
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine
 COPY --from=build-stage /artifacts /tasker
 
 WORKDIR /tasker
