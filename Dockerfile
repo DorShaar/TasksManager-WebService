@@ -3,7 +3,9 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build-stage
 WORKDIR /build
 
 #Copy sources.
-COPY ./ ./
+COPY ./Tasker ./Tasker
+COPY ./Tasker.Tests ./Tasker.Tests
+COPY ./nuget.config ./nuget.config
 
 #Restore nugets
 RUN dotnet restore ./Tasker/Tasker.csproj
