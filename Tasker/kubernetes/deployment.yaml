@@ -13,7 +13,11 @@ spec:
     metadata:
       labels:
         app: tasker-api
-    spec:
+    spec:  
+      volumes:
+        - name: tasker-api-storage
+          persistentVolumeClaim:
+            claimName: tasker-api-pv-claim
       containers:
       - name: tasker-api
         image: dorshaar/tasker-api:1.1
@@ -26,3 +30,6 @@ spec:
             memory: 1500Mi
         ports:
         - containerPort: 80
+        volumeMounts:
+          - mountPath: "/mnt/"
+            name: tasker-api-storage
