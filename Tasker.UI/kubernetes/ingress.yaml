@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tasker-ui
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - host: tasker-ui
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: tasker-api
+          servicePort: http
