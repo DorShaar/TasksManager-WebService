@@ -95,7 +95,7 @@ namespace Tasker.Infra.Services
         {
             try
             {
-                ITasksGroup tasksGroup = 
+                ITasksGroup tasksGroup =
                     (await FindTasksGroupsByConditionAsync(group => group.ID == taskGroupIdentifier)).FirstOrDefault();
                 if (tasksGroup == null && taskGroupIdentifier != null)
                 {
@@ -181,7 +181,10 @@ namespace Tasker.Infra.Services
                     return new FailResponse<IWorkTask>($"Task id is invalid (null or empty)");
 
                 if (!string.IsNullOrEmpty(workTaskResource.Description))
-                    return await UpdateDescription(workTaskResource.TaskId, workTaskResource.Description);
+                    return await UpdateDescriptionAsync(workTaskResource.TaskId, workTaskResource.Description);
+
+                if (!string.IsNullOrEmpty(workTaskResource.Status))
+                    return await UpdateStatusAsync(workTaskResource.TaskId, workTaskResource.Status, workTaskResource.Reason);
 
                 if (!string.IsNullOrEmpty(workTaskResource.GroupName))
                     return await MoveTaskAsync(workTaskResource.TaskId, workTaskResource.GroupName);
@@ -196,7 +199,7 @@ namespace Tasker.Infra.Services
             }
         }
 
-        private async Task <IResponse<IWorkTask>> UpdateDescription(string workTaskId, string newTaskDescription)
+        private async Task<IResponse<IWorkTask>> UpdateDescriptionAsync(string workTaskId, string newTaskDescription)
         {
             if (!mWorkTaskNameValidator.IsNameValid(newTaskDescription))
                 return new FailResponse<IWorkTask>($"Task description'{newTaskDescription}' is invalid");
@@ -219,6 +222,42 @@ namespace Tasker.Infra.Services
             }
 
             return new FailResponse<IWorkTask>($"Work task {workTaskId} not found. No task update performed");
+        }
+
+        private async Task<IResponse<IWorkTask>> UpdateStatusAsync(string workTaskId, string newTaskStatus, string reason)
+        {
+            if (!Enum.TryParse(newTaskStatus, out Status newStatus))
+                return new FailResponse<IWorkTask>($"Failed to parse status '{newTaskStatus}'");
+
+            (ITasksGroup groupParent, IWorkTask taskToUpdate) = await FindWorkTaskAndItsParentGroup(workTaskId);
+
+            if (taskToUpdate == null)
+                return new FailResponse<IWorkTask>($"Work task {workTaskId} not found. No task update performed");
+
+            if (newStatus == taskToUpdate.Status)
+                return new FailResponse<IWorkTask>($"Task id {workTaskId} has already status'{newTaskStatus}'");
+
+            switch (newStatus)
+            {
+                case Status.Closed:
+                    taskToUpdate.CloseTask(reason);
+                    break;
+
+                case Status.OnWork:
+                    taskToUpdate.MarkTaskOnWork(reason);
+                    break;
+
+                case Status.Open:
+                    taskToUpdate.ReOpenTask(reason);
+                    break;
+
+                default:
+                    return new FailResponse<IWorkTask>($"New status'{newTaskStatus}' is not expected");
+            }
+
+            groupParent.UpdateTask(taskToUpdate);
+            await mTasksGroupRepository.UpdateAsync(groupParent);
+            return new SuccessResponse<IWorkTask>(taskToUpdate);
         }
 
         public async Task<IResponse<IWorkTask>> MoveTaskAsync(string workTaskId, string tasksGroupId)

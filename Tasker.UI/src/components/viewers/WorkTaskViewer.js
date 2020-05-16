@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import FunctionalButton from '../ui-components/FunctionalButton';
 import AutoCompleteTextField from '../ui-components/AutocompleteTextField';
+import SelectBox from '../ui-components/SelectBox';
 import SwitchLabel from '../ui-components/SwitchLabel';
 
 export class WorkTaskViewer extends Component {
@@ -65,7 +66,14 @@ export class WorkTaskViewer extends Component {
                             <td>{task.taskId}</td>
                             <td>{task.groupName}</td>
                             <td>{task.description}</td>
-                            <td>{task.status}</td>
+                            <td>
+                                <SelectBox 
+                                    taskId={task.taskId}
+                                    currentValue={task.status}
+                                    values={["Closed", "Open", "OnWork"]}
+                                    action={this.updateTaskStatus.bind(this)}
+                                />
+                            </td>
                             <td>
                                 <FunctionalButton
                                     onClickFunction={() => this.state.cache.updateTask(
@@ -89,6 +97,11 @@ export class WorkTaskViewer extends Component {
                 </tbody>
             </table>
         );
+    }
+
+    async updateTaskStatus(taskId, newStatus) {
+        const reason = window.prompt('Type reason');
+        this.state.cache.updateTaskStatus(taskId, newStatus, reason);
     }
 
     async handleMove(taskId) {

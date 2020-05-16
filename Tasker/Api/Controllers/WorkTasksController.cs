@@ -95,7 +95,7 @@ namespace Takser.Api.Controllers
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
-
+                
                 WorkTaskResource workTaskResource = mMapper.Map<IWorkTask, WorkTaskResource>(result.ResponseObject);
                 return Ok(workTaskResource);
             }

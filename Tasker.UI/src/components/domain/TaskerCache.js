@@ -63,6 +63,11 @@ export default class TaskerCache {
         await TaskerHttpRequester.postHttpRequest(this.workTasksUrl + taskId, { description: newDescription });
     }
 
+    async updateTaskStatus(taskId, newStatus, reason) {
+        console.log("Updtaing task " + taskId + " with new status " + newStatus)
+        await TaskerHttpRequester.postHttpRequest(this.workTasksUrl + taskId, { status: newStatus, reason: reason });
+    }
+
     async moveTask(taskId, destinationGroup) {
         await TaskerHttpRequester.postHttpRequest(this.workTasksUrl + taskId, { groupName: destinationGroup });
     }
