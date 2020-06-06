@@ -9,4 +9,5 @@ FROM mhart/alpine-node
 RUN yarn global add serve
 WORKDIR /app
 COPY --from=builder /app/build .
+RUN apk add curl
 CMD ["serve", "-p", "80", "-s", "."]
