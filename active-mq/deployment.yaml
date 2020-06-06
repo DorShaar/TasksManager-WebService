@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: active-mq
+  labels:
+    app: active-mq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: active-mq
+  template:
+    metadata:
+      labels:
+        app: active-mq
+    spec:
+      containers:
+        - image: active-mq:1.0
+          name: active-mq
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 200m
+            limits:
+              memory: 1000Mi
+              cpu: 400m
+          volumeMounts:
+          - name: active-creds
+            mountPath: /home/alpine/apache-activemq-5.15.10/conf/jetty-realm.properties
+            subPath: jetty-realm.properties
+      volumes:
+      - name: active-creds
+        secret:
+          secretName: amq-creds
+      restartPolicy: Always
