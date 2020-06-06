@@ -29,7 +29,7 @@ namespace Tasker
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins("http*")
+                    builder.WithOrigins("http://localhost:3000", "https://localhost:3000")
                             .AllowAnyMethod()
                             .AllowAnyHeader()
                             .AllowCredentials();
