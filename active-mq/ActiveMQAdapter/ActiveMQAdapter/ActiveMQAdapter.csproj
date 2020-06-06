@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Apache.NMS.ActiveMQ.Core" Version="1.7.2.1" />
+    <PackageReference Include="Tasker.Logger.Contracts" Version="1.0.0" />
+  </ItemGroup>
+  
+</Project>
