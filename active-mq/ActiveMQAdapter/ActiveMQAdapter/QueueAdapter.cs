@@ -13,6 +13,7 @@ namespace ActiveMQAdapter
         private bool mDisposed = false;
         private IConnection mConnection;
         public string URI { get; } = "activemq:tcp://localhost:61616";
+        //public string URI { get; } = "tcp://activemq:61616";
 
         public QueueAdapter(ILogger logger)
         {
@@ -40,11 +41,11 @@ namespace ActiveMQAdapter
                 if (message is IBytesMessage byteMessage)
                     return Task.FromResult(message);
 
-                mLogger.LogError($"Could not parse message, type of message is: {message.NMSType}");
+                mLogger.Log($"Could not parse message, type of message is: {message.NMSType}");
             }
             else
             {
-                mLogger.LogError($"Null message recieved");
+                mLogger.Log($"Null message recieved");
             }
 
             return Task.FromResult(message);

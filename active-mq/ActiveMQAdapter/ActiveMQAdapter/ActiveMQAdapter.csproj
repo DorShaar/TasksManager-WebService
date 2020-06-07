@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Apache.NMS.ActiveMQ.Core" Version="1.7.2.1" />
+    <PackageReference Include="Apache.NMS.Core" Version="1.7.1.1" />
     <PackageReference Include="Tasker.Logger.Contracts" Version="1.0.0" />
   </ItemGroup>
   
