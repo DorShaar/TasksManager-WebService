@@ -28,9 +28,10 @@ namespace Tasker
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins("*")
+                    builder.WithOrigins("http://tasker-ui:*", "http://tasker-ui:*")
                             .AllowAnyMethod()
-                            .AllowAnyHeader();
+                            .AllowAnyHeader()
+                            .AllowCredentials();
                 });
             });
 
