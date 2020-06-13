@@ -6,11 +6,12 @@ metadata:
     type: local
 spec:
   storageClassName: manual
+  PersistentVolumeClaim: Retain
   capacity:
     storage: 100Mi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/C/Dor/MyComputingPrograms/DevWorld"
+    path: "/C/Users/Public/DorShaar/C#Work/TaskManagerApp/TaskerStorage"
 
 # path: "/C/Users/dor.shaar/OneDrive - Votiro/Dor/Notes"

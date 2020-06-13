@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: tasker-api-pv-claim
+  name: tasker-api-pvc
 spec:
   storageClassName: manual
   accessModes:

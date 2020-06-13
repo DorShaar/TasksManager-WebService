@@ -17,7 +17,7 @@ spec:
       volumes:
         - name: tasker-api-storage
           persistentVolumeClaim:
-            claimName: tasker-api-pv-claim
+            claimName: tasker-api-pvc
       containers:
       - name: tasker-api
         image: dorshaar/tasker-api:1.1
@@ -25,11 +25,11 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 100Mi
+            memory: 50Mi
           limits:
-            memory: 1500Mi
+            memory: 300Mi
         ports:
         - containerPort: 80
         volumeMounts:
-          - mountPath: "/mnt/"
+          - mountPath: "/mnt"
             name: tasker-api-storage
