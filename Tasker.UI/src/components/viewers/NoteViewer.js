@@ -34,9 +34,10 @@ export class NoteViewer extends Component {
                 <h1>Notes</h1>
                 <p> </p>
                 {notesTree}
-                <h1>Content</h1>
-                <p> </p>
-                {this.state.noteContent}
+                <h1> Content</h1>
+                <p style={{ whiteSpace: "pre-wrap", }}> 
+                    {this.state.noteContent}
+                </p>
             </div>
         );
     }
