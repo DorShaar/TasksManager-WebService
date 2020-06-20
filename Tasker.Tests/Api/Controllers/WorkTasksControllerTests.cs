@@ -30,7 +30,7 @@ namespace Tasker.Tests.Api.Controllers
             ITasksGroupService tasksGroupService = A.Fake<ITasksGroupService>();
             A.CallTo(() => tasksGroupService.ListAsync()).Returns(new List<ITasksGroup>());
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(tasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
 
@@ -42,10 +42,10 @@ namespace Tasker.Tests.Api.Controllers
         {
             List<IWorkTask> tasksList = null;
 
-            IWorkTaskService tasksGroupService = A.Fake<IWorkTaskService>();
-            A.CallTo(() => tasksGroupService.ListAsync()).Returns(tasksList);
+            IWorkTaskService workTaskService = A.Fake<IWorkTaskService>();
+            A.CallTo(() => workTaskService.ListAsync()).Returns(tasksList);
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), tasksGroupService);
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(workTaskService: workTaskService);
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync(MainRoute);
 
@@ -61,10 +61,10 @@ namespace Tasker.Tests.Api.Controllers
         {
             List<IWorkTask> tasksList = new List<IWorkTask>();
 
-            IWorkTaskService tasksGroupService = A.Fake<IWorkTaskService>();
-            A.CallTo(() => tasksGroupService.ListAsync()).Returns(tasksList);
+            IWorkTaskService workTaskService = A.Fake<IWorkTaskService>();
+            A.CallTo(() => workTaskService.ListAsync()).Returns(tasksList);
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), tasksGroupService);
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(workTaskService: workTaskService);
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync(MainRoute);
 
@@ -76,7 +76,7 @@ namespace Tasker.Tests.Api.Controllers
         [InlineData("")]
         public async Task ListTasksOfSpecificGroupAsync_groupIdNullOrEmpty_EmptyListReturned(string groupId)
         {
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes();
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
 
@@ -93,7 +93,7 @@ namespace Tasker.Tests.Api.Controllers
             ITasksGroupService tasksGroupService = A.Fake<ITasksGroupService>();
             A.CallTo(() => tasksGroupService.ListAsync()).Returns(new List<ITasksGroup>());
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(tasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id");
 
@@ -107,7 +107,7 @@ namespace Tasker.Tests.Api.Controllers
         [Fact]
         public async Task PutWorkTaskAsync_InvalidWorkTaskResourceException_BadRequestReturned()
         {
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes();
             using HttpClient httpClient = testServer.CreateClient();
 
             WorkTaskResource workTaskResource = new WorkTaskResource { GroupName = "newGroupName" };
@@ -124,7 +124,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => taskGroupService.SaveTaskAsync(A<string>.Ignored, A<string>.Ignored))
                 .Returns(new FailResponse<IWorkTask>(""));
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(taskGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(taskGroupService);
             using HttpClient httpClient = testServer.CreateClient();
 
             WorkTaskResource workTaskResource = new WorkTaskResource { GroupName = "newGroupName" };
@@ -144,7 +144,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => tasksGroupService.SaveTaskAsync(workTaskResource.GroupName, workTaskResource.Description))
                 .Returns(new SuccessResponse<IWorkTask>(A.Fake<IWorkTask>()));
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(tasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
             
             StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
@@ -164,7 +164,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => tasksGroupService.SaveTaskAsync(expectedWorkTask.GroupName, expectedWorkTask.Description))
                 .Returns(new SuccessResponse<IWorkTask>(expectedWorkTask));
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(tasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
 
             WorkTaskResource workTaskResource = new WorkTaskResource 
@@ -189,7 +189,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => fakeTasksGroupService.SaveTaskAsync(A<string>.Ignored, A<string>.Ignored))
                 .Throws<Exception>();
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(fakeTasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
 
             WorkTaskResource workTaskResource = new WorkTaskResource { GroupName = "newGroupName", Description = "description" };

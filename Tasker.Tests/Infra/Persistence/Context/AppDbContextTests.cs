@@ -172,42 +172,6 @@ namespace Tasker.Tests.Infra.Persistence.Context
             }
         }
 
-        [Fact]
-        public async Task SaveDatabase_NextIdToProduceSavedAsExpected()
-        {
-            string tempDirectory = CopyDirectoryToTempDirectory();
-
-            IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
-            {
-                DatabaseDirectoryPath = tempDirectory
-            });
-
-            try
-            {
-                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
-                await database.LoadDatabase();
-
-                ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
-                ITasksGroup tasksGroup1 = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-                tasksGroup1.CreateTask("workTask1");
-                tasksGroup1.CreateTask("workTask2");
-
-                ITasksGroup tasksGroup2 = mTasksGroupBuilder.Create("group2", A.Fake<ILogger>());
-                tasksGroup2.CreateTask("workTask3");
-
-                database.Entities.Add(tasksGroup1);
-                database.Entities.Add(tasksGroup2);
-
-                await database.SaveCurrentDatabase();
-                string dbContent = await File.ReadAllTextAsync(Path.Combine(tempDirectory, "id_producer.db"));
-                Assert.Equal("\"1027\"", dbContent);
-            }
-            finally
-            {
-                Directory.Delete(tempDirectory, recursive: true);
-            }
-        }
-
         private string CopyDirectoryToTempDirectory()
         {
             string tempDirectory = Directory.CreateDirectory(Guid.NewGuid().ToString()).FullName;

@@ -22,7 +22,7 @@ namespace Tasker.Tests.Api.Controllers
         [Fact]
         public async Task ListGroupsAsync_SuccessStatusCode()
         {
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(A.Fake<ITasksGroupService>(), A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes();
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}");
 
@@ -36,7 +36,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => fakeTasksGroupService.UpdateGroupAsync(A<string>.Ignored, A<string>.Ignored))
                 .Returns(new SuccessResponse<ITasksGroup>(A.Fake<ITasksGroup>()));
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(fakeTasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
 
             TasksGroupResource groupResource = new TasksGroupResource { GroupName = "newGroupName" };
@@ -69,7 +69,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => fakeTasksGroupService.UpdateGroupAsync(A<string>.Ignored, A<string>.Ignored))
                 .Throws<Exception>();
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(fakeTasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
 
             TasksGroupResource groupResource = new TasksGroupResource { GroupName = "newGroupName" };
@@ -97,7 +97,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => fakeTasksGroupService.RemoveAsync(A<string>.Ignored))
                 .Returns(new SuccessResponse<ITasksGroup>(A.Fake<ITasksGroup>(), ""));
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(fakeTasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/some-id");
 
@@ -111,7 +111,7 @@ namespace Tasker.Tests.Api.Controllers
             A.CallTo(() => fakeTasksGroupService.RemoveAsync(A<string>.Ignored))
                 .Throws<Exception>();
 
-            using TestServer testServer = ApiTestHelper.CreateTestServerWithFakes(fakeTasksGroupService, A.Fake<IWorkTaskService>());
+            using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(fakeTasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
             HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/some-id");
 

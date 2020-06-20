@@ -34,7 +34,7 @@ namespace Tasker.Infra.Services
             if (!Path.GetExtension(noteIdentifier).Equals(TextFileExtension))
                 noteIdentifier = $"{noteIdentifier}{TextFileExtension}";
 
-            INote note = mNoteBuilder.Load(Path.Combine(Path.GetDirectoryName(mGeneralNotesDirectory), noteIdentifier));
+            INote note = mNoteBuilder.Load(Path.Combine(mGeneralNotesDirectory, noteIdentifier));
 
             if (!File.Exists(note.NotePath))
                 return new FailResponse<INote>($"No note found in path {note.NotePath}");

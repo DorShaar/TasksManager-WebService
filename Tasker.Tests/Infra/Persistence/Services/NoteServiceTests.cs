@@ -34,44 +34,44 @@ namespace Tasker.Tests.Infra.Persistence.Services
             Assert.Equal(Path.GetFileName(GeneralNotesDirectoryPath), noteNode.Name);
         }
 
-        [Fact]
-        public async Task GetNote_RealPathWithExtension_NoteFound()
+        [Theory]
+        [InlineData("generalNote3.txt", "gn3")]
+        [InlineData(@"subject1\generalNote2.txt", "This is generel note 2")]
+        public async Task GetNote_RealPathWithExtension_NoteFound(string noteRelativePath, string expectedText)
         {
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
             {
                 NotesDirectoryPath = GeneralNotesDirectoryPath
             });
 
-            string noteName = "generalNote3.txt";
-            string noteRelativePath = Path.Combine(GeneralNotesDirectoryName, noteName);
-            string expectedNotePath = Path.Combine(GeneralNotesDirectoryPath, noteName);
+            string expectedNotePath = Path.Combine(GeneralNotesDirectoryPath, noteRelativePath);
 
             INoteService noteService = new NoteService(new NoteBuilder(), databaseOptions, A.Fake<ILogger>());
             IResponse<INote> response = await noteService.GetNote(noteRelativePath);
 
             Assert.True(response.IsSuccess);
             Assert.Equal(expectedNotePath, response.ResponseObject.NotePath);
-            Assert.Equal("gn3", response.ResponseObject.Text);
+            Assert.Equal(expectedText, response.ResponseObject.Text);
         }
 
-        [Fact]
-        public async Task GetNote_RealPathWithoutExtension_NoteFound()
+        [Theory]
+        [InlineData("generalNote3", "gn3")]
+        [InlineData(@"subject1\generalNote2", "This is generel note 2")]
+        public async Task GetNote_RealPathWithoutExtension_NoteFound(string noteRelativePath, string expectedText)
         {
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
             {
                 NotesDirectoryPath = GeneralNotesDirectoryPath
             });
 
-            string noteName = "generalNote3";
-            string noteRelativePath = Path.Combine(GeneralNotesDirectoryName, noteName);
-            string expectedNotePath = Path.Combine(GeneralNotesDirectoryPath, noteName) + ".txt";
+            string expectedNotePath = Path.Combine(GeneralNotesDirectoryPath, noteRelativePath) + ".txt";
 
             INoteService noteService = new NoteService(new NoteBuilder(), databaseOptions, A.Fake<ILogger>());
             IResponse<INote> response = await noteService.GetNote(noteRelativePath);
 
             Assert.True(response.IsSuccess);
             Assert.Equal(expectedNotePath, response.ResponseObject.NotePath);
-            Assert.Equal("gn3", response.ResponseObject.Text);
+            Assert.Equal(expectedText, response.ResponseObject.Text);
         }
 
         [Fact]

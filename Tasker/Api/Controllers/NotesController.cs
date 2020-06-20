@@ -53,7 +53,7 @@ namespace Tasker.Api.Controllers
                 mLogger.Log($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
-                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
+                    return StatusCode(StatusCodes.Status404NotFound, result.Message);
 
                 mLogger.Log($"Note text: {result.ResponseObject.Text}");
                 return Ok(result.ResponseObject.Text);

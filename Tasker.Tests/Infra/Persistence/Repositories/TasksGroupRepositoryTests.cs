@@ -1,5 +1,4 @@
-﻿using Database.JsonService;
-using FakeItEasy;
+﻿using FakeItEasy;
 using Logger.Contracts;
 using Microsoft.Extensions.Options;
 using ObjectSerializer.Contracts;
@@ -19,8 +18,6 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 {
     public class TasksGroupRepositoryTests
     {
-        private const string TestFilesDirectory = "TestFiles";
-        private readonly string mAlternateDatabasePath = Path.Combine("TestFiles", "tasks_other.db");
         private readonly ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
 
         [Fact]
