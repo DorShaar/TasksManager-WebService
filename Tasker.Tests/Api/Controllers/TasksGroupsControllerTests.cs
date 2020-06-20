@@ -24,7 +24,7 @@ namespace Tasker.Tests.Api.Controllers
         {
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes();
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}");
+            using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}").ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
         }
@@ -40,8 +40,8 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
 
             TasksGroupResource groupResource = new TasksGroupResource { GroupName = "newGroupName" };
-            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/some-id", jsonContent);
+            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/some-id", jsonContent).ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
         }
@@ -56,8 +56,8 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
 
             TasksGroupResource groupResource = new TasksGroupResource { GroupName = alreadyExistingGroupName };
-            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/{realGroupId}", jsonContent);
+            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/{realGroupId}", jsonContent).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
         }
@@ -73,8 +73,8 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
 
             TasksGroupResource groupResource = new TasksGroupResource { GroupName = "newGroupName" };
-            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/some-id", jsonContent);
+            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(groupResource), Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PostAsync($"{MainRoute}/some-id", jsonContent).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
@@ -85,7 +85,7 @@ namespace Tasker.Tests.Api.Controllers
         {
             using TestServer testServer = ApiTestHelper.CreateTestServer();
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/{id}");
+            using HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/{id}").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
         }
@@ -99,7 +99,7 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(fakeTasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/some-id");
+            using HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/some-id").ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
         }
@@ -113,7 +113,7 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(fakeTasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/some-id");
+            using HttpResponseMessage response = await httpClient.DeleteAsync($"{MainRoute}/some-id").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }

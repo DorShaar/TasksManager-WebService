@@ -1,6 +1,7 @@
 ﻿using Logger.Contracts;
 using Microsoft.Extensions.Options;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData.Contracts;
@@ -27,12 +28,11 @@ namespace Tasker.Infra.Services
             mLogger = logger;
         }
 
-        public async Task<IResponse<INote>> GetNote(string noteIdentifier)
+        public async Task<IResponse<INote>> GetGeneralNote(string noteIdentifier)
         {
             mLogger.Log($"Creating notes file system structure from {mGeneralNotesDirectory}");
 
-            if (!Path.GetExtension(noteIdentifier).Equals(TextFileExtension))
-                noteIdentifier = $"{noteIdentifier}{TextFileExtension}";
+            noteIdentifier = AddExtensionIfNotExists(noteIdentifier);
 
             INote note = mNoteBuilder.Load(Path.Combine(mGeneralNotesDirectory, noteIdentifier));
 
@@ -40,6 +40,29 @@ namespace Tasker.Infra.Services
                 return new FailResponse<INote>($"No note found in path {note.NotePath}");
 
             return new SuccessResponse<INote>(note);
+        }
+
+        public async Task<IResponse<INote>> GetTaskNote(string noteIdentifier)
+        {
+            mLogger.Log($"Creating notes file system structure from {mGeneralNotesDirectory}");
+
+            string taskNotePath = Directory.EnumerateFiles(mTasksNotesDirectory).FirstOrDefault(
+                note => Path.GetFileName(note).StartsWith(noteIdentifier));
+
+            if (taskNotePath == null)
+                return new FailResponse<INote>($"No note {noteIdentifier} found");
+
+            INote note = mNoteBuilder.Load(taskNotePath);
+
+            return new SuccessResponse<INote>(note);
+        }
+
+        private string AddExtensionIfNotExists(string fileName)
+        {
+            if (!Path.GetExtension(fileName).Equals(TextFileExtension))
+                fileName = $"{fileName}{TextFileExtension}";
+
+            return fileName;
         }
 
         public Task<NoteNode> GetNotesStructure()

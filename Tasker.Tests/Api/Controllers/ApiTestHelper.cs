@@ -25,7 +25,8 @@ namespace Tasker.Tests.Api.Controllers
         {
             IOptions<DatabaseConfigurtaion> defaultDatabaseConfig = Options.Create(new DatabaseConfigurtaion()
             {
-                NotesDirectoryPath = Path.Combine("TestFiles", "GeneralNotes")
+                NotesDirectoryPath = Path.Combine("TestFiles", "GeneralNotes"),
+                NotesTasksDirectoryPath = Path.Combine("TestFiles", "TaskNotes"),
             });
 
             var testServer = new TestServer(WebHost.CreateDefaultBuilder()

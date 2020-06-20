@@ -47,7 +47,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             string expectedNotePath = Path.Combine(GeneralNotesDirectoryPath, noteRelativePath);
 
             INoteService noteService = new NoteService(new NoteBuilder(), databaseOptions, A.Fake<ILogger>());
-            IResponse<INote> response = await noteService.GetNote(noteRelativePath);
+            IResponse<INote> response = await noteService.GetGeneralNote(noteRelativePath);
 
             Assert.True(response.IsSuccess);
             Assert.Equal(expectedNotePath, response.ResponseObject.NotePath);
@@ -67,7 +67,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             string expectedNotePath = Path.Combine(GeneralNotesDirectoryPath, noteRelativePath) + ".txt";
 
             INoteService noteService = new NoteService(new NoteBuilder(), databaseOptions, A.Fake<ILogger>());
-            IResponse<INote> response = await noteService.GetNote(noteRelativePath);
+            IResponse<INote> response = await noteService.GetGeneralNote(noteRelativePath);
 
             Assert.True(response.IsSuccess);
             Assert.Equal(expectedNotePath, response.ResponseObject.NotePath);
@@ -86,7 +86,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             string noteRelativePath = Path.Combine(GeneralNotesDirectoryName, noteName);
 
             INoteService noteService = new NoteService(new NoteBuilder(), databaseOptions, A.Fake<ILogger>());
-            IResponse<INote> response = await noteService.GetNote(noteRelativePath);
+            IResponse<INote> response = await noteService.GetGeneralNote(noteRelativePath);
 
             Assert.False(response.IsSuccess);
         }

@@ -32,7 +32,7 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
+            using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}").ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
         }
@@ -47,9 +47,9 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(workTaskService: workTaskService);
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync(MainRoute);
+            using HttpResponseMessage response = await httpClient.GetAsync(MainRoute).ConfigureAwait(false);
 
-            string stringResponse = await response.Content.ReadAsStringAsync();
+            string stringResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             IEnumerable<WorkTaskResource> workTaskResources =
                 JsonConvert.DeserializeObject<IEnumerable<WorkTaskResource>>(stringResponse);
 
@@ -66,7 +66,7 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(workTaskService: workTaskService);
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync(MainRoute);
+            using HttpResponseMessage response = await httpClient.GetAsync(MainRoute).ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
         }
@@ -78,9 +78,9 @@ namespace Tasker.Tests.Api.Controllers
         {
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes();
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}");
+            using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{groupId}").ConfigureAwait(false);
 
-            string stringResponse = await response.Content.ReadAsStringAsync();
+            string stringResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             IEnumerable<WorkTaskResource> workTaskResources =
                 JsonConvert.DeserializeObject<IEnumerable<WorkTaskResource>>(stringResponse);
 
@@ -95,7 +95,7 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id");
+            using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id").ConfigureAwait(false);
 
             string stringResponse = await response.Content.ReadAsStringAsync();
             IEnumerable<WorkTaskResource> workTaskResources =
@@ -111,8 +111,8 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
 
             WorkTaskResource workTaskResource = new WorkTaskResource { GroupName = "newGroupName" };
-            StringContent jsonContent = new StringContent("invalidResource", Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent);
+            using StringContent jsonContent = new StringContent("invalidResource", Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -128,8 +128,8 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
 
             WorkTaskResource workTaskResource = new WorkTaskResource { GroupName = "newGroupName" };
-            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent);
+            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent).ConfigureAwait(false);
 
             A.CallTo(() => taskGroupService.SaveTaskAsync(A<string>.Ignored, A<string>.Ignored)).MustHaveHappenedOnceExactly();
             Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
@@ -147,8 +147,8 @@ namespace Tasker.Tests.Api.Controllers
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
             
-            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent);
+            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -172,10 +172,10 @@ namespace Tasker.Tests.Api.Controllers
                 GroupName = expectedWorkTask.GroupName, 
                 Description = expectedWorkTask.Description 
             };
-            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent);
+            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent).ConfigureAwait(false);
 
-            string stringResponse = await response.Content.ReadAsStringAsync();
+            string stringResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             WorkTaskResource returnedResource = JsonConvert.DeserializeObject<WorkTaskResource>(stringResponse);
 
             Assert.Equal(expectedWorkTask.GroupName, returnedResource.GroupName);
@@ -193,8 +193,8 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
 
             WorkTaskResource workTaskResource = new WorkTaskResource { GroupName = "newGroupName", Description = "description" };
-            StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
-            HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent);
+            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
+            using HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
