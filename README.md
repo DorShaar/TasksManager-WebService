@@ -1,6 +1,6 @@
 # TasksManager-WebService
 
-IOC
-Controllers
-API testing
-Union architecture pattern
+IOC,
+Controllers,
+API testing,
+Union architecture pattern,
