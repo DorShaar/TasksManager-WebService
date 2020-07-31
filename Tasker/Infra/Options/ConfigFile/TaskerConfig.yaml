@@ -1,4 +1,4 @@
 DatabaseDirectoryPath: /mnt/database
-NotesDirectoryPath: /mnt/DevWorld
+NotesDirectoryPath: /mnt/general_notes
 NotesTasksDirectoryPath: /mnt/tasks
-DefaultTasksGroup: bugs-124
+DefaultTasksGroup: none

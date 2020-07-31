@@ -178,7 +178,7 @@ namespace Tasker.Tests.Infra.Persistence.Context
 
             foreach (string filePath in Directory.EnumerateFiles(TestFilesDirectory))
             {
-                File.Copy(filePath, Path.Combine(tempDirectory, Path.GetFileName(filePath)));
+                File.Copy(filePath, Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(filePath)));
             }
 
             return tempDirectory;

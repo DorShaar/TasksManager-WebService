@@ -21,7 +21,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
     public class WorkTaskRepositoryTests
     {
         private const string TestFilesDirectory = "TestFiles";
-        private readonly string mAlternateDatabasePath = Path.Combine("TestFiles", "tasks_other.db");
+        private readonly string mAlternateDatabasePath = Path.Combine("TestFiles", "tasks_other.db.txt");
         private readonly string mNewDatabaseDirectoryPath = Path.Combine("TestFiles", "NewDatabase");
         private readonly ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
 
@@ -260,7 +260,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             foreach (string filePath in Directory.EnumerateFiles(sourceDirectory))
             {
-                File.Copy(filePath, Path.Combine(tempDirectory, Path.GetFileName(filePath)));
+                File.Copy(filePath, Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(filePath)));
             }
 
             return tempDirectory;
