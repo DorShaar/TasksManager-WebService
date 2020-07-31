@@ -16,18 +16,19 @@ namespace Tasker.Api.Middlewares
 
         public ExceptionHandlingMiddleware(RequestDelegate requestDelegate, ILogger logger)
         {
-            mNext = requestDelegate;
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
+            mNext = requestDelegate ?? throw new ArgumentNullException(nameof(requestDelegate));
         }
 
         public async Task Invoke(HttpContext context)
         {
             try
             {
-                await mNext.Invoke(context);
+                await mNext.Invoke(context).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, ex);
+                await HandleExceptionAsync(context, ex).ConfigureAwait(false);
             }
         }
 
@@ -51,7 +52,7 @@ namespace Tasker.Api.Middlewares
                 Status = StatusCodes.Status500InternalServerError,
                 Type = "https://httpstatuses.com/500",
                 Title = "The server encountered an unexpected condition that prevented it from fulfilling the request",
-                Detail = $"Traceid {context.TraceIdentifier}",
+                Detail = $"Trace id {context.TraceIdentifier}",
                 Instance = context.Request.Path
             };
 
