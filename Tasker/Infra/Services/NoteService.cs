@@ -34,6 +34,8 @@ namespace Tasker.Infra.Services
 
             noteIdentifier = AddExtensionIfNotExists(noteIdentifier);
 
+            noteIdentifier = RemoveDuplicateDirectory(noteIdentifier);
+
             INote note = mNoteBuilder.Load(Path.Combine(mGeneralNotesDirectory, noteIdentifier));
 
             if (!File.Exists(note.NotePath))
@@ -60,9 +62,27 @@ namespace Tasker.Infra.Services
         private string AddExtensionIfNotExists(string fileName)
         {
             if (!Path.GetExtension(fileName).Equals(TextFileExtension))
-                fileName = $"{fileName}{TextFileExtension}";
+                fileName += TextFileExtension;
 
             return fileName;
+        }
+
+        private string RemoveDuplicateDirectory(string fileName)
+        {
+            string fileNameWithoutDuplicatedDirectory = fileName;
+
+            string notesDirectoryName = Path.GetFileName(mGeneralNotesDirectory);
+
+            if (fileName.StartsWith(notesDirectoryName) &&
+                !Directory.GetDirectories(mGeneralNotesDirectory).Any(
+                    directoryPath => Path.GetFileName(directoryPath) == notesDirectoryName))
+            {
+                fileNameWithoutDuplicatedDirectory = fileName.Remove(0, notesDirectoryName.Length);
+                fileNameWithoutDuplicatedDirectory =
+                    fileNameWithoutDuplicatedDirectory.TrimStart(Path.DirectorySeparatorChar);
+            }
+
+            return fileNameWithoutDuplicatedDirectory;
         }
 
         public Task<NoteNode> GetNotesStructure()

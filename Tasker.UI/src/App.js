@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { Home } from './components/Home';
 import { TasksGroupViewer } from './components/viewers/TasksGroupViewer';
 import { WorkTaskViewer } from './components/viewers/WorkTaskViewer';
+import { NotesViewer } from './components/viewers/NotesViewer';
 import { NoteViewer } from './components/viewers/NoteViewer';
 import TaskerCache from './components/domain/TaskerCache';
 import TaskerUrls from './common/TaskerUrls';
@@ -24,6 +25,7 @@ export default class App extends Component {
                 <Route exact path= {TaskerUrls.getGroupsViewerUrl()} render={() => <TasksGroupViewer cache={taskerCache} />} />
                 <Route exact path= {TaskerUrls.getTasksViewerUrlByGroup()} render={() => <WorkTaskViewer cache={taskerCache}/>} />
                 <Route exact path= {TaskerUrls.getTasksViewerUrl()} render={() => <WorkTaskViewer cache={taskerCache}/>} />
+                <Route exact path= {TaskerUrls.getNotesViewerUrl()} render={() => <NotesViewer cache={taskerCache}/>} />
                 <Route exact path= {TaskerUrls.getNoteViewerUrl()} render={() => <NoteViewer cache={taskerCache}/>} />
             </Layout>
         );

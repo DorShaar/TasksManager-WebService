@@ -3,6 +3,7 @@ import FunctionalButton from '../ui-components/FunctionalButton';
 import AutoCompleteTextField from '../ui-components/AutocompleteTextField';
 import SelectBox from '../ui-components/SelectBox';
 import SwitchLabel from '../ui-components/SwitchLabel';
+import TaskerUrls from '../../common/TaskerUrls';
 
 export class WorkTaskViewer extends Component {
 
@@ -90,6 +91,10 @@ export class WorkTaskViewer extends Component {
                                     onClickFunction={() => this.handleMove(task.taskId)}
                                     buttonName="move"
                                 />
+                                <FunctionalButton
+                                    onClickFunction={() => this.viewTaskNote(task.taskId)}
+                                    buttonName="note"
+                                />
                                 {this.viewAutoCompleteTextFieldForRelevantTaskId(task.taskId)}
                             </td>
                         </tr>
@@ -135,6 +140,20 @@ export class WorkTaskViewer extends Component {
         });
     }
 
+    viewTaskNote(taskId) {
+        const newUrlLocation = TaskerUrls.getNoteViewerUrl().replace(":noteId", taskId);
+        window.location.pathname = newUrlLocation;
+    }
+
+    viewAutoCompleteTextFieldForRelevantTaskId(taskId) {
+        return this.state.moveState.isMoving && this.state.moveState.movingTaskId === taskId
+            ? <AutoCompleteTextField
+                options={this.state.groupsNames}
+                label="new group"
+                action={this.setMovingStateWithDestinationGroup.bind(this)} />
+            : null;
+    }
+
     setMovingStateWithDestinationGroup(destinationGroup) {
         let newMoveState = {
             isMoving: true,
@@ -145,15 +164,6 @@ export class WorkTaskViewer extends Component {
         this.setState({
             moveState: newMoveState
         });
-    }
-
-    viewAutoCompleteTextFieldForRelevantTaskId(taskId) {
-        return this.state.moveState.isMoving && this.state.moveState.movingTaskId === taskId
-            ? <AutoCompleteTextField
-                options={this.state.groupsNames}
-                label="new group"
-                action={this.setMovingStateWithDestinationGroup.bind(this)} />
-            : null;
     }
 
     createNewWorkTaskDescriptionObject() {

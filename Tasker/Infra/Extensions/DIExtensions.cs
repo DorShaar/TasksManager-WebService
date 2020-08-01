@@ -68,7 +68,8 @@ namespace Tasker.Infra.Extensions
         {
             IConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
 
-            configurationBuilder.AddYamlFile(Path.Combine("Infra", "Options", "ConfigFile", "TaskerConfig.yaml"), optional: false);
+            const string configFileName = "TaskerConfig - work.yaml";
+            configurationBuilder.AddYamlFile(Path.Combine("Infra", "Options", "ConfigFile", configFileName), optional: false);
 
             IConfiguration configuration = configurationBuilder.Build();
 

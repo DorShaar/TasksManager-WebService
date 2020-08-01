@@ -90,7 +90,7 @@ function getNodeTreePath(node) {
 
   while (currentNode.parent != null) {
     currentNode = currentNode.parent;
-    nodePath = currentNode.name + '-' + nodePath;
+    nodePath = currentNode.name + '*' + nodePath;
   }
 
   return nodePath;

@@ -38,7 +38,7 @@ export class NavMenu extends Component {
                                     <NavLink tag={Link} className="text-dark" to= {TaskerUrls.getTasksViewerUrl()}>Work Tasks</NavLink>
                                 </NavItem>
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to= {TaskerUrls.getNoteViewerUrl()}>Notes</NavLink>
+                                    <NavLink tag={Link} className="text-dark" to= {TaskerUrls.getNotesViewerUrl()}>Notes</NavLink>
                                 </NavItem>
                                 <NavItem>
                                     <NavLink tag={Link} className="text-dark" to="/Identity/Account/Login">Login</NavLink>
