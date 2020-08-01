@@ -25,10 +25,12 @@ namespace Tasker.Api.Middlewares
             }
             finally
             {
-                mLogger.LogInformation(
-                    $"Request method: {context.Request?.Method} " +
-                    $"Request path: {context.Request?.Path.Value}" +
-                    $"Request status: {context.Response?.StatusCode}");
+                mLogger.Log(
+                    $"Request method: {context.Request?.Method}{Environment.NewLine}" +
+                    $"Request host: {context.Request?.Host.Host}{Environment.NewLine}" +
+                    $"Request host port: {context.Request?.Host.Port}{Environment.NewLine}" +
+                    $"Request path: {context.Request?.Path.Value}{Environment.NewLine}" +
+                    $"Request status: {context.Response?.StatusCode}{Environment.NewLine}");
             }
         }
     }

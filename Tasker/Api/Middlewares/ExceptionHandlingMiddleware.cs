@@ -28,6 +28,7 @@ namespace Tasker.Api.Middlewares
             }
             catch (Exception ex)
             {
+                mLogger.LogError($"Handling exception at {nameof(ExceptionHandlingMiddleware)}");
                 await HandleExceptionAsync(context, ex).ConfigureAwait(false);
             }
         }

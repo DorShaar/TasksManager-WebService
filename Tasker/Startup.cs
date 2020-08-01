@@ -11,6 +11,8 @@ namespace Tasker
 {
     public class Startup
     {
+        private const string TaskerCorsPolicy = "TaskerCorsPolicy";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -19,20 +21,19 @@ namespace Tasker
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews(/*option => option.Filters.Add(new AuthorizeFilter())*/);
             services.AddRazorPages();
 
-            // Adds "Access-Control-Allow-Origin" header to request.
+            // Adds "Access-Control-Allow-(Origin/Methods/Headers)" header to response.
             services.AddCors(options =>
             {
-                options.AddDefaultPolicy(builder =>
+                options.AddPolicy(TaskerCorsPolicy, builder =>
                 {
-                    builder.WithOrigins("http://tasker-ui:*", "http://tasker-ui:*")
-                            .AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .AllowCredentials();
+                    builder.WithOrigins("*")
+                         .AllowAnyMethod()
+                         .AllowAnyHeader();
                 });
             });
 
@@ -40,7 +41,7 @@ namespace Tasker
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -53,11 +54,12 @@ namespace Tasker
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection()
+            app.UseMiddleware<RequestLoggingMiddleware>()
+               .UseMiddleware<ExceptionHandlingMiddleware>()
+               .UseHttpsRedirection()
                .UseStaticFiles()
                .UseRouting()
-               .UseCors()
-               .UseMiddleware<ExceptionHandlingMiddleware>()
+               .UseCors(TaskerCorsPolicy)
                .UseAuthentication()
                .UseAuthorization()
                .UseEndpoints(endpoints =>

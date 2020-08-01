@@ -12,6 +12,6 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/C/Users/Public/DorShaar/C#Work/TaskManagerApp/TaskerStorage"
+    path: "/C/Users/dor.shaar/OneDrive - Votiro/Dor/Notes"
 
-# path: "/C/Users/dor.shaar/OneDrive - Votiro/Dor/Notes"
+# path: "/C/Users/Public/DorShaar/C#Work/TaskManagerApp/TaskerStorage"

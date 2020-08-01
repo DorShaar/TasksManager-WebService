@@ -52,7 +52,7 @@ namespace Tasker.Infra.Persistence.Context
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Unable to deserialize whole information", ex);
+                mLogger.LogError("Unable to deserialize whole information", ex);
             }
 
             return Task.CompletedTask;
