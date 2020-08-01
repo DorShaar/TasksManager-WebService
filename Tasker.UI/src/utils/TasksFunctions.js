@@ -12,7 +12,6 @@ export default class TaskerHttpRequester extends React.Component {
             headers: {
                 "Content-Type": "application/json",
             },
-            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -28,7 +27,6 @@ export default class TaskerHttpRequester extends React.Component {
             headers: {
                 "Content-Type": "text/plain",
             },
-            credentials: 'include'
         });
 
         if (!response.ok) {

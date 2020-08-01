@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    vendor: "dorshaar"
+  name: tasker-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasker-ui
+  template:
+    metadata:
+      labels:
+        app: tasker-ui
+    spec:
+      containers:
+      - name: tasker-ui
+        image: dorshaar/tasker-ui:1.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            memory: 500Mi
+        ports:
+        - containerPort: 8080
