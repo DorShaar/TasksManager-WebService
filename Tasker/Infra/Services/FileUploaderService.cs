@@ -23,19 +23,17 @@ namespace Tasker.Infra.Services
         {
             MultipartFormDataContent multiContent = new MultipartFormDataContent();
 
-            byte[] fileContent = await File.ReadAllBytesAsync(filePath);
+            byte[] fileContent = await File.ReadAllBytesAsync(filePath).ConfigureAwait(false);
             multiContent.Add(new ByteArrayContent(fileContent), "files", Path.GetFileName(filePath));
 
-            using (HttpClient httpClient = new HttpClient())
-            {
-                HttpResponseMessage response = await httpClient.PostAsync(
-                $"https://localhost:44337/api/FileUpload", multiContent)
-                .ConfigureAwait(false);
+            using HttpClient httpClient = new HttpClient();
+            HttpResponseMessage response = await httpClient.PostAsync(
+            "https://localhost:44337/api/FileUpload", multiContent)
+            .ConfigureAwait(false);
 
-                using (response)
-                {
-                    response.EnsureSuccessStatusCode();
-                }
+            using (response)
+            {
+                response.EnsureSuccessStatusCode();
             }
         }
     }

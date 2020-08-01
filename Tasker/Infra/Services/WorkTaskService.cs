@@ -23,7 +23,7 @@ namespace Tasker.Infra.Services
         {
             List<IWorkTask> workTasks = new List<IWorkTask>();
 
-            foreach (IWorkTask task in await ListAsync())
+            foreach (IWorkTask task in await ListAsync().ConfigureAwait(false))
             {
                 if (condition(task))
                     workTasks.Add(task);
@@ -35,12 +35,9 @@ namespace Tasker.Infra.Services
 
         public async Task<IEnumerable<IWorkTask>> ListAsync()
         {
-            IEnumerable<IWorkTask> workTasks = await mWorkTaskRepository.ListAsync();
+            IEnumerable<IWorkTask> workTasks = await mWorkTaskRepository.ListAsync().ConfigureAwait(false);
 
-            if (workTasks == null)
-                return new List<IWorkTask>();
-
-            return workTasks;
+            return workTasks ?? new List<IWorkTask>();
         }
     }
 }

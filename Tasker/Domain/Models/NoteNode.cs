@@ -14,7 +14,7 @@ namespace Tasker.Domain.Models
 
             if (!Directory.Exists(nodePath))
                 return;
-            
+
             foreach (string filePath in Directory.EnumerateFileSystemEntries(nodePath))
             {
                 NoteNode newChildNote = new NoteNode(filePath);

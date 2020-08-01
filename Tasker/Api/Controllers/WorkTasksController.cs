@@ -32,7 +32,6 @@ namespace Takser.Api.Controllers
             mLogger = logger;
         }
 
-
         [HttpGet]
         public async Task<IEnumerable<WorkTaskResource>> ListTasksAsync()
         {
@@ -40,7 +39,7 @@ namespace Takser.Api.Controllers
 
             mLogger.Log("Requesting all tasks");
 
-            IEnumerable<IWorkTask> tasks = await mWorkTaskService.ListAsync();
+            IEnumerable<IWorkTask> tasks = await mWorkTaskService.ListAsync().ConfigureAwait(false);
 
             if (tasks == null)
                 return workTaskResources;
@@ -62,8 +61,8 @@ namespace Takser.Api.Controllers
 
             mLogger.Log($"Requesting all tasks from group id {groupId}");
 
-            ITasksGroup group = (await mTasksGroupService.ListAsync())
-                .Where(group => group.ID.Equals(groupId)).SingleOrDefault();
+            ITasksGroup group = (await mTasksGroupService.ListAsync().ConfigureAwait(false))
+                .SingleOrDefault(group => group.ID.Equals(groupId));
 
             if (group == null)
                 return workTaskResources;
@@ -89,19 +88,20 @@ namespace Takser.Api.Controllers
             try
             {
                 saveWorkTaskResource.TaskId = id;
-                IResponse<IWorkTask> result = await mTasksGroupService.UpdateTaskAsync(saveWorkTaskResource);
+                IResponse<IWorkTask> result =
+                    await mTasksGroupService.UpdateTaskAsync(saveWorkTaskResource).ConfigureAwait(false);
 
                 mLogger.Log($"Update result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
-                
+
                 WorkTaskResource workTaskResource = mMapper.Map<IWorkTask, WorkTaskResource>(result.ResponseObject);
                 return Ok(workTaskResource);
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Update operation failed with error", ex);
+                mLogger.LogError("Update operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
@@ -120,7 +120,8 @@ namespace Takser.Api.Controllers
             try
             {
                 IResponse<IWorkTask> result =
-                        await mTasksGroupService.SaveTaskAsync(newWorkTaskResource.GroupName, newWorkTaskResource.Description);
+                        await mTasksGroupService.SaveTaskAsync(newWorkTaskResource.GroupName, newWorkTaskResource.Description)
+                        .ConfigureAwait(false);
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
@@ -130,7 +131,7 @@ namespace Takser.Api.Controllers
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Put operation failed with error", ex);
+                mLogger.LogError("Put operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
@@ -145,7 +146,7 @@ namespace Takser.Api.Controllers
 
             try
             {
-                IResponse<IWorkTask> result = await mTasksGroupService.RemoveTaskAsync(id);
+                IResponse<IWorkTask> result = await mTasksGroupService.RemoveTaskAsync(id).ConfigureAwait(false);
 
                 mLogger.Log($"Remove result {(result.IsSuccess ? "succeeded" : "failed")}");
 
@@ -157,7 +158,7 @@ namespace Takser.Api.Controllers
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Remove operation failed with error", ex);
+                mLogger.LogError("Remove operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }

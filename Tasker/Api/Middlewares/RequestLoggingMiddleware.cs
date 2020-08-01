@@ -7,7 +7,6 @@ namespace Tasker.Api.Middlewares
 {
     public class RequestLoggingMiddleware
     {
-
         private readonly RequestDelegate mNext;
         private readonly ILogger mLogger;
 

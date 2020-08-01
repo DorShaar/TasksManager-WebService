@@ -57,7 +57,7 @@ namespace Tasker.Api.Controllers
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Update operation failed with error", ex);
+                mLogger.LogError("Update operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
@@ -86,7 +86,7 @@ namespace Tasker.Api.Controllers
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Update operation failed with error", ex);
+                mLogger.LogError("Update operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }

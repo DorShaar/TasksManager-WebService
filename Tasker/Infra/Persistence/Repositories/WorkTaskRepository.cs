@@ -23,16 +23,16 @@ namespace Tasker.Infra.Persistence.Repositories
         {
             if (workTask == null)
             {
-                mLogger.LogError($"Work task given is null, no database adding performed");
+                mLogger.LogError("Work task given is null, no database adding performed");
                 return;
             }
 
-            await mDatabase.SaveCurrentDatabase();
+            await mDatabase.SaveCurrentDatabase().ConfigureAwait(false);
         }
 
         public async Task<IWorkTask> FindAsync(string workTaskId)
         {
-            foreach (IWorkTask workTask in await ListAsync())
+            foreach (IWorkTask workTask in await ListAsync().ConfigureAwait(false))
             {
                 if (workTask.ID == workTaskId)
                     return workTask;
@@ -44,7 +44,7 @@ namespace Tasker.Infra.Persistence.Repositories
 
         public async Task<IEnumerable<IWorkTask>> ListAsync()
         {
-            await mDatabase.LoadDatabase();
+            await mDatabase.LoadDatabase().ConfigureAwait(false);
 
             List<IWorkTask> allTasks = new List<IWorkTask>();
 
@@ -60,22 +60,22 @@ namespace Tasker.Infra.Persistence.Repositories
         {
             if (workTask == null)
             {
-                mLogger.LogError($"Work task given is null, no database removing performed");
+                mLogger.LogError("Work task given is null, no database removing performed");
                 return;
             }
 
-            await mDatabase.SaveCurrentDatabase();
+            await mDatabase.SaveCurrentDatabase().ConfigureAwait(false);
         }
 
         public async Task UpdateAsync(IWorkTask workTask)
         {
             if (workTask == null)
             {
-                mLogger.LogError($"Work task given is null, no database updaing performed");
+                mLogger.LogError("Work task given is null, no database updaing performed");
                 return;
             }
 
-            await mDatabase.SaveCurrentDatabase();
+            await mDatabase.SaveCurrentDatabase().ConfigureAwait(false);
         }
     }
 }
