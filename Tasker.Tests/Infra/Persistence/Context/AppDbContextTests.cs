@@ -100,7 +100,7 @@ namespace Tasker.Tests.Infra.Persistence.Context
                 });
 
                 AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
-                await database.LoadDatabase();
+                await database.LoadDatabase().ConfigureAwait(false);
 
                 Assert.Equal(2, database.Entities.Count);
                 Assert.Equal(3, database.Entities[0].Size);
@@ -125,7 +125,7 @@ namespace Tasker.Tests.Infra.Persistence.Context
                 });
 
                 AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
-                await database.LoadDatabase();
+                await database.LoadDatabase().ConfigureAwait(false);
 
                 ITasksGroupBuilder tasksGroupBuilder = new TaskGroupBuilder();
                 ITasksGroup tasksGroup = tasksGroupBuilder.Create("group", A.Fake<ILogger>());
@@ -163,7 +163,7 @@ namespace Tasker.Tests.Infra.Persistence.Context
                 database.Entities.Add(tasksGroup1);
                 database.Entities.Add(tasksGroup2);
 
-                await database.SaveCurrentDatabase();
+                await database.SaveCurrentDatabase().ConfigureAwait(false);
                 File.Exists(database.DatabaseFilePath);
             }
             finally

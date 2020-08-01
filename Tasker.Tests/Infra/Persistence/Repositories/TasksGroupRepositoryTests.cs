@@ -3,7 +3,6 @@ using Logger.Contracts;
 using Microsoft.Extensions.Options;
 using ObjectSerializer.Contracts;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
@@ -23,44 +22,47 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task AddAsync_TaskGroupNotExist_Success()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
             ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
 
-            Assert.False((await tasksGroupRepository.ListAsync()).Any());
+            Assert.False((await tasksGroupRepository.ListAsync().ConfigureAwait(false)).Any());
 
-            await tasksGroupRepository.AddAsync(tasksGroup);
+            await tasksGroupRepository.AddAsync(tasksGroup).ConfigureAwait(false);
 
-            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID));
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID).ConfigureAwait(false));
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
         }
 
         [Fact]
         public async Task AddAsync_TaskGroupAlreadyExist_NotAdded()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
             ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
 
-            Assert.False((await tasksGroupRepository.ListAsync()).Any());
+            Assert.False((await tasksGroupRepository.ListAsync().ConfigureAwait(false)).Any());
 
             // Make tasksGroup be already exist.
             database.Entities.Add(tasksGroup);
 
-            await tasksGroupRepository.AddAsync(tasksGroup);
+            await tasksGroupRepository.AddAsync(tasksGroup).ConfigureAwait(false);
 
-            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID));
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID).ConfigureAwait(false));
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
         }
 
         [Fact]
         public async Task AddAsync_TaskGroupNameAlreadyExist_NotAdded()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
@@ -69,14 +71,14 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             Assert.NotEqual(tasksGroup.ID, tasksGroupWithSameName.ID);
 
-            Assert.False((await tasksGroupRepository.ListAsync()).Any());
+            Assert.False((await tasksGroupRepository.ListAsync().ConfigureAwait(false)).Any());
 
-            await tasksGroupRepository.AddAsync(tasksGroup);
-            await tasksGroupRepository.AddAsync(tasksGroupWithSameName);
+            await tasksGroupRepository.AddAsync(tasksGroup).ConfigureAwait(false);
+            await tasksGroupRepository.AddAsync(tasksGroupWithSameName).ConfigureAwait(false);
 
-            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID));
-            Assert.Null(await tasksGroupRepository.FindAsync(tasksGroupWithSameName.ID));
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID).ConfigureAwait(false));
+            Assert.Null(await tasksGroupRepository.FindAsync(tasksGroupWithSameName.ID).ConfigureAwait(false));
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
         }
 
         [Fact]
@@ -86,7 +88,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
-            await tasksGroupRepository.AddAsync(A.Fake<ITasksGroup>());
+            await tasksGroupRepository.AddAsync(A.Fake<ITasksGroup>()).ConfigureAwait(false);
 
             A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
             A.CallTo(() => database.SaveCurrentDatabase()).MustHaveHappenedOnceExactly();
@@ -95,7 +97,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task FindAsync_IdExist_Found()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
@@ -103,17 +106,18 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             database.Entities.Add(tasksGroup);
 
-            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID));
+            Assert.NotNull(await tasksGroupRepository.FindAsync(tasksGroup.ID).ConfigureAwait(false));
         }
 
         [Fact]
         public async Task FindAsync_IdNotExist_NotFound()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
-            Assert.Null(await tasksGroupRepository.FindAsync("1005"));
+            Assert.Null(await tasksGroupRepository.FindAsync("1005").ConfigureAwait(false));
         }
 
         [Fact]
@@ -123,7 +127,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
-            await tasksGroupRepository.FindAsync("group1");
+            await tasksGroupRepository.FindAsync("group1").ConfigureAwait(false);
 
             A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
             A.CallTo(() => database.SaveCurrentDatabase()).MustNotHaveHappened();
@@ -132,7 +136,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task ListAsync_AsExpected()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
@@ -142,7 +147,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             database.Entities.Add(tasksGroup1);
             database.Entities.Add(tasksGroup2);
 
-            List<ITasksGroup> tasksGroups = (await tasksGroupRepository.ListAsync()).ToList();
+            List<ITasksGroup> tasksGroups = (await tasksGroupRepository.ListAsync().ConfigureAwait(false)).ToList();
             Assert.Equal(tasksGroup1, tasksGroups[0]);
             Assert.Equal(tasksGroup2, tasksGroups[1]);
         }
@@ -150,11 +155,12 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task ListAsync_HasNoGroups_ReturnsEmptyList()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
-            Assert.Empty(await tasksGroupRepository.ListAsync());
+            Assert.Empty(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
         }
 
         [Fact]
@@ -164,7 +170,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
-            await tasksGroupRepository.ListAsync();
+            await tasksGroupRepository.ListAsync().ConfigureAwait(false);
 
             A.CallTo(() => database.LoadDatabase()).MustHaveHappenedOnceExactly();
             A.CallTo(() => database.SaveCurrentDatabase()).MustNotHaveHappened();
@@ -173,7 +179,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task RemoveAsync_GroupExists_GroupRemoved()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
@@ -181,17 +188,18 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             database.Entities.Add(tasksGroup1);
 
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
 
-            await tasksGroupRepository.RemoveAsync(tasksGroup1);
+            await tasksGroupRepository.RemoveAsync(tasksGroup1).ConfigureAwait(false);
 
-            Assert.Empty(await tasksGroupRepository.ListAsync());
+            Assert.Empty(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
         }
 
         [Fact]
         public async Task RemoveAsync_GroupNotExists_RemoveNotPerformed()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
@@ -200,11 +208,11 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             database.Entities.Add(tasksGroup1);
 
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
 
-            await tasksGroupRepository.RemoveAsync(tasksGroup2);
+            await tasksGroupRepository.RemoveAsync(tasksGroup2).ConfigureAwait(false);
 
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
         }
 
         [Fact]
@@ -217,7 +225,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
             database.Entities.Add(tasksGroup);
 
-            await tasksGroupRepository.RemoveAsync(tasksGroup);
+            await tasksGroupRepository.RemoveAsync(tasksGroup).ConfigureAwait(false);
 
             A.CallTo(() => database.LoadDatabase()).MustNotHaveHappened();
             A.CallTo(() => database.SaveCurrentDatabase()).MustHaveHappenedOnceExactly();
@@ -226,7 +234,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task UpdateAsync_GroupExists_GroupUpdated()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
@@ -234,19 +243,19 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             database.Entities.Add(tasksGroup);
 
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
 
-            ITasksGroup tasksGroupWithUpdate = await tasksGroupRepository.FindAsync(tasksGroup.ID);
+            ITasksGroup tasksGroupWithUpdate = await tasksGroupRepository.FindAsync(tasksGroup.ID).ConfigureAwait(false);
 
-            string newGroupName = "group1_changed";
+            const string newGroupName = "group1_changed";
 
             tasksGroupWithUpdate.Name = newGroupName;
 
-            await tasksGroupRepository.UpdateAsync(tasksGroupWithUpdate);
+            await tasksGroupRepository.UpdateAsync(tasksGroupWithUpdate).ConfigureAwait(false);
 
-            Assert.Single(await tasksGroupRepository.ListAsync());
+            Assert.Single(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
 
-            ITasksGroup updatedTasksGroup = await tasksGroupRepository.FindAsync(tasksGroup.ID);
+            ITasksGroup updatedTasksGroup = await tasksGroupRepository.FindAsync(tasksGroup.ID).ConfigureAwait(false);
 
             Assert.Equal(newGroupName, updatedTasksGroup.Name);
         }
@@ -254,15 +263,16 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         [Fact]
         public async Task UpdateAsync_GroupNotExists_GroupNotAdded()
         {
-            AppDbContext database = new AppDbContext(Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
             ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
 
-            await tasksGroupRepository.UpdateAsync(tasksGroup);
+            await tasksGroupRepository.UpdateAsync(tasksGroup).ConfigureAwait(false);
 
-            Assert.Empty(await tasksGroupRepository.ListAsync());
+            Assert.Empty(await tasksGroupRepository.ListAsync().ConfigureAwait(false));
         }
 
         [Fact]
@@ -272,7 +282,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             TasksGroupRepository tasksGroupRepository = new TasksGroupRepository(database, A.Fake<ILogger>());
 
-            await tasksGroupRepository.UpdateAsync(A.Fake<ITasksGroup>());
+            await tasksGroupRepository.UpdateAsync(A.Fake<ITasksGroup>()).ConfigureAwait(false);
 
             A.CallTo(() => database.LoadDatabase()).MustNotHaveHappened();
             A.CallTo(() => database.SaveCurrentDatabase()).MustNotHaveHappened();

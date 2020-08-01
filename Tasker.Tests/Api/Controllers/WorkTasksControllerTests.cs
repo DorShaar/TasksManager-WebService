@@ -23,7 +23,7 @@ namespace Tasker.Tests.Api.Controllers
         [Fact]
         public async Task ListTasksOfSpecificGroupAsync_SuccessStatusCode()
         {
-            string groupId = "some-id";
+            const string groupId = "some-id";
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
             A.CallTo(() => tasksGroup.ID).Returns(groupId);
 
@@ -97,7 +97,7 @@ namespace Tasker.Tests.Api.Controllers
             using HttpClient httpClient = testServer.CreateClient();
             using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/some-id").ConfigureAwait(false);
 
-            string stringResponse = await response.Content.ReadAsStringAsync();
+            string stringResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             IEnumerable<WorkTaskResource> workTaskResources =
                 JsonConvert.DeserializeObject<IEnumerable<WorkTaskResource>>(stringResponse);
 
@@ -146,8 +146,9 @@ namespace Tasker.Tests.Api.Controllers
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
-            
-            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
+
+            using StringContent jsonContent =
+                new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
             using HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -167,12 +168,14 @@ namespace Tasker.Tests.Api.Controllers
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(tasksGroupService);
             using HttpClient httpClient = testServer.CreateClient();
 
-            WorkTaskResource workTaskResource = new WorkTaskResource 
-            { 
-                GroupName = expectedWorkTask.GroupName, 
-                Description = expectedWorkTask.Description 
+            WorkTaskResource workTaskResource = new WorkTaskResource
+            {
+                GroupName = expectedWorkTask.GroupName,
+                Description = expectedWorkTask.Description
             };
-            using StringContent jsonContent = new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
+
+            using StringContent jsonContent =
+                new StringContent(JsonConvert.SerializeObject(workTaskResource), Encoding.UTF8, PostMediaType);
             using HttpResponseMessage response = await httpClient.PutAsync(MainRoute, jsonContent).ConfigureAwait(false);
 
             string stringResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

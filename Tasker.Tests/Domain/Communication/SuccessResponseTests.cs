@@ -9,8 +9,8 @@ namespace Tasker.Tests.Domain.Communication
         [Fact]
         public void Ctor_Arguments_ResponseObjectAndResponseMessage_AsExpected()
         {
-            string responseObject = "ThisIsResponseObject";
-            string responseMessage = "good";
+            const string responseObject = "ThisIsResponseObject";
+            const string responseMessage = "good";
 
             IResponse<string> response = new SuccessResponse<string>(responseObject, responseMessage);
 

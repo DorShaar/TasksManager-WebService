@@ -29,15 +29,10 @@ namespace Tasker.Tests.Api.Controllers
                 NotesTasksDirectoryPath = Path.Combine("TestFiles", "TaskNotes"),
             });
 
-            var testServer = new TestServer(WebHost.CreateDefaultBuilder()
-                .ConfigureTestServices(sc =>
-                {
-                    sc.AddSingleton(defaultDatabaseConfig);
-                })
+            return new TestServer(WebHost.CreateDefaultBuilder()
+                .ConfigureTestServices(sc => sc.AddSingleton(defaultDatabaseConfig))
                 .UseStartup<Startup>()
                 .UseEnvironment("Development"));
-
-            return testServer;
         }
 
         public static TestServer BuildTestServerWithFakes(ITasksGroupService tasksGroupService = null, IWorkTaskService workTaskService = null,

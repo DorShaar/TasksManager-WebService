@@ -21,7 +21,7 @@ namespace Tasker.Tests.Domain.Models
             Assert.Equal(2, noteNode.Children["subject1"].Children.Count);
             Assert.Equal("generalNote3.txt", noteNode.Children["generalNote3.txt"].Name);
             Assert.Empty(noteNode.Children["generalNote3.txt"].Children);
-            
+
             Assert.Equal("generalNote1.txt", noteNode.Children["subject1"].Children["generalNote1.txt"].Name);
             Assert.Equal("generalNote2.txt", noteNode.Children["subject1"].Children["generalNote2.txt"].Name);
         }

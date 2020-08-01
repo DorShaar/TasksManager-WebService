@@ -24,7 +24,7 @@ namespace Tasker.Tests.Api.Controllers
         {
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes();
             using HttpClient httpClient = testServer.CreateClient();
-            using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}").ConfigureAwait(false);
+            using HttpResponseMessage response = await httpClient.GetAsync(MainRoute).ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
         }
@@ -49,8 +49,8 @@ namespace Tasker.Tests.Api.Controllers
         [Fact]
         public async Task PostGroupAsync_AlreadyExistingGroupName_MethodNotAllowedStatusCode()
         {
-            string realGroupId = "1001";
-            string alreadyExistingGroupName = "Free";
+            const string realGroupId = "1001";
+            const string alreadyExistingGroupName = "Free";
 
             using TestServer testServer = ApiTestHelper.CreateTestServer();
             using HttpClient httpClient = testServer.CreateClient();

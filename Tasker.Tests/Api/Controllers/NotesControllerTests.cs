@@ -1,14 +1,7 @@
-﻿using FakeItEasy;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Options;
-using System.IO;
+﻿using Microsoft.AspNetCore.TestHost;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Takser.Infra.Options;
-using Tasker.App.Services;
 using Xunit;
 
 namespace Tasker.Tests.Api.Controllers
@@ -58,7 +51,7 @@ namespace Tasker.Tests.Api.Controllers
             using TestServer testServer = ApiTestHelper.CreateTestServerWithFakeDatabaseConfig();
             using HttpClient httpClient = testServer.CreateClient();
 
-            string notExistingPrivateNote = "1050";
+            const string notExistingPrivateNote = "1050";
             using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/note/{notExistingPrivateNote}").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

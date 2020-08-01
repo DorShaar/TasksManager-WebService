@@ -8,8 +8,8 @@ namespace Tasker.Tests.Domain.Communication
         [Fact]
         public void Ctor_Arguments_ResponseObjectAndResponseMessage_AsExpected()
         {
-            string responseObject = "ThisIsResponseObject";
-            string responseMessage = "good";
+            const string responseObject = "ThisIsResponseObject";
+            const string responseMessage = "good";
 
             IResponse<string> response = new FailResponse<string>(responseObject, responseMessage);
 
@@ -21,7 +21,7 @@ namespace Tasker.Tests.Domain.Communication
         [Fact]
         public void Ctor_Arguments_ResponseMessage_AsExpected()
         {
-            string responseMessage = "bad";
+            const string responseMessage = "bad";
 
             IResponse<string> response = new FailResponse<string>(responseMessage);
 
