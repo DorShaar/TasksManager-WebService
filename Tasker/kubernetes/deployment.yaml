@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    vendor: "dorshaar"
+  name: tasker-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasker-api
+  template:
+    metadata:
+      labels:
+        app: tasker-api
+    spec:  
+      volumes:
+        - name: tasker-api-storage
+          persistentVolumeClaim:
+            claimName: tasker-api-pvc
+      containers:
+      - name: tasker-api
+        image: dorshaar/tasker-api:1.1
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+          limits:
+            memory: 300Mi
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - mountPath: "/mnt"
+            name: tasker-api-storage

@@ -25,7 +25,7 @@ namespace Takser.Api.Controllers
                     filePaths.Add(filePath);
 
                     using Stream stream = new FileStream(filePath, FileMode.Create);
-                    await formFile.CopyToAsync(stream);
+                    await formFile.CopyToAsync(stream).ConfigureAwait(false);
                 }
             }
 

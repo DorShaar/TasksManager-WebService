@@ -33,8 +33,8 @@ namespace Takser.Api.Controllers
         {
             mLogger.Log("Requesting groups");
 
-            IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync();
-            
+            IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
+
             IEnumerable<TasksGroupResource> taskGroupResources = mMapper
                 .Map<IEnumerable<ITasksGroup>, IEnumerable<TasksGroupResource>>(groups);
 
@@ -56,7 +56,8 @@ namespace Takser.Api.Controllers
 
             try
             {
-                IResponse<ITasksGroup> result = await mTasksGroupService.UpdateGroupAsync(id, saveTasksGroupResource.GroupName);
+                IResponse<ITasksGroup> result =
+                    await mTasksGroupService.UpdateGroupAsync(id, saveTasksGroupResource.GroupName).ConfigureAwait(false);
 
                 mLogger.Log($"Update result {(result.IsSuccess ? "succeeded" : "failed")}");
 
@@ -68,7 +69,7 @@ namespace Takser.Api.Controllers
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Update operation failed with error", ex);
+                mLogger.LogError("Update operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
@@ -86,7 +87,8 @@ namespace Takser.Api.Controllers
 
             try
             {
-                IResponse<ITasksGroup> result = await mTasksGroupService.SaveAsync(newTaskGroupResource.GroupName);
+                IResponse<ITasksGroup> result =
+                    await mTasksGroupService.SaveAsync(newTaskGroupResource.GroupName).ConfigureAwait(false);
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
@@ -96,7 +98,7 @@ namespace Takser.Api.Controllers
             }
             catch (Exception ex)
             {
-                mLogger.LogError($"Put operation failed with error", ex);
+                mLogger.LogError("Put operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
@@ -111,7 +113,7 @@ namespace Takser.Api.Controllers
 
             try
             {
-                IResponse<ITasksGroup> result = await mTasksGroupService.RemoveAsync(id);
+                IResponse<ITasksGroup> result = await mTasksGroupService.RemoveAsync(id).ConfigureAwait(false);
 
                 mLogger.Log($"Remove result {(result.IsSuccess ? "succeeded" : "failed")}");
 
@@ -123,7 +125,7 @@ namespace Takser.Api.Controllers
             }
             catch(Exception ex)
             {
-                mLogger.LogError($"Remove operation failed with error", ex);
+                mLogger.LogError("Remove operation failed with error", ex);
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }

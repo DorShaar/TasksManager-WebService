@@ -53,9 +53,9 @@ namespace Tasker.Infra.Persistence.Repositories
         {
             mDatabase.LoadDatabase();
 
-            ITasksGroup entityFound = mDatabase.Entities.Find(entity => entity.ID == entityToFind);
-            if (entityFound == null)
-                entityFound = mDatabase.Entities.Find(entity => entity.Name == entityToFind);
+            ITasksGroup entityFound =
+                mDatabase.Entities.Find(entity => entity.ID == entityToFind) ??
+                mDatabase.Entities.Find(entity => entity.Name == entityToFind);
 
             return Task.FromResult(entityFound);
         }
