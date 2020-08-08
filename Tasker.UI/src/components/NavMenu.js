@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Collapse, Container, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom';
-import TaskerUrls from '../common/TaskerUrls';
+import { TaskerRoutes } from '../common/TaskerUrls';
 import './NavMenu.css';
 
 export class NavMenu extends Component {
@@ -32,19 +32,16 @@ export class NavMenu extends Component {
                         <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
                             <ul className="navbar-nav flex-grow">
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to= {TaskerUrls.getGroupsViewerUrl()}>Tasks Groups</NavLink>
+                                    <NavLink tag={Link} className="text-dark" to= {TaskerRoutes.GroupsViewer}>Tasks Groups</NavLink>
                                 </NavItem>
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to= {TaskerUrls.getTasksViewerUrl()}>Work Tasks</NavLink>
+                                    <NavLink tag={Link} className="text-dark" to= {TaskerRoutes.TasksViewer}>Work Tasks</NavLink>
                                 </NavItem>
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to= {TaskerUrls.getNotesViewerUrl()}>Notes</NavLink>
+                                    <NavLink tag={Link} className="text-dark" to= {TaskerRoutes.NotesViewer}>Notes</NavLink>
                                 </NavItem>
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/Identity/Account/Login">Login</NavLink>
-                                </NavItem>
-                                <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/Identity/Account/Register">Register</NavLink>
+                                    <NavLink tag={Link} className="text-dark" to= {TaskerRoutes.LoginViewer}>Login</NavLink>
                                 </NavItem>
                             </ul>
                         </Collapse>

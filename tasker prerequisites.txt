@@ -8,4 +8,8 @@ yarn add react-router
 yarn add react-router-dom
 yarn add reactstrap
 yarn add react-spring
+yarn add oidc-client
 yarn start
+
+
+#Configure certificates store location.

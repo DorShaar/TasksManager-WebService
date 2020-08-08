@@ -1,4 +1,4 @@
-﻿import TaskerHttpRequester from '../../utils/TasksFunctions';
+﻿import TaskerHttpRequester from '../../utils/TasksHttpFunctions';
 
 export default class TaskerCache {
 

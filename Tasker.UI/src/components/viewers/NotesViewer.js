@@ -20,7 +20,6 @@ export class NotesViewer extends Component {
     }
 
     async getNote(notePath) {
-        console.log(notePath);
         const noteText = await this.state.cache.getNoteText(notePath);
         this.setState({ noteContent: noteText});
     }
