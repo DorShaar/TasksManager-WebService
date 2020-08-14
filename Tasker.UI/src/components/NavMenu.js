@@ -41,7 +41,7 @@ export class NavMenu extends Component {
                                     <NavLink tag={Link} className="text-dark" to= {TaskerRoutes.NotesViewer}>Notes</NavLink>
                                 </NavItem>
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/Identity/Account/Login">Login</NavLink>
+                                    <NavLink tag={Link} className="text-dark" to="http://localhost:5001/Identity/Account/Loginn">Login</NavLink>
                                 </NavItem>
                                 <NavItem>
                                     <NavLink tag={Link} className="text-dark" to="/Identity/Account/Register">Register</NavLink>
