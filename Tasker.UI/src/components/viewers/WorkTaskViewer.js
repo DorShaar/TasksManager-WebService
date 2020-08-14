@@ -3,7 +3,7 @@ import FunctionalButton from '../ui-components/FunctionalButton';
 import AutoCompleteTextField from '../ui-components/AutocompleteTextField';
 import SelectBox from '../ui-components/SelectBox';
 import SwitchLabel from '../ui-components/SwitchLabel';
-import TaskerUrls from '../../common/TaskerUrls';
+import { TaskerRoutes } from '../../common/TaskerUrls';
 
 export class WorkTaskViewer extends Component {
 
@@ -141,7 +141,7 @@ export class WorkTaskViewer extends Component {
     }
 
     viewTaskNote(taskId) {
-        const newUrlLocation = TaskerUrls.getNoteViewerUrl().replace(":noteId", taskId);
+        const newUrlLocation = TaskerRoutes.NoteViewer.replace(":noteId", taskId);
         window.location.pathname = newUrlLocation;
     }
 

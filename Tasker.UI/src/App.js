@@ -15,18 +15,18 @@ export default class App extends Component {
     render() {
 
         var taskerCache = new TaskerCache(
-            TaskerUrls.TasksGroupsApi, 
+            TaskerUrls.TasksGroupsApi,
             TaskerUrls.WorkTaskApi,
             TaskerUrls.NotesApi);
 
         return (
             <Layout>
                 <Route exact path='/' component={Home} />
-                <Route exact path= {TaskerRoutes.GroupsViewer} render={() => <TasksGroupViewer cache={taskerCache} />} />
-                <Route exact path= {TaskerRoutes.TasksViewerByGroup} render={() => <WorkTaskViewer cache={taskerCache}/>} />
-                <Route exact path= {TaskerRoutes.TasksViewer} render={() => <WorkTaskViewer cache={taskerCache}/>} />
-                <Route exact path= {TaskerRoutes.NotesViewer} render={() => <NotesViewer cache={taskerCache}/>} />
-                <Route exact path= {TaskerRoutes.NoteViewer} render={() => <NoteViewer cache={taskerCache}/>} />
+                <Route exact path={TaskerRoutes.GroupsViewer} render={() => <TasksGroupViewer cache={taskerCache} />} />
+                <Route exact path={TaskerRoutes.TasksViewerByGroup} render={() => <WorkTaskViewer cache={taskerCache}/>} />
+                <Route exact path={TaskerRoutes.TasksViewer} render={() => <WorkTaskViewer cache={taskerCache}/>} />
+                <Route exact path={TaskerRoutes.NotesViewer} render={() => <NotesViewer cache={taskerCache}/>} />
+                <Route exact path={TaskerRoutes.NoteViewer} render={() => <NoteViewer cache={taskerCache}/>} />
             </Layout>
         );
     }
