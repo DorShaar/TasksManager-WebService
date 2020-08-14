@@ -10,7 +10,7 @@ namespace Tasker.Areas.Identity
 {
     public class IdentityHostingStartup : IHostingStartup
     {
-        const string SQLConnectionString = "TaskerContextConnection";
+        private const string SQLConnectionString = "TaskerContextConnection";
 
         public void Configure(IWebHostBuilder builder)
         {
