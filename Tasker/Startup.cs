@@ -1,6 +1,10 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,8 +27,34 @@ namespace Tasker
         // This method gets called by the runtime. Use this method to add services to the container.
         public static void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews(/*option => option.Filters.Add(new AuthorizeFilter())*/);
-            services.AddRazorPages();
+            services.AddControllersWithViews(option => option.Filters.Add(new AuthorizeFilter()));
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddCookie()
+            .AddOpenIdConnect(options =>
+            {
+                options.Authority = "https://localhost:5000";
+                options.ClientSecret = "TODO";
+                options.CallbackPath = "/signin-oidc";
+
+                options.Scope.Add("TODO");
+                options.Scope.Add("TODO2");
+
+                options.SaveTokens = true;
+
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.ClaimActions.MapUniqueJsonKey("Email", "Email");
+                options.ClaimActions.MapUniqueJsonKey("Role", "role");
+
+                options.ResponseType = "code";
+                options.ResponseMode = "form_post";
+
+                //options.UsePkce = true;
+            });
 
             // Adds "Access-Control-Allow-(Origin/Methods/Headers)" header to response.
             services.AddCors(options =>
@@ -36,6 +66,8 @@ namespace Tasker
                          .AllowAnyHeader();
                 });
             });
+
+            services.AddRazorPages();
 
             services.UseDI();
         }

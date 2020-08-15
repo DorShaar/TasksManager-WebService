@@ -6,4 +6,3 @@ API testing,
 Union architecture pattern,
 Custome Middlewares,
 Cors (Cross-origin resource sharing)
-Identity  
