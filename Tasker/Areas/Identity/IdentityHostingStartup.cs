@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Authorization;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,16 +20,7 @@ namespace Tasker.Areas.Identity
                         context.Configuration.GetConnectionString(SQLConnectionString)));
 
                 services.AddDefaultIdentity<TaskerUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                    .AddRoles<IdentityRole>()
                     .AddEntityFrameworkStores<TaskerContext>();
-
-                services.AddControllers(config =>
-                {
-                    var policy = new AuthorizationPolicyBuilder()
-                                     .RequireAuthenticatedUser()
-                                     .Build();
-                    config.Filters.Add(new AuthorizeFilter(policy));
-                });
             });
         }
     }
