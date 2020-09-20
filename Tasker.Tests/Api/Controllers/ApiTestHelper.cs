@@ -35,8 +35,11 @@ namespace Tasker.Tests.Api.Controllers
                 .UseEnvironment("Development"));
         }
 
-        public static TestServer BuildTestServerWithFakes(ITasksGroupService tasksGroupService = null, IWorkTaskService workTaskService = null,
-            INoteService noteService = null)
+        public static TestServer BuildTestServerWithFakes(
+            ITasksGroupService tasksGroupService = null,
+            IWorkTaskService workTaskService = null,
+            INoteService noteService = null,
+            ICloudService cloudService = null)
         {
             if (tasksGroupService == null)
                 tasksGroupService = A.Fake<ITasksGroupService>();
@@ -47,12 +50,16 @@ namespace Tasker.Tests.Api.Controllers
             if (noteService == null)
                 noteService = A.Fake<INoteService>();
 
+            if (cloudService == null)
+                cloudService = A.Fake<ICloudService>();
+
             TestServer testServer = new TestServer(WebHost.CreateDefaultBuilder()
                 .ConfigureTestServices(sc =>
                 {
                     sc.AddSingleton(tasksGroupService);
                     sc.AddSingleton(workTaskService);
                     sc.AddSingleton(noteService);
+                    sc.AddSingleton(cloudService);
                 })
                 .UseStartup<Startup>()
                 .UseEnvironment("Development"));

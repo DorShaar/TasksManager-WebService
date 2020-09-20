@@ -4,6 +4,6 @@ namespace Tasker.App.Services
 {
     public interface ICloudService
     {
-        Task<bool> Upload();
+        Task<bool> Upload(string destinationDirectory = default);
     }
 }

@@ -21,12 +21,13 @@ namespace Tasker.Infra.Services
     {
         private const string FolderMimeType = "application/vnd.google-apps.folder";
         private const string ZipExtension = ".zip";
-        private const string TaskerDriveDirectory = AppConsts.AppName;
 
         private readonly ILogger<GoogleDriveCloudService> mLogger;
         private readonly string mDatabasePath;
         private readonly string mTasksNotesPath;
         private readonly string[] Scopes = { DriveService.Scope.Drive };
+
+        private string mTaskerDriveDirectory = AppConsts.AppName;
 
         public GoogleDriveCloudService(IOptions<DatabaseConfigurtaion> configuration,
             ILogger<GoogleDriveCloudService> logger)
@@ -40,8 +41,10 @@ namespace Tasker.Infra.Services
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<bool> Upload()
+        public async Task<bool> Upload(string destinationDirectory = default)
         {
+            SetDestinationDirectory(destinationDirectory);
+
             string tempArchiveFile = null;
 
             try
@@ -62,6 +65,14 @@ namespace Tasker.Infra.Services
                 if (tempArchiveFile != null)
                     File.Delete(tempArchiveFile);
             }
+        }
+
+        private void SetDestinationDirectory(string destinationDirectory)
+        {
+            if (!string.IsNullOrEmpty(destinationDirectory))
+                mTaskerDriveDirectory = destinationDirectory;
+
+            mLogger.LogDebug($"Destination directory is {mTaskerDriveDirectory}");
         }
 
         private string PackDataIntoZip()
@@ -144,12 +155,12 @@ namespace Tasker.Infra.Services
         private async Task<string> GetOrCreateTaskerDriveDirectory(DriveService service)
         {
             string taskerDirectoryId = await FindFile(service,
-                file => file.MimeType == FolderMimeType && file.Name == TaskerDriveDirectory)
+                file => file.MimeType == FolderMimeType && file.Name == mTaskerDriveDirectory)
                 .ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(taskerDirectoryId))
             {
-                mLogger.LogTrace($"Found drive directory {TaskerDriveDirectory}");
+                mLogger.LogTrace($"Found drive directory {mTaskerDriveDirectory}");
                 return taskerDirectoryId;
             }
 
@@ -158,11 +169,11 @@ namespace Tasker.Infra.Services
 
         private async Task<string> CreateTaskerDriveDirectory(DriveService service)
         {
-            mLogger.LogInformation($"Drive directory {TaskerDriveDirectory} not found, creating..");
+            mLogger.LogInformation($"Drive directory {mTaskerDriveDirectory} not found, creating..");
 
             GoogleData.File directory = new GoogleData.File()
             {
-                Name = TaskerDriveDirectory,
+                Name = mTaskerDriveDirectory,
                 MimeType = FolderMimeType,
             };
 
@@ -170,7 +181,7 @@ namespace Tasker.Infra.Services
             createRequest.Fields = "id";
 
             GoogleData.File resultDirectory = await createRequest.ExecuteAsync().ConfigureAwait(false);
-            mLogger.LogInformation($"Done creating drive directory {TaskerDriveDirectory}");
+            mLogger.LogInformation($"Done creating drive directory {mTaskerDriveDirectory}");
             return resultDirectory.Id;
         }
 
@@ -195,12 +206,12 @@ namespace Tasker.Infra.Services
 
             if (uploadProgress.Status != UploadStatus.Completed)
             {
-                mLogger.LogWarning($"Uploaded {fileToUpload} to {TaskerDriveDirectory}. " +
+                mLogger.LogWarning($"Uploaded {fileToUpload} to {mTaskerDriveDirectory}. " +
                     $"Bytes: {uploadProgress.BytesSent}. Status: {uploadProgress.Status}");
                 return false;
             }
 
-            mLogger.LogDebug($"Uploaded {fileToUpload} to {TaskerDriveDirectory}. " +
+            mLogger.LogDebug($"Uploaded {fileToUpload} to {mTaskerDriveDirectory}. " +
                     $"Bytes: {uploadProgress.BytesSent}. Status: {uploadProgress.Status}");
 
             return true;
@@ -214,7 +225,7 @@ namespace Tasker.Infra.Services
 
             if (string.IsNullOrEmpty(existingFileId))
             {
-                mLogger.LogDebug($"File {fileToUpload} not found in {TaskerDriveDirectory} directory");
+                mLogger.LogDebug($"File {fileToUpload} not found in {mTaskerDriveDirectory} directory");
                 return;
             }
 
@@ -223,7 +234,7 @@ namespace Tasker.Infra.Services
 
         private async Task RemoveExistingFileIfExists(DriveService service, string fileIdToDelete)
         {
-            mLogger.LogDebug($"Going to remove file id {fileIdToDelete} from {TaskerDriveDirectory} directory");
+            mLogger.LogDebug($"Going to remove file id {fileIdToDelete} from {mTaskerDriveDirectory} directory");
 
             FilesResource.DeleteRequest deleteRequest = service.Files.Delete(fileIdToDelete);
             deleteRequest.Fields = "id";

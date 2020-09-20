@@ -27,7 +27,7 @@ namespace Tasker.Tests.Infra.Persistence.Services
             GoogleDriveCloudService googleDriveUploadService =
                 new GoogleDriveCloudService(databaseOptions, NullLogger<GoogleDriveCloudService>.Instance);
 
-            Assert.True(await googleDriveUploadService.Upload().ConfigureAwait(false));
+            Assert.True(await googleDriveUploadService.Upload("Tasker-web-test").ConfigureAwait(false));
         }
     }
 }
