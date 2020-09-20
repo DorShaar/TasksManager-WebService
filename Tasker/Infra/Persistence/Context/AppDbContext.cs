@@ -9,14 +9,12 @@ using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
 using TaskData.IDsProducer;
 using TaskData.TasksGroups;
+using Tasker.Infra.Consts;
 
 namespace Tasker.Infra.Persistence.Context
 {
     public class AppDbContext : IAppDbContext
     {
-        private const string DatabaseName = "tasks.db";
-        private const string NextIdHolderName = "id_producer.db";
-
         private readonly IObjectSerializer mSerializer;
         private readonly DatabaseConfigurtaion mConfiguration;
         private readonly IIDProducer mIdProducer;
@@ -49,8 +47,8 @@ namespace Tasker.Infra.Persistence.Context
                 return;
             }
 
-            DatabaseFilePath = Path.Combine(mConfiguration.DatabaseDirectoryPath, DatabaseName);
-            NextIdPath = Path.Combine(mConfiguration.DatabaseDirectoryPath, NextIdHolderName);
+            DatabaseFilePath = Path.Combine(mConfiguration.DatabaseDirectoryPath, AppConsts.DatabaseName);
+            NextIdPath = Path.Combine(mConfiguration.DatabaseDirectoryPath, AppConsts.NextIdHolderName);
         }
 
         public Task LoadDatabase()

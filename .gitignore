@@ -269,6 +269,7 @@ __pycache__/
 Properties/
 Database.JsonService/
 Takser/Infra/Options/ConfigFile/
+credentials.json
 
 #Nuget.config
 nuget.config

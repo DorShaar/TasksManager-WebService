@@ -1,5 +1,4 @@
-﻿using FakeItEasy;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using ObjectSerializer.JsonService;
@@ -10,6 +9,7 @@ using Takser.Infra.Options;
 using TaskData;
 using TaskData.IDsProducer;
 using TaskData.TasksGroups;
+using Tasker.Infra.Consts;
 using Tasker.Infra.Persistence.Context;
 using Xunit;
 
@@ -55,7 +55,7 @@ namespace Tasker.Tests.Infra.Persistence.Context
                     mIDProducer,
                     NullLogger<AppDbContext>.Instance);
 
-                Assert.Equal(Path.Combine(tempDirectoryPath, "tasks.db"), database.DatabaseFilePath);
+                Assert.Equal(Path.Combine(tempDirectoryPath, AppConsts.DatabaseName), database.DatabaseFilePath);
             }
             finally
             {
