@@ -1,8 +1,8 @@
-﻿using Logger.Contracts;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TaskData.Contracts;
+using TaskData.WorkTasks;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
 
@@ -11,12 +11,12 @@ namespace Tasker.Infra.Services
     public class WorkTaskService : IWorkTaskService
     {
         private readonly IDbRepository<IWorkTask> mWorkTaskRepository;
-        private readonly ILogger mLogger;
+        private readonly ILogger<WorkTaskService> mLogger;
 
-        public WorkTaskService(IDbRepository<IWorkTask> workTaskRepository, ILogger logger)
+        public WorkTaskService(IDbRepository<IWorkTask> workTaskRepository, ILogger<WorkTaskService> logger)
         {
-            mWorkTaskRepository = workTaskRepository;
-            mLogger = logger;
+            mWorkTaskRepository = workTaskRepository ?? throw new ArgumentNullException(nameof(workTaskRepository));
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<IEnumerable<IWorkTask>> FindWorkTasksByConditionAsync(Func<IWorkTask, bool> condition)
@@ -29,7 +29,7 @@ namespace Tasker.Infra.Services
                     workTasks.Add(task);
             }
 
-            mLogger.Log($"Found {workTasks.Count} tasks");
+            mLogger.LogDebug($"Found {workTasks.Count} tasks");
             return workTasks;
         }
 

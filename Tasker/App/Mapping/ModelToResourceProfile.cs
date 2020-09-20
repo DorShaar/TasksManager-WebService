@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using TaskData.Contracts;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.App.Resources;
 
 namespace Tasker.App.Mapping

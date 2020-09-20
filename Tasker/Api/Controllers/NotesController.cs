@@ -1,10 +1,10 @@
-﻿using Logger.Contracts;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using TaskData.Contracts;
+using TaskData.Notes;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
@@ -15,18 +15,18 @@ namespace Tasker.Api.Controllers
     public class NotesController : Controller
     {
         private readonly INoteService mNoteService;
-        private readonly ILogger mLogger;
+        private readonly ILogger<NotesController> mLogger;
 
-        public NotesController(INoteService noteService, ILogger logger)
+        public NotesController(INoteService noteService, ILogger<NotesController> logger)
         {
-            mNoteService = noteService;
-            mLogger = logger;
+            mNoteService = noteService ?? throw new ArgumentNullException(nameof(noteService));
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpGet]
         public async Task<NoteNode> GetGeneralNotesStructureAsync()
         {
-            mLogger.Log("Requesting for general notes structure");
+            mLogger.LogDebug("Requesting for general notes structure");
 
             NoteNode notesStructure = await mNoteService.GetNotesStructure().ConfigureAwait(false);
 
@@ -41,23 +41,23 @@ namespace Tasker.Api.Controllers
 
             notePath = GetFixedNotePath(notePath);
 
-            mLogger.Log($"Requesting text of general note {notePath}");
+            mLogger.LogDebug($"Requesting text of general note {notePath}");
 
             try
             {
                 IResponse<INote> result = await mNoteService.GetGeneralNote(notePath).ConfigureAwait(false);
 
-                mLogger.Log($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
+                mLogger.LogDebug($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status404NotFound, result.Message);
 
-                mLogger.Log($"Note text: {result.ResponseObject.Text}");
+                mLogger.LogDebug($"Note text: {result.ResponseObject.Text}");
                 return Ok(result.ResponseObject.Text);
             }
             catch (Exception ex)
             {
-                mLogger.LogError("Update operation failed with error", ex);
+                mLogger.LogError(ex, "Update operation failed with error");
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
@@ -70,23 +70,23 @@ namespace Tasker.Api.Controllers
 
             noteIdentifier = GetFixedNotePath(noteIdentifier);
 
-            mLogger.Log($"Requesting text of private note {noteIdentifier}");
+            mLogger.LogDebug($"Requesting text of private note {noteIdentifier}");
 
             try
             {
                 IResponse<INote> result = await mNoteService.GetTaskNote(noteIdentifier).ConfigureAwait(false);
 
-                mLogger.Log($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
+                mLogger.LogDebug($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status404NotFound, result.Message);
 
-                mLogger.Log($"Note text: {result.ResponseObject.Text}");
+                mLogger.LogDebug($"Note text: {result.ResponseObject.Text}");
                 return Ok(result.ResponseObject.Text);
             }
             catch (Exception ex)
             {
-                mLogger.LogError("Update operation failed with error", ex);
+                mLogger.LogError(ex, "Update operation failed with error");
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }

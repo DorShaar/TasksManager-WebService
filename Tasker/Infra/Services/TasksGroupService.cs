@@ -1,10 +1,13 @@
-﻿using Logger.Contracts;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskData.Contracts;
+using TaskData.OperationResults;
+using TaskData.TasksGroups;
+using TaskData.TaskStatus;
+using TaskData.WorkTasks;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Resources;
 using Tasker.App.Services;
@@ -17,16 +20,19 @@ namespace Tasker.Infra.Services
     public class TasksGroupService : ITasksGroupService
     {
         private readonly IDbRepository<ITasksGroup> mTasksGroupRepository;
-        private readonly ITasksGroupBuilder mTaskGroupBuilder;
+        private readonly ITasksGroupFactory mTaskGroupFactory;
         private readonly NameValidator mTasksGroupNameValidator;
         private readonly NameValidator mWorkTaskNameValidator;
-        private readonly ILogger mLogger;
+        private readonly ILogger<TasksGroupService> mLogger;
 
-        public TasksGroupService(IDbRepository<ITasksGroup> TaskGroupRepository, ITasksGroupBuilder tasksGroupBuilder, ILogger logger)
+        public TasksGroupService(IDbRepository<ITasksGroup> TaskGroupRepository,
+            ITasksGroupFactory tasksGroupBuilder,
+            ILogger<TasksGroupService> logger)
         {
-            mTasksGroupRepository = TaskGroupRepository;
-            mTaskGroupBuilder = tasksGroupBuilder;
-            mLogger = logger;
+            mTasksGroupRepository = TaskGroupRepository ?? throw new ArgumentNullException(nameof(TaskGroupRepository));
+            mTaskGroupFactory = tasksGroupBuilder ?? throw new ArgumentNullException(nameof(tasksGroupBuilder));
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
+
             mTasksGroupNameValidator = new NameValidator(NameLengths.MaximalGroupNameLength);
             mWorkTaskNameValidator = new NameValidator(NameLengths.MaximalTaskNameLength);
         }
@@ -41,11 +47,12 @@ namespace Tasker.Infra.Services
                     tasksGroups.Add(taskGroup);
             }
 
-            mLogger.Log($"Found {tasksGroups.Count} tasks");
+            mLogger.LogDebug($"Found {tasksGroups.Count} tasks");
             return tasksGroups;
         }
 
-        public async Task<IEnumerable<IWorkTask>> FindWorkTasksByTasksGroupConditionAsync(Func<ITasksGroup, bool> condition)
+        public async Task<IEnumerable<IWorkTask>> FindWorkTasksByTasksGroupConditionAsync(
+            Func<ITasksGroup, bool> condition)
         {
             List<IWorkTask> workTasks = new List<IWorkTask>();
 
@@ -55,7 +62,7 @@ namespace Tasker.Infra.Services
                     workTasks.AddRange(taskGroup.GetAllTasks());
             }
 
-            mLogger.Log($"Found {workTasks.Count} tasks");
+            mLogger.LogDebug($"Found {workTasks.Count} tasks");
             return workTasks;
         }
 
@@ -70,7 +77,7 @@ namespace Tasker.Infra.Services
         {
             try
             {
-                ITasksGroup tasksGroup = mTaskGroupBuilder.Create(groupName, mLogger);
+                ITasksGroup tasksGroup = mTaskGroupFactory.CreateGroup(groupName);
 
                 if (!mTasksGroupNameValidator.IsNameValid(tasksGroup.Name))
                 {
@@ -114,7 +121,7 @@ namespace Tasker.Infra.Services
                         $"has already work task with description {workTaskDescription}");
                 }
 
-                IWorkTask workTask = tasksGroup.CreateTask(workTaskDescription);
+                IWorkTask workTask = mTaskGroupFactory.CreateTask(tasksGroup, workTaskDescription);
 
                 if (!mWorkTaskNameValidator.IsNameValid(workTask.Description))
                     return new FailResponse<IWorkTask>($"Task description'{workTask.Description}' is invalid");
@@ -144,7 +151,11 @@ namespace Tasker.Infra.Services
 
             try
             {
-                groupToUpdate.Name = newGroupName;
+                OperationResult setGroupNameResult = groupToUpdate.SetGroupName(newGroupName);
+
+                if (!setGroupNameResult.Success)
+                    return new FailResponse<ITasksGroup>(setGroupNameResult.Reason);
+
                 await UpdateGroupNamesForAllChildren(groupToUpdate).ConfigureAwait(false);
 
                 await mTasksGroupRepository.UpdateAsync(groupToUpdate).ConfigureAwait(false);
@@ -170,7 +181,7 @@ namespace Tasker.Infra.Services
         {
             foreach (IWorkTask workTaskChild in tasksGroup.GetAllTasks())
             {
-                mLogger.Log($"Updating task's group name from {workTaskChild.GroupName} to {tasksGroup.Name}");
+                mLogger.LogDebug($"Updating task's group name from {workTaskChild.GroupName} to {tasksGroup.Name}");
                 workTaskChild.GroupName = tasksGroup.Name;
             }
 
@@ -374,7 +385,7 @@ namespace Tasker.Infra.Services
         {
             foreach (ITasksGroup group in await ListAsync().ConfigureAwait(false))
             {
-                IWorkTask task = group.GetTask(workTaskId);
+                IWorkTask task = group.GetTask(workTaskId).Value;
                 if (task != null)
                     return (group, task);
             }

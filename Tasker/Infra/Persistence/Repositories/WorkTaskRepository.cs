@@ -1,19 +1,20 @@
-﻿using Logger.Contracts;
+﻿using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
-using TaskData.Contracts;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.App.Persistence.Repositories;
 
 namespace Tasker.Infra.Persistence.Repositories
 {
     public class WorkTaskRepository : IDbRepository<IWorkTask>
     {
-        private readonly ILogger mLogger;
+        private readonly ILogger<WorkTaskRepository> mLogger;
         private readonly IAppDbContext mDatabase;
 
-        public WorkTaskRepository(IAppDbContext database, ILogger logger)
+        public WorkTaskRepository(IAppDbContext database, ILogger<WorkTaskRepository> logger)
         {
             mDatabase = database;
             mLogger = logger;

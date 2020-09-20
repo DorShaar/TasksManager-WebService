@@ -1,16 +1,10 @@
 [
   {
-    "mLogger": {
-      "ShouldLogInformation": false
-    },
-    "mTasksChildren": {
+    "TasksChildren": {
       "1033": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1033",
-        "GroupName": null,
+        "GroupName": "Free",
         "Description": "trip-scheduler C# application integrates with Go application",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -38,9 +32,6 @@
         }
       },
       "1042": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1042",
         "GroupName": "Free",
@@ -56,9 +47,6 @@
         }
       },
       "1043": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": {
           "mNoteDirecoryPath": "C:\\Dor\\My Computing Programs\\DevWorld\\Tasks",
           "mNoteName": "1043-Create coverlet json parser"
@@ -91,17 +79,11 @@
     "Name": "Free"
   },
   {
-    "mLogger": {
-      "ShouldLogInformation": false
-    },
-    "mTasksChildren": {
+    "TasksChildren": {
       "1002": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1002",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "print all tasks from the last X hours/days",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -119,12 +101,9 @@
         }
       },
       "1003": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1003",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "print only open task configurable",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -142,12 +121,9 @@
         }
       },
       "1004": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1004",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "add notes to task (with default task name)",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -165,12 +141,9 @@
         }
       },
       "1005": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1005",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "use dictionary to find tasks and GroupNames in database",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -188,12 +161,9 @@
         }
       },
       "1006": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1006",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "add move of task functionality",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -211,12 +181,9 @@
         }
       },
       "1007": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1007",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "create console printer",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -234,12 +201,9 @@
         }
       },
       "1008": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1008",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "show GroupName name next to each task",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -257,12 +221,9 @@
         }
       },
       "1009": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1009",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "when creating, deleting, ... on task, show description",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -280,12 +241,9 @@
         }
       },
       "1025": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1025",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "Change order of taskName and GroupName at create-task",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -303,12 +261,9 @@
         }
       },
       "1026": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1026",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "each task will have history of status",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -326,12 +281,9 @@
         }
       },
       "1027": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1027",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "printing tasks after GroupName names, instead of each task have parent GroupName",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -349,12 +301,9 @@
         }
       },
       "1028": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1028",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "Creating notes will be with their task number AND their task name",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -372,12 +321,9 @@
         }
       },
       "1029": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1029",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "Validate that create-note on existing note does not ruin existing note",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -395,12 +341,9 @@
         }
       },
       "1030": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1030",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "Make notes system with directories",
         "TaskStatusHistory": {
           "StatusHistory": [
@@ -423,12 +366,9 @@
         }
       },
       "1031": {
-        "mLogger": {
-          "ShouldLogInformation": false
-        },
         "mNote": null,
         "ID": "1031",
-        "GroupName": null,
+        "GroupName": "Task-Manager-Work",
         "Description": "remove - from commands",
         "TaskStatusHistory": {
           "StatusHistory": [

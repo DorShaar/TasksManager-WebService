@@ -1,8 +1,8 @@
-﻿using Database.JsonService;
-using FakeItEasy;
-using Logger.Contracts;
+﻿using FakeItEasy;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ObjectSerializer.Contracts;
+using ObjectSerializer.JsonService;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
 using TaskData;
-using TaskData.Contracts;
+using TaskData.IDsProducer;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.Infra.Persistence.Context;
 using Tasker.Infra.Persistence.Repositories;
 using Xunit;
@@ -23,7 +25,23 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         private const string TestFilesDirectory = "TestFiles";
         private readonly string mAlternateDatabasePath = Path.Combine("TestFiles", "tasks_other.db.txt");
         private readonly string mNewDatabaseDirectoryPath = Path.Combine("TestFiles", "NewDatabase");
-        private readonly ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
+        private readonly ITasksGroupFactory mTasksGroupBuilder;
+        private readonly IObjectSerializer mObjectSerializer;
+        private readonly IIDProducer mIDProducer;
+
+        public WorkTaskRepositoryTests()
+        {
+            ServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.UseTaskerDataEntities();
+            serviceCollection.UseJsonObjectSerializer();
+            ServiceProvider serviceProvider = serviceCollection
+                .AddLogging()
+                .BuildServiceProvider();
+
+            mTasksGroupBuilder = serviceProvider.GetRequiredService<ITasksGroupFactory>();
+            mObjectSerializer = serviceProvider.GetRequiredService<IObjectSerializer>();
+            mIDProducer = serviceProvider.GetRequiredService<IIDProducer>();
+        }
 
         [Fact]
         public async Task AddAsync_WorkTaskNotExist_Success()
@@ -38,15 +56,19 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
                 };
 
                 AppDbContext database = new AppDbContext(
-                    Options.Create(databaseConfigurtaion), new JsonSerializerWrapper(), A.Fake<ILogger>());
+                    Options.Create(databaseConfigurtaion),
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
 
-                WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+                WorkTaskRepository workTaskRepository =
+                    new WorkTaskRepository(database, NullLogger< WorkTaskRepository>.Instance);
 
-                ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
+                ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup("group1");
 
                 database.Entities.Add(tasksGroup);
 
-                IWorkTask workTask = tasksGroup.CreateTask("worktask1");
+                IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "worktask1");
 
                 await workTaskRepository.AddAsync(workTask).ConfigureAwait(false);
 
@@ -63,14 +85,18 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         public async Task AddAsync_WorkTaskAlreadyExist_NotAdded()
         {
             AppDbContext database = new AppDbContext(
-                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+                    Options.Create(new DatabaseConfigurtaion()),
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             const string tasksGroupName = "group1";
 
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create(tasksGroupName, A.Fake<ILogger>());
-            IWorkTask workTask = tasksGroup.CreateTask("taskDescription");
+            ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup(tasksGroupName);
+            IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "taskDescription");
 
             database.Entities.Add(tasksGroup);
 
@@ -87,7 +113,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             await workTaskRepository.AddAsync(A.Fake<IWorkTask>()).ConfigureAwait(false);
 
@@ -100,7 +127,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             await workTaskRepository.AddAsync(null).ConfigureAwait(false);
 
@@ -111,12 +139,16 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         public async Task FindAsync_IdExist_Found()
         {
             AppDbContext database = new AppDbContext(
-                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+                    Options.Create(new DatabaseConfigurtaion()),
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            IWorkTask workTask = tasksGroup.CreateTask("taskDescription");
+            ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup("group1");
+            IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "taskDescription");
 
             database.Entities.Add(tasksGroup);
 
@@ -127,9 +159,13 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         public async Task FindAsync_IdNotExist_NotFound()
         {
             AppDbContext database = new AppDbContext(
-                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+                    Options.Create(new DatabaseConfigurtaion()),
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             Assert.Null(await workTaskRepository.FindAsync("1005").ConfigureAwait(false));
         }
@@ -139,7 +175,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             await workTaskRepository.FindAsync("group1").ConfigureAwait(false);
 
@@ -151,16 +188,20 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         public async Task ListAsync_AsExpected()
         {
             AppDbContext database = new AppDbContext(
-                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+                    Options.Create(new DatabaseConfigurtaion()),
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
-            ITasksGroup tasksGroup1 = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-            IWorkTask workTask1 = tasksGroup1.CreateTask("task1");
-            IWorkTask workTask2 = tasksGroup1.CreateTask("task2");
+            ITasksGroup tasksGroup1 = mTasksGroupBuilder.CreateGroup("group1");
+            IWorkTask workTask1 = mTasksGroupBuilder.CreateTask(tasksGroup1, "task1");
+            IWorkTask workTask2 = mTasksGroupBuilder.CreateTask(tasksGroup1, "task2");
 
-            ITasksGroup tasksGroup2 = mTasksGroupBuilder.Create("group2", A.Fake<ILogger>());
-            IWorkTask workTask3 = tasksGroup2.CreateTask("task3");
+            ITasksGroup tasksGroup2 = mTasksGroupBuilder.CreateGroup("group2");
+            IWorkTask workTask3 = mTasksGroupBuilder.CreateTask(tasksGroup2, "task3");
 
             database.Entities.Add(tasksGroup1);
             database.Entities.Add(tasksGroup2);
@@ -175,9 +216,13 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         public async Task ListAsync_HasNoTasks_ReturnsEmptyList()
         {
             AppDbContext database = new AppDbContext(
-                Options.Create(new DatabaseConfigurtaion()), A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+                    Options.Create(new DatabaseConfigurtaion()),
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             Assert.Empty(await workTaskRepository.ListAsync().ConfigureAwait(false));
         }
@@ -194,9 +239,14 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
                     DatabaseDirectoryPath = tempDirectory
                 });
 
-                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                AppDbContext database = new AppDbContext(
+                    databaseOptions,
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
 
-                WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+                WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
                 Assert.Equal(18, (await workTaskRepository.ListAsync().ConfigureAwait(false)).Count());
 
@@ -215,7 +265,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             await workTaskRepository.ListAsync().ConfigureAwait(false);
 
@@ -228,7 +279,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             await workTaskRepository.RemoveAsync(null).ConfigureAwait(false);
 
@@ -240,9 +292,10 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
-            WorkTaskRepository WorkTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
-            await WorkTaskRepository.UpdateAsync(A.Fake<IWorkTask>()).ConfigureAwait(false);
+            await workTaskRepository.UpdateAsync(A.Fake<IWorkTask>()).ConfigureAwait(false);
 
             A.CallTo(() => database.LoadDatabase()).MustNotHaveHappened();
             A.CallTo(() => database.SaveCurrentDatabase()).MustHaveHappenedOnceExactly();
@@ -253,7 +306,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
         {
             IAppDbContext database = A.Fake<IAppDbContext>();
 
-            WorkTaskRepository workTaskRepository = new WorkTaskRepository(database, A.Fake<ILogger>());
+            WorkTaskRepository workTaskRepository =
+                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
             await workTaskRepository.UpdateAsync(null).ConfigureAwait(false);
 

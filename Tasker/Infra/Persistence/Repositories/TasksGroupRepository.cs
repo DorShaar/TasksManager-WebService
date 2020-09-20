@@ -1,22 +1,24 @@
-﻿using Logger.Contracts;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
-using TaskData.Contracts;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.App.Persistence.Repositories;
 
 namespace Tasker.Infra.Persistence.Repositories
 {
     public class TasksGroupRepository : IDbRepository<ITasksGroup>
     {
-        private readonly ILogger mLogger;
+        private readonly ILogger<TasksGroupRepository> mLogger;
         private readonly IAppDbContext mDatabase;
 
-        public TasksGroupRepository(IAppDbContext database, ILogger logger)
+        public TasksGroupRepository(IAppDbContext database, ILogger<TasksGroupRepository> logger)
         {
-            mDatabase = database;
-            mLogger = logger;
+            mDatabase = database ?? throw new ArgumentNullException(nameof(database));
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public Task AddAsync(ITasksGroup newGroup)
@@ -86,11 +88,11 @@ namespace Tasker.Infra.Persistence.Repositories
 
             foreach (IWorkTask task in group.GetAllTasks())
             {
-                mLogger.Log($"Removing inner task id {task.ID} description {task.Description}");
+                mLogger.LogDebug($"Removing inner task id {task.ID} description {task.Description}");
             }
 
             mDatabase.Entities.Remove(group);
-            mLogger.Log($"Task group id {group.ID} group name {group.Name} removed");
+            mLogger.LogDebug($"Task group id {group.ID} group name {group.Name} removed");
 
             mDatabase.SaveCurrentDatabase();
             return Task.CompletedTask;

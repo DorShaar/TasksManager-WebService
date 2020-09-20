@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using TaskData.Contracts;
+using TaskData.TasksGroups;
 using Tasker.App.Resources;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;

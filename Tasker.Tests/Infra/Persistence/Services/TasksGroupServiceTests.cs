@@ -1,10 +1,15 @@
-﻿using FakeItEasy;
-using Logger.Contracts;
+﻿using Castle.Core.Logging;
+using FakeItEasy;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using ObjectSerializer.JsonService;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TaskData;
-using TaskData.Contracts;
+using TaskData.OperationResults;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Resources;
 using Tasker.Domain.Communication;
@@ -18,14 +23,27 @@ namespace Tasker.Tests.Infra.Persistence.Services
         private const string mInvalidGroupName = "InvalidGroupNameInvalidGroupNameInvalidGroupNameInvalidGroupNameInvalidGroupName";
         private const string mInvalidTaskName = "InvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskName" +
             "InvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskNameInvalidTaskName";
-        private readonly ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
+        private readonly ITasksGroupFactory mTasksGroupFactory;
+
+        public TasksGroupServiceTests()
+        {
+            ServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.UseTaskerDataEntities();
+            serviceCollection.UseJsonObjectSerializer();
+            ServiceProvider serviceProvider = serviceCollection
+                .AddLogging()
+                .BuildServiceProvider();
+
+            mTasksGroupFactory = serviceProvider.GetRequiredService<ITasksGroupFactory>();
+        }
 
         [Fact]
         public async Task ListAsync_EmptyDatabase_NullReturned()
         {
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns<IEnumerable<ITasksGroup>>(null);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             Assert.Empty(await tasksGroupService.ListAsync().ConfigureAwait(false));
         }
@@ -37,7 +55,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(expectedList);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             Assert.Empty(await tasksGroupService.ListAsync().ConfigureAwait(false));
         }
@@ -47,14 +66,15 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             List<ITasksGroup> expectedList = new List<ITasksGroup>
             {
-                mTasksGroupBuilder.Create("group1", A.Fake<ILogger>()),
-                mTasksGroupBuilder.Create("group2", A.Fake<ILogger>())
+                mTasksGroupFactory.CreateGroup("group1"),
+                mTasksGroupFactory.CreateGroup("group2")
             };
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(expectedList);
 
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             List<ITasksGroup> result = (await tasksGroupService.ListAsync().ConfigureAwait(false)).ToList();
             Assert.Equal(2, result.Count);
@@ -69,7 +89,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(wrongID)).Returns<ITasksGroup>(null);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response = await tasksGroupService.RemoveAsync(wrongID).ConfigureAwait(false);
             Assert.False(response.IsSuccess);
@@ -83,7 +104,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(wrongID)).Returns<ITasksGroup>(null);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.RemoveAsync(wrongID).ConfigureAwait(false);
 
@@ -93,12 +115,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task RemoveAsync_GroupWithChildren_FailResponseReturned()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group", A.Fake<ILogger>());
-            tasksGroup.CreateTask("task1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group");
+            mTasksGroupFactory.CreateTask(tasksGroup, "task1");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response = await tasksGroupService.RemoveAsync(tasksGroup.ID).ConfigureAwait(false);
             Assert.False(response.IsSuccess);
@@ -108,12 +131,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task RemoveAsync_GroupWithChildren_RemoveNotPerformed()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group", A.Fake<ILogger>());
-            tasksGroup.CreateTask("task1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group");
+            mTasksGroupFactory.CreateTask(tasksGroup, "task1");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.RemoveAsync(tasksGroup.ID).ConfigureAwait(false);
 
@@ -123,11 +147,12 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task RemoveAsync_EmptyGroup_SuccessResponseReturned()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("emptyGroup", A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("emptyGroup");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response = await tasksGroupService.RemoveAsync(tasksGroup.ID).ConfigureAwait(false);
             Assert.True(response.IsSuccess);
@@ -137,11 +162,12 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task RemoveAsync_EmptyGroup_RemovePerformed()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("emptyGroup", A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("emptyGroup");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.RemoveAsync(tasksGroup.ID).ConfigureAwait(false);
 
@@ -152,13 +178,15 @@ namespace Tasker.Tests.Infra.Persistence.Services
         public async Task RemoveTaskAsync_TaskExists_SuccessResponseReturned()
         {
             IWorkTask taskToRemove = A.Fake<IWorkTask>();
+            OperationResult<IWorkTask> getTaskResult = new OperationResult<IWorkTask>(true, taskToRemove);
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToRemove);
+            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(getTaskResult);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response = await tasksGroupService.RemoveTaskAsync(tasksGroup.ID).ConfigureAwait(false);
             Assert.True(response.IsSuccess);
@@ -169,13 +197,15 @@ namespace Tasker.Tests.Infra.Persistence.Services
         public async Task RemoveTaskAsync_TaskExists_TaskRemoved()
         {
             IWorkTask taskToRemove = A.Fake<IWorkTask>();
+            OperationResult<IWorkTask> getTaskResult = new OperationResult<IWorkTask>(true, taskToRemove);
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToRemove);
+            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(getTaskResult);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.RemoveTaskAsync(tasksGroup.ID).ConfigureAwait(false);
 
@@ -188,7 +218,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId").ConfigureAwait(false);
             Assert.False(response.IsSuccess);
@@ -200,7 +231,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response = await tasksGroupService.RemoveTaskAsync("notExistingId").ConfigureAwait(false);
             A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
@@ -214,11 +246,14 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => taskToUpdate.ID).Returns("some-id");
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToUpdate);
+            OperationResult<IWorkTask> getTaskResult = new OperationResult<IWorkTask>(true, taskToUpdate);
+            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(getTaskResult);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
                 new WorkTaskResource
@@ -239,11 +274,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
             A.CallTo(() => taskToUpdate.ID).Returns("some-id");
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(taskToUpdate);
+            OperationResult<IWorkTask> getTaskResult = new OperationResult<IWorkTask>(true, taskToUpdate);
+            A.CallTo(() => tasksGroup.GetTask(A<string>.Ignored)).Returns(getTaskResult);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.UpdateTaskAsync(
                 new WorkTaskResource
@@ -260,7 +297,9 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
                 new WorkTaskResource
@@ -278,7 +317,9 @@ namespace Tasker.Tests.Infra.Persistence.Services
         {
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
                 new WorkTaskResource
@@ -291,21 +332,24 @@ namespace Tasker.Tests.Infra.Persistence.Services
         }
 
         [Fact]
-        public async Task UpdateTaskAsync_DescriptionAlreadyExist_FailResponseReturned()
+        public async Task UpdateTaskAsync_DescriptionAlreadyExist_FailResponseReturnedAndUpdateNotPerformed()
         {
             IWorkTask taskToUpdate = A.Fake<IWorkTask>();
-            A.CallTo(() => taskToUpdate.Description).Returns("some-description");
+            A.CallTo(() => taskToUpdate.Description).Returns("same-description");
             A.CallTo(() => taskToUpdate.ID).Returns("some-id");
 
             IWorkTask taskWithSameDescription = A.Fake<IWorkTask>();
-            A.CallTo(() => taskWithSameDescription.Description).Returns("existing-description");
+            A.CallTo(() => taskWithSameDescription.Description).Returns("same-description");
 
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetAllTasks()).Returns(new List<IWorkTask> { taskToUpdate, taskWithSameDescription });
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group-name");
+            mTasksGroupFactory.CreateTask(tasksGroup, "same-description");
+            mTasksGroupFactory.CreateTask(tasksGroup, "same-description");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response = await tasksGroupService.UpdateTaskAsync(
                 new WorkTaskResource
@@ -314,46 +358,20 @@ namespace Tasker.Tests.Infra.Persistence.Services
                     Description = taskWithSameDescription.Description
                 }).ConfigureAwait(false);
 
-            A.CallTo(() => tasksGroup.GetAllTasks()).MustHaveHappenedOnceExactly();
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
-        }
 
-        [Fact]
-        public async Task UpdateTaskAsync_DescriptionAlreadyExist_UpdateNotPerformed()
-        {
-            IWorkTask taskToUpdate = A.Fake<IWorkTask>();
-            A.CallTo(() => taskToUpdate.Description).Returns("some-description");
-            A.CallTo(() => taskToUpdate.ID).Returns("some-id");
-
-            IWorkTask taskWithSameDescription= A.Fake<IWorkTask>();
-            A.CallTo(() => taskWithSameDescription.Description).Returns("existing-description");
-
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetAllTasks()).Returns(new List<IWorkTask> { taskToUpdate, taskWithSameDescription });
-
-            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
-            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
-
-            await tasksGroupService.UpdateTaskAsync(
-                new WorkTaskResource
-                {
-                    TaskId = taskToUpdate.ID,
-                    Description = taskWithSameDescription.Description
-                }).ConfigureAwait(false);
-
-            A.CallTo(() => tasksGroup.GetAllTasks()).MustHaveHappenedOnceExactly();
             A.CallTo(() => dbRepository.UpdateAsync(tasksGroup)).MustNotHaveHappened();
         }
 
         [Fact]
         public async Task SaveAsync_InvalidGroupName_SaveNotPerformed()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create(mInvalidGroupName, A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup(mInvalidGroupName);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.SaveAsync(tasksGroup.Name).ConfigureAwait(false);
 
@@ -366,7 +384,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
             const string groupName = "ValidGroupName";
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response = await tasksGroupService.SaveAsync(groupName).ConfigureAwait(false);
             Assert.True(response.IsSuccess);
@@ -376,10 +395,11 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task SaveAsync_ValidTasksGroupToAdd_SavePerformed()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("ValidGroupName", A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("ValidGroupName");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.SaveAsync(tasksGroup.Name).ConfigureAwait(false);
 
@@ -387,51 +407,30 @@ namespace Tasker.Tests.Infra.Persistence.Services
         }
 
         [Fact]
-        public async Task SaveTaskAsync_InvalidTaskName_FailResponseReturned()
+        public async Task SaveTaskAsync_InvalidTaskName_FailResponseReturnedAndSaveNotPerformed()
         {
             const string groupName = "groupName";
 
             IWorkTask workTask = A.Fake<IWorkTask>();
             workTask.GroupName = groupName;
             workTask.Description = mInvalidTaskName;
+            OperationResult<IWorkTask> createTaskResult = new OperationResult<IWorkTask>(true, workTask);
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            tasksGroup.Name = groupName;
+            tasksGroup.SetGroupName(groupName);
 
-            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(workTask);
+            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored, A<string>.Ignored)).Returns(createTaskResult);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
 
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response =
                 await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description).ConfigureAwait(false);
             Assert.False(response.IsSuccess);
             Assert.Null(response.ResponseObject);
-        }
-
-        [Fact]
-        public async Task SaveTaskAsync_InvalidTaskName_SaveNotPerformed()
-        {
-            const string groupName = "groupName";
-
-            IWorkTask workTask = A.Fake<IWorkTask>();
-            workTask.GroupName = groupName;
-            workTask.Description = mInvalidTaskName;
-
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            tasksGroup.Name = groupName;
-
-            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(workTask);
-
-            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
-            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
-
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
-
-            await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description).ConfigureAwait(false);
-
             A.CallTo(() => dbRepository.AddAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
         }
 
@@ -441,7 +440,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
 
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response =
                 await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName).ConfigureAwait(false);
@@ -455,7 +455,8 @@ namespace Tasker.Tests.Infra.Persistence.Services
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>());
 
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response =
                 await tasksGroupService.SaveTaskAsync("notExistingGroupIdentifier", mInvalidTaskName).ConfigureAwait(false);
@@ -475,12 +476,14 @@ namespace Tasker.Tests.Infra.Persistence.Services
             workTask.Description = workTask.Description;
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            tasksGroup.Name = workTask.GroupName;
+            tasksGroup.SetGroupName(workTask.GroupName);
             A.CallTo(() => tasksGroup.GetAllTasks()).Returns(new List<IWorkTask> { workTask });
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response =
                 await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description).ConfigureAwait(false);
@@ -500,55 +503,40 @@ namespace Tasker.Tests.Infra.Persistence.Services
             workTask.Description = workTask.Description;
 
             ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            tasksGroup.Name = workTask.GroupName;
+            tasksGroup.SetGroupName(workTask.GroupName);
             A.CallTo(() => tasksGroup.GetAllTasks()).Returns(new List<IWorkTask> { workTask });
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.SaveTaskAsync(workTask.GroupName, workTask.Description).ConfigureAwait(false);
             A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustNotHaveHappened();
         }
 
         [Fact]
-        public async Task SaveTaskAsync_ValidWorkTaskToAdd_SuccessResponseReturned()
+        public async Task SaveTaskAsync_ValidWorkTaskToAdd_SuccessResponseReturnedAndSavePerformed()
         {
             IWorkTask validWorkTask = A.Fake<IWorkTask>();
             validWorkTask.GroupName = "groupName";
             validWorkTask.Description = "validDescription";
 
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            tasksGroup.Name = validWorkTask.GroupName;
-            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(validWorkTask);
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("bla");
+            tasksGroup.SetGroupName(validWorkTask.GroupName);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<IWorkTask> response =
-                await tasksGroupService.SaveTaskAsync(validWorkTask.GroupName, validWorkTask.Description).ConfigureAwait(false);
+                await tasksGroupService.SaveTaskAsync(validWorkTask.GroupName, validWorkTask.Description)
+                .ConfigureAwait(false);
+
             Assert.True(response.IsSuccess);
-            Assert.Equal(validWorkTask, response.ResponseObject);
-        }
-
-        [Fact]
-        public async Task SaveTaskAsync_ValidWorkTaskToAdd_SavePerformed()
-        {
-            IWorkTask validWorkTask = A.Fake<IWorkTask>();
-            validWorkTask.GroupName = "groupName";
-            validWorkTask.Description = "validDescription";
-
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            tasksGroup.Name = validWorkTask.GroupName;
-            A.CallTo(() => tasksGroup.CreateTask(A<string>.Ignored)).Returns(validWorkTask);
-
-            IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
-            A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup>() { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
-
-            await tasksGroupService.SaveTaskAsync(validWorkTask.GroupName, validWorkTask.Description).ConfigureAwait(false);
-
+            Assert.Equal(tasksGroup.GetAllTasks().First(), response.ResponseObject);
             A.CallTo(() => dbRepository.UpdateAsync(A<ITasksGroup>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
@@ -559,7 +547,9 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(wrongID)).Returns<ITasksGroup>(null);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response =
                 await tasksGroupService.UpdateGroupAsync(wrongID, "newGroupName").ConfigureAwait(false);
@@ -574,7 +564,9 @@ namespace Tasker.Tests.Infra.Persistence.Services
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(wrongID)).Returns<ITasksGroup>(null);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.UpdateGroupAsync(wrongID, "newGroupName").ConfigureAwait(false);
 
@@ -584,11 +576,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task UpdateAsync_GroupWithInvalidName_FailResponseReturned()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group", A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response =
                 await tasksGroupService.UpdateGroupAsync(tasksGroup.ID, mInvalidGroupName).ConfigureAwait(false);
@@ -599,11 +593,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task UpdateAsync_GroupWithInvalidName_UpdateNotPerformed()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("group", A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.UpdateGroupAsync(tasksGroup.ID, mInvalidGroupName).ConfigureAwait(false);
 
@@ -614,11 +610,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         public async Task UpdateAsync_GroupAlreadyExistingWithNewName_FailResponseReturned()
         {
             const string groupName = "groupName";
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create(groupName, A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup(groupName);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response =
                 await tasksGroupService.UpdateGroupAsync(tasksGroup.ID, groupName).ConfigureAwait(false);
@@ -630,11 +628,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         public async Task UpdateAsync_GroupAlreadyExistingWithNewName_UpdateNotPerformed()
         {
             const string groupName = "groupName";
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create(groupName, A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup(groupName);
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.ListAsync()).Returns(new List<ITasksGroup> { tasksGroup });
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response =
                 await tasksGroupService.UpdateGroupAsync(tasksGroup.ID, groupName).ConfigureAwait(false);
@@ -645,11 +645,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task UpdateAsync_EmptyGroup_SuccessResponseReturned()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("emptyGroup", A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("emptyGroup");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             IResponse<ITasksGroup> response =
                 await tasksGroupService.UpdateGroupAsync(tasksGroup.ID, "newGroupName").ConfigureAwait(false);
@@ -660,11 +662,13 @@ namespace Tasker.Tests.Infra.Persistence.Services
         [Fact]
         public async Task UpdateAsync_EmptyGroup_UpdatePerformed()
         {
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create("emptyGroup", A.Fake<ILogger>());
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("emptyGroup");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.UpdateGroupAsync(tasksGroup.ID, "newGroupName").ConfigureAwait(false);
 
@@ -677,13 +681,15 @@ namespace Tasker.Tests.Infra.Persistence.Services
             const string oldGroupName = "oldGroupName";
             const string newGroupName = "newGroupName";
 
-            ITasksGroup tasksGroup = mTasksGroupBuilder.Create(oldGroupName, A.Fake<ILogger>());
-            IWorkTask workTask1 = tasksGroup.CreateTask("workTask1");
-            IWorkTask workTask2 = tasksGroup.CreateTask("workTask2");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup(oldGroupName);
+            IWorkTask workTask1 = mTasksGroupFactory.CreateTask(tasksGroup, "workTask1");
+            IWorkTask workTask2 = mTasksGroupFactory.CreateTask(tasksGroup, "workTask2");
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
             A.CallTo(() => dbRepository.FindAsync(tasksGroup.ID)).Returns(tasksGroup);
-            TasksGroupService tasksGroupService = new TasksGroupService(dbRepository, mTasksGroupBuilder, A.Fake<ILogger>());
+
+            TasksGroupService tasksGroupService =
+                new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 
             await tasksGroupService.UpdateGroupAsync(tasksGroup.ID, newGroupName).ConfigureAwait(false);
 

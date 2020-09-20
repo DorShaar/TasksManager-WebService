@@ -1,6 +1,6 @@
-﻿using Logger.Contracts;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -12,12 +12,12 @@ namespace Tasker.Api.Middlewares
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate mNext;
-        private readonly ILogger mLogger;
+        private readonly ILogger<ExceptionHandlingMiddleware> mLogger;
 
-        public ExceptionHandlingMiddleware(RequestDelegate requestDelegate, ILogger logger)
+        public ExceptionHandlingMiddleware(RequestDelegate requestDelegate, ILogger<ExceptionHandlingMiddleware> logger)
         {
-            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
             mNext = requestDelegate ?? throw new ArgumentNullException(nameof(requestDelegate));
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task Invoke(HttpContext context)
@@ -46,7 +46,7 @@ namespace Tasker.Api.Middlewares
 
         private Task Generate500Response(HttpContext context, Exception exception)
         {
-            mLogger.LogError("Unhandled exception occured during request pipeline", exception);
+            mLogger.LogError(exception, "Unhandled exception occured during request pipeline");
 
             ProblemDetails problemDetails = new ProblemDetails
             {
@@ -64,7 +64,7 @@ namespace Tasker.Api.Middlewares
 
         private Task Generate400Response(HttpContext context, Exception exception)
         {
-            mLogger.LogError(exception.Message, exception);
+            mLogger.LogError(exception, exception.Message);
 
             ProblemDetails problemDetails = new ProblemDetails
             {

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TaskData.Contracts;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.App.Resources;
 using Tasker.Domain.Communication;
 

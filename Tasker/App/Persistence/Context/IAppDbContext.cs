@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using TaskData.Contracts;
+using TaskData.TasksGroups;
 
 namespace Takser.App.Persistence.Context
 {

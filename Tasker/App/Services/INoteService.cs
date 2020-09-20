@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using TaskData.Contracts;
+using TaskData.Notes;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
 

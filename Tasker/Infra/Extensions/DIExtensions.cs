@@ -1,15 +1,14 @@
 ﻿using AutoMapper;
-using Database.JsonService;
-using Logger;
-using Logger.Contracts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ObjectSerializer.Contracts;
+using Microsoft.Extensions.Logging;
+using ObjectSerializer.JsonService;
 using System.IO;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
 using TaskData;
-using TaskData.Contracts;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.App.Mapping;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
@@ -27,6 +26,7 @@ namespace Tasker.Infra.Extensions
             RegisterRepositories(services);
             RegisterTaskerCoreComponents(services);
             RegisterDadabases(services);
+            RegisterLogger(services);
 
             services.AddAutoMapper(typeof(ModelToResourceProfile));
 
@@ -55,13 +55,14 @@ namespace Tasker.Infra.Extensions
 
         private static void RegisterTaskerCoreComponents(IServiceCollection services)
         {
-            services.AddSingleton<INoteBuilder, NoteBuilder>();
-            services.AddSingleton<INotesSubjectBuilder, NotesSubjectBuilder>();
-            services.AddSingleton<IWorkTask, WorkTask>();
-            services.AddSingleton<ITasksGroup, TaskGroup>();
-            services.AddSingleton<ITasksGroupBuilder, TaskGroupBuilder>();
-            services.AddSingleton<IObjectSerializer, JsonSerializerWrapper>();
-            services.AddSingleton<ILogger, ConsoleLogger>();
+            services.UseJsonObjectSerializer();
+            services.UseTaskerDataEntities();
+        }
+
+        private static void RegisterLogger(IServiceCollection services)
+        {
+            services.AddLogging(loggerBuilder =>
+                loggerBuilder.AddConsole().SetMinimumLevel(LogLevel.Debug));
         }
 
         private static void AddConfiguration(IServiceCollection services)

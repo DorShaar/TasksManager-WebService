@@ -1,13 +1,14 @@
-﻿using Logger.Contracts;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ObjectSerializer.Contracts;
+using ObjectSerializer.JsonService;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
-using TaskData.Contracts;
+using TaskData.IDsProducer;
+using TaskData.TasksGroups;
 
 namespace Tasker.Infra.Persistence.Context
 {
@@ -16,9 +17,10 @@ namespace Tasker.Infra.Persistence.Context
         private const string DatabaseName = "tasks.db";
         private const string NextIdHolderName = "id_producer.db";
 
-        private readonly ILogger mLogger;
         private readonly IObjectSerializer mSerializer;
         private readonly DatabaseConfigurtaion mConfiguration;
+        private readonly IIDProducer mIdProducer;
+        private readonly ILogger<AppDbContext> mLogger;
 
         private readonly string NextIdPath;
         public List<ITasksGroup> Entities { get; private set; } = new List<ITasksGroup>();
@@ -27,11 +29,19 @@ namespace Tasker.Infra.Persistence.Context
         public string NotesDirectoryPath { get => mConfiguration.NotesDirectoryPath; }
         public string NotesTasksDirectoryPath { get => mConfiguration.NotesTasksDirectoryPath; }
 
-        public AppDbContext(IOptions<DatabaseConfigurtaion> configuration, IObjectSerializer serializer, ILogger logger)
+        public AppDbContext(IOptions<DatabaseConfigurtaion> configuration,
+            IObjectSerializer serializer,
+            IIDProducer idProducer,
+            ILogger<AppDbContext> logger)
         {
+            if (configuration == null)
+                throw new ArgumentNullException(nameof(configuration));
+
             mConfiguration = configuration.Value;
-            mSerializer = serializer;
-            mLogger = logger;
+
+            mSerializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            mIdProducer = idProducer ?? throw new ArgumentNullException(nameof(idProducer));
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (!Directory.Exists(mConfiguration.DatabaseDirectoryPath))
             {
@@ -79,7 +89,7 @@ namespace Tasker.Infra.Persistence.Context
             }
 
             mLogger.LogInformation("Going to load next id");
-            IDProducer.IDProducer.SetNextID(mSerializer.Deserialize<int>(NextIdPath));
+            mIdProducer.SetNextID(mSerializer.Deserialize<int>(NextIdPath));
         }
 
         public Task SaveCurrentDatabase()
@@ -116,7 +126,7 @@ namespace Tasker.Infra.Persistence.Context
 
         private void SaveNextId()
         {
-            mSerializer.Serialize(IDProducer.IDProducer.PeekForNextId(), NextIdPath);
+            mSerializer.Serialize(mIdProducer.PeekForNextId(), NextIdPath);
         }
     }
 }

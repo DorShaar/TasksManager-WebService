@@ -1,14 +1,15 @@
-﻿using Database.JsonService;
-using FakeItEasy;
-using Logger.Contracts;
+﻿using FakeItEasy;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ObjectSerializer.Contracts;
+using ObjectSerializer.JsonService;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData;
-using TaskData.Contracts;
+using TaskData.IDsProducer;
+using TaskData.TasksGroups;
 using Tasker.Infra.Persistence.Context;
 using Xunit;
 
@@ -17,6 +18,24 @@ namespace Tasker.Tests.Infra.Persistence.Context
     public class AppDbContextTests
     {
         private const string TestFilesDirectory = "TestFiles";
+
+        private readonly ITasksGroupFactory mTasksGroupFactory;
+        private readonly IObjectSerializer mObjectSerializer;
+        private readonly IIDProducer mIDProducer;
+
+        public AppDbContextTests()
+        {
+            ServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.UseTaskerDataEntities();
+            serviceCollection.UseJsonObjectSerializer();
+            ServiceProvider serviceProvider = serviceCollection
+                .AddLogging()
+                .BuildServiceProvider();
+
+            mTasksGroupFactory = serviceProvider.GetRequiredService<ITasksGroupFactory>();
+            mObjectSerializer = serviceProvider.GetRequiredService<IObjectSerializer>();
+            mIDProducer = serviceProvider.GetRequiredService<IIDProducer>();
+        }
 
         [Fact]
         public void DatabaseFilePath_FileExists_AsExpected()
@@ -30,7 +49,12 @@ namespace Tasker.Tests.Infra.Persistence.Context
                     DatabaseDirectoryPath = tempDirectoryPath
                 });
 
-                AppDbContext database = new AppDbContext(databaseOptions, A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+                AppDbContext database = new AppDbContext(
+                    databaseOptions,
+                    mObjectSerializer,
+                    mIDProducer,
+                    NullLogger<AppDbContext>.Instance);
+
                 Assert.Equal(Path.Combine(tempDirectoryPath, "tasks.db"), database.DatabaseFilePath);
             }
             finally
@@ -47,7 +71,12 @@ namespace Tasker.Tests.Infra.Persistence.Context
                 DatabaseDirectoryPath = @"\abc"
             });
 
-            AppDbContext database = new AppDbContext(databaseOptions, A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                   databaseOptions,
+                   mObjectSerializer,
+                   mIDProducer,
+                   NullLogger<AppDbContext>.Instance);
+
             Assert.Null(database.DatabaseFilePath);
         }
 
@@ -59,7 +88,12 @@ namespace Tasker.Tests.Infra.Persistence.Context
                 DefaultTasksGroup = "abc"
             });
 
-            AppDbContext database = new AppDbContext(databaseOptions, A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                   databaseOptions,
+                   mObjectSerializer,
+                   mIDProducer,
+                   NullLogger<AppDbContext>.Instance);
+
             Assert.Equal("abc", database.DefaultTasksGroup);
         }
 
@@ -71,7 +105,12 @@ namespace Tasker.Tests.Infra.Persistence.Context
                 NotesDirectoryPath = "abc"
             });
 
-            AppDbContext database = new AppDbContext(databaseOptions, A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                   databaseOptions,
+                   mObjectSerializer,
+                   mIDProducer,
+                   NullLogger<AppDbContext>.Instance);
+
             Assert.Equal("abc", database.NotesDirectoryPath);
         }
 
@@ -83,7 +122,12 @@ namespace Tasker.Tests.Infra.Persistence.Context
                 NotesTasksDirectoryPath = "abc"
             });
 
-            AppDbContext database = new AppDbContext(databaseOptions, A.Fake<IObjectSerializer>(), A.Fake<ILogger>());
+            AppDbContext database = new AppDbContext(
+                   databaseOptions,
+                   mObjectSerializer,
+                   mIDProducer,
+                   NullLogger<AppDbContext>.Instance);
+
             Assert.Equal("abc", database.NotesTasksDirectoryPath);
         }
 
@@ -99,7 +143,12 @@ namespace Tasker.Tests.Infra.Persistence.Context
                     DatabaseDirectoryPath = tempDirectory
                 });
 
-                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                AppDbContext database = new AppDbContext(
+                   databaseOptions,
+                   mObjectSerializer,
+                   mIDProducer,
+                   NullLogger<AppDbContext>.Instance);
+
                 await database.LoadDatabase().ConfigureAwait(false);
 
                 Assert.Equal(2, database.Entities.Count);
@@ -124,11 +173,15 @@ namespace Tasker.Tests.Infra.Persistence.Context
                     DatabaseDirectoryPath = tempDirectory
                 });
 
-                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                AppDbContext database = new AppDbContext(
+                   databaseOptions,
+                   mObjectSerializer,
+                   mIDProducer,
+                   NullLogger<AppDbContext>.Instance);
+
                 await database.LoadDatabase().ConfigureAwait(false);
 
-                ITasksGroupBuilder tasksGroupBuilder = new TaskGroupBuilder();
-                ITasksGroup tasksGroup = tasksGroupBuilder.Create("group", A.Fake<ILogger>());
+                ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group");
 
                 Assert.Equal("1022", tasksGroup.ID);
             }
@@ -150,15 +203,18 @@ namespace Tasker.Tests.Infra.Persistence.Context
                     DatabaseDirectoryPath = tempDirectory
                 });
 
-                AppDbContext database = new AppDbContext(databaseOptions, new JsonSerializerWrapper(), A.Fake<ILogger>());
+                AppDbContext database = new AppDbContext(
+                   databaseOptions,
+                   mObjectSerializer,
+                   mIDProducer,
+                   NullLogger<AppDbContext>.Instance);
 
-                ITasksGroupBuilder mTasksGroupBuilder = new TaskGroupBuilder();
-                ITasksGroup tasksGroup1 = mTasksGroupBuilder.Create("group1", A.Fake<ILogger>());
-                tasksGroup1.CreateTask("workTask1");
-                tasksGroup1.CreateTask("workTask2");
+                ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1");
+                mTasksGroupFactory.CreateTask(tasksGroup1, "workTask1");
+                mTasksGroupFactory.CreateTask(tasksGroup1, "workTask2");
 
-                ITasksGroup tasksGroup2 = mTasksGroupBuilder.Create("group2", A.Fake<ILogger>());
-                tasksGroup2.CreateTask("workTask3");
+                ITasksGroup tasksGroup2 = mTasksGroupFactory.CreateGroup("group2");
+                mTasksGroupFactory.CreateTask(tasksGroup2, "workTask3");
 
                 database.Entities.Add(tasksGroup1);
                 database.Entities.Add(tasksGroup2);
