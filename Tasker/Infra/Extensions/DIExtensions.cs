@@ -12,6 +12,8 @@ using TaskData.WorkTasks;
 using Tasker.App.Mapping;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Services;
+using Tasker.Infra.HostedServices;
+using Tasker.Infra.Options;
 using Tasker.Infra.Persistence.Context;
 using Tasker.Infra.Persistence.Repositories;
 using Tasker.Infra.Services;
@@ -33,6 +35,7 @@ namespace Tasker.Infra.Extensions
             AddConfiguration(services);
 
             services.AddHostedService<FileUploaderService>();
+            services.AddHostedService<TaskerNotifier>();
         }
 
         private static void RegisterServices(IServiceCollection services)
@@ -40,6 +43,8 @@ namespace Tasker.Infra.Extensions
             services.AddSingleton<ITasksGroupService, TasksGroupService>();
             services.AddSingleton<IWorkTaskService, WorkTaskService>();
             services.AddSingleton<INoteService, NoteService>();
+            services.AddSingleton<ICloudService, GoogleDriveCloudService>();
+            services.AddSingleton<INotifierService, NotifierService>();
         }
 
         private static void RegisterRepositories(IServiceCollection services)
@@ -74,8 +79,9 @@ namespace Tasker.Infra.Extensions
 
             IConfiguration configuration = configurationBuilder.Build();
 
-            // Binds between IConfiguration to DatabaseConfigurtaion.
+            // Binds between IConfiguration to given configurtaion.
             services.Configure<DatabaseConfigurtaion>(configuration);
+            services.Configure<TaskerConfiguration>(configuration);
             services.AddOptions();
         }
     }

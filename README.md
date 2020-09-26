@@ -6,4 +6,7 @@ API testing,
 Union architecture pattern,
 Custome Middlewares,
 Cors (Cross-origin resource sharing),
-GoogleDrive Api
+GoogleDrive Api,
+Hosted Service,
+Dispose pattern,
+Email sender,
