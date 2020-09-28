@@ -6,8 +6,11 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using TaskData.TasksGroups;
+using TaskData.WorkTasks;
 using Tasker.App.Services;
 using Tasker.Infra.Options;
+using Triangle;
 
 namespace Tasker.Infra.Services
 {
@@ -15,25 +18,60 @@ namespace Tasker.Infra.Services
     {
         private readonly ILogger<NotifierService> mLogger;
         private readonly IOptionsMonitor<TaskerConfiguration> mOptions;
+        private readonly ITasksGroupService mTasksGroupService;
 
-        public NotifierService(IOptionsMonitor<TaskerConfiguration> options, ILogger<NotifierService> logger)
+        public NotifierService(ITasksGroupService tasksGroupService,
+            IOptionsMonitor<TaskerConfiguration> options,
+            ILogger<NotifierService> logger)
         {
-            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
+            mTasksGroupService = tasksGroupService ?? 
+                throw new ArgumentNullException(nameof(tasksGroupService));
             mOptions = options ?? throw new ArgumentNullException(nameof(options));
+            mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task Notify()
         {
-            if (ShouldNotify())
+            if (await ShouldNotify().ConfigureAwait(false))
             {
-                await SendEmail(mOptions.CurrentValue.RecipientsToNotify, "Send Mail Test", mOptions.CurrentValue.Password)
-                    .ConfigureAwait(false);
+                await SendEmail(
+                    mOptions.CurrentValue.RecipientsToNotify, 
+                    "Send Mail Test", 
+                    mOptions.CurrentValue.Password).ConfigureAwait(false);
             }
         }
 
-        private bool ShouldNotify()
+        private async Task<bool> ShouldNotify()
         {
-            return true;
+            // TODO Test + 
+
+            // TODO build report from all tasks.
+            CollectTaskMeasurementsToNotify();
+
+            return false;
+        }
+
+        private async Task<List<TaskTriangle>> CollectTaskMeasurementsToNotify()
+        {
+            // TODO return Task Trignale + task name and task id.
+
+            List<TaskTriangle> taskTriangles = new List<TaskTriangle>();
+
+            IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
+
+            foreach (ITasksGroup group in groups)
+            {
+                IEnumerable<IWorkTask> tasks = group.GetAllTasks();
+
+                foreach (IWorkTask task in tasks)
+                {
+                    if (task.TaskMeasurement == null)
+                        continue;
+
+                    if (task.TaskMeasurement.ShouldNotify())
+                        taskTriangles.Add(task.TaskMeasurement);
+                }
+            }
         }
 
         public async Task SendEmail(List<string> recipients, string mailBody, string password)
