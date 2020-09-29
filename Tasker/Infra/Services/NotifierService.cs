@@ -1,61 +1,56 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using TaskData.TasksGroups;
 using TaskData.WorkTasks;
 using Tasker.App.Services;
-using Tasker.Infra.Options;
+using Tasker.Domain.Models;
 using Triangle;
 
 namespace Tasker.Infra.Services
 {
-    internal class NotifierService : INotifierService
+    public class NotifierService : INotifierService
     {
         private readonly ILogger<NotifierService> mLogger;
-        private readonly IOptionsMonitor<TaskerConfiguration> mOptions;
+        private readonly IEmailService mEmailService;
         private readonly ITasksGroupService mTasksGroupService;
 
-        public NotifierService(ITasksGroupService tasksGroupService,
-            IOptionsMonitor<TaskerConfiguration> options,
+        private readonly ConcurrentDictionary<int, TaskMeasurement> mOpenTasksMeasurements =
+            new ConcurrentDictionary<int, TaskMeasurement>();
+
+        public NotifierService(IEmailService emailService,
+            ITasksGroupService tasksGroupService,
             ILogger<NotifierService> logger)
         {
-            mTasksGroupService = tasksGroupService ?? 
-                throw new ArgumentNullException(nameof(tasksGroupService));
-            mOptions = options ?? throw new ArgumentNullException(nameof(options));
+            mEmailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            mTasksGroupService = tasksGroupService ?? throw new ArgumentNullException(nameof(tasksGroupService));
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task Notify()
         {
-            if (await ShouldNotify().ConfigureAwait(false))
+            List<TaskMeasurement> tasksMeasurementsToNotify =
+                await CollectTaskMeasurementsToNotify().ConfigureAwait(false);
+
+            if (tasksMeasurementsToNotify.Count == 0)
             {
-                await SendEmail(
-                    mOptions.CurrentValue.RecipientsToNotify, 
-                    "Send Mail Test", 
-                    mOptions.CurrentValue.Password).ConfigureAwait(false);
+                mLogger.LogTrace("No tasks to notify");
+                return;
             }
+
+            mLogger.LogTrace($"Building report from {tasksMeasurementsToNotify.Count} tasks to notify about");
+
+            string report = BuildReportFromTasksMeasurements(tasksMeasurementsToNotify);
+
+            await mEmailService.SendEmail(report).ConfigureAwait(false);
         }
 
-        private async Task<bool> ShouldNotify()
+        private async Task<List<TaskMeasurement>> CollectTaskMeasurementsToNotify()
         {
-            // TODO Test + 
-
-            // TODO build report from all tasks.
-            CollectTaskMeasurementsToNotify();
-
-            return false;
-        }
-
-        private async Task<List<TaskTriangle>> CollectTaskMeasurementsToNotify()
-        {
-            // TODO return Task Trignale + task name and task id.
-
-            List<TaskTriangle> taskTriangles = new List<TaskTriangle>();
+            List<TaskMeasurement> TasksMeasurements = new List<TaskMeasurement>();
 
             IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
 
@@ -68,45 +63,41 @@ namespace Tasker.Infra.Services
                     if (task.TaskMeasurement == null)
                         continue;
 
-                    if (task.TaskMeasurement.ShouldNotify())
-                        taskTriangles.Add(task.TaskMeasurement);
+                    if (task.TaskMeasurement.ShouldNotify() && CheckIsAlreadyNotified(task.ID, task.TaskMeasurement))
+                    {
+                        TasksMeasurements.Add(new TaskMeasurement(task.ID, task.Description, task.TaskMeasurement));
+                        UpdateAlreadyNotified(task.ID, task.TaskMeasurement);
+                    }
                 }
             }
+
+            return TasksMeasurements;
         }
 
-        public async Task SendEmail(List<string> recipients, string mailBody, string password)
+        private bool CheckIsAlreadyNotified(string id, TaskTriangle taskMeasurement)
         {
-            const string fromEmail = "dordatas@gmail.com";
-            const string userName = "dordatas";
 
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append($"Sending email from {fromEmail} to ");
+        }
 
-            recipients.ForEach(recipient => stringBuilder.Append(recipient).Append(", "));
-            mLogger.LogDebug(stringBuilder.ToString());
+        private void UpdateAlreadyNotified(string id, TaskTriangle taskMeasurement)
+        {
+            fghfgh
+        }
 
-            try
+        private string BuildReportFromTasksMeasurements(List<TaskMeasurement> tasksMeasurements)
+        {
+            StringBuilder reportBuilder = new StringBuilder();
+
+            foreach (TaskMeasurement taskMeasurement in tasksMeasurements)
             {
-                MailMessage mail = new MailMessage();
-                SmtpClient smtpClient = new SmtpClient("smtp.gmail.com");
-
-                mail.From = new MailAddress(fromEmail);
-                mail.Subject = "Task Notifier";
-                mail.Body = mailBody;
-                recipients.ToList().ForEach(recipient => mail.To.Add(recipient));
-
-                smtpClient.Port = 587;
-                smtpClient.UseDefaultCredentials = false;
-                smtpClient.Credentials = new System.Net.NetworkCredential(userName, password);
-                smtpClient.EnableSsl = true;
-
-                // https://myaccount.google.com/lesssecureapps
-                await smtpClient.SendMailAsync(mail).ConfigureAwait(false);
+                reportBuilder.Append("Task id: ").Append(taskMeasurement.Id).Append(" ")
+                             .Append("Description: ").Append(taskMeasurement.Description)
+                             .AppendLine()
+                             .AppendLine(taskMeasurement.Triangle.GetStatus())
+                             .AppendLine("--------------------------------------------------");
             }
-            catch (Exception ex)
-            {
-                mLogger.LogError(ex, "Failed to send mail");
-            }
+
+            return reportBuilder.ToString();
         }
     }
 }

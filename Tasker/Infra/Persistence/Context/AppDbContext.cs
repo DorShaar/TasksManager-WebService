@@ -51,22 +51,20 @@ namespace Tasker.Infra.Persistence.Context
             NextIdPath = Path.Combine(mConfiguration.DatabaseDirectoryPath, AppConsts.NextIdHolderName);
         }
 
-        public Task LoadDatabase()
+        public async Task LoadDatabase()
         {
             try
             {
-                LoadTaskskGroups();
-                LoadNextIdToProduce();
+                await LoadTaskskGroups().ConfigureAwait(false);
+                await LoadNextIdToProduce().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 mLogger.LogError("Unable to deserialize whole information", ex);
             }
-
-            return Task.CompletedTask;
         }
 
-        private void LoadTaskskGroups()
+        private async Task LoadTaskskGroups()
         {
             if (!File.Exists(DatabaseFilePath))
             {
@@ -75,10 +73,11 @@ namespace Tasker.Infra.Persistence.Context
             }
 
             mLogger.LogInformation($"Going to load database from {DatabaseFilePath}");
-            Entities = mSerializer.Deserialize<List<ITasksGroup>>(DatabaseFilePath);
+            Entities = await mSerializer.Deserialize<List<ITasksGroup>>(DatabaseFilePath)
+                .ConfigureAwait(false);
         }
 
-        private void LoadNextIdToProduce()
+        private async Task LoadNextIdToProduce()
         {
             if (!File.Exists(NextIdPath))
             {
@@ -87,44 +86,42 @@ namespace Tasker.Infra.Persistence.Context
             }
 
             mLogger.LogInformation("Going to load next id");
-            mIdProducer.SetNextID(mSerializer.Deserialize<int>(NextIdPath));
+            mIdProducer.SetNextID(await mSerializer.Deserialize<int>(NextIdPath).ConfigureAwait(false));
         }
 
-        public Task SaveCurrentDatabase()
+        public async Task SaveCurrentDatabase()
         {
             if (string.IsNullOrEmpty(DatabaseFilePath))
             {
                 mLogger.LogError("No database path was given");
-                return Task.CompletedTask;
+                return;
             }
 
             if (string.IsNullOrEmpty(NextIdPath))
             {
                 mLogger.LogError("No next id path was given");
-                return Task.CompletedTask;
+                return;
             }
 
             try
             {
-                SaveTasksGroups();
-                SaveNextId();
+                await SaveTasksGroups().ConfigureAwait(false);
+                await SaveNextId().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 mLogger.LogError($"Unable to serialize database in {mConfiguration.DatabaseDirectoryPath}", ex);
             }
-
-            return Task.CompletedTask;
         }
 
-        private void SaveTasksGroups()
+        private async Task SaveTasksGroups()
         {
-            mSerializer.Serialize(Entities, DatabaseFilePath);
+            await mSerializer.Serialize(Entities, DatabaseFilePath).ConfigureAwait(false);
         }
 
-        private void SaveNextId()
+        private async Task SaveNextId()
         {
-            mSerializer.Serialize(mIdProducer.PeekForNextId(), NextIdPath);
+            await mSerializer.Serialize(mIdProducer.PeekForNextId(), NextIdPath).ConfigureAwait(false);
         }
     }
 }

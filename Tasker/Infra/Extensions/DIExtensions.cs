@@ -45,6 +45,7 @@ namespace Tasker.Infra.Extensions
             services.AddSingleton<INoteService, NoteService>();
             services.AddSingleton<ICloudService, GoogleDriveCloudService>();
             services.AddSingleton<INotifierService, NotifierService>();
+            services.AddSingleton<IEmailService, EmailService>();
         }
 
         private static void RegisterRepositories(IServiceCollection services)

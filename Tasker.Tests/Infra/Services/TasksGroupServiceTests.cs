@@ -16,7 +16,7 @@ using Tasker.Domain.Communication;
 using Tasker.Infra.Services;
 using Xunit;
 
-namespace Tasker.Tests.Infra.Persistence.Services
+namespace Tasker.Tests.Infra.Services
 {
     public class TasksGroupServiceTests
     {
