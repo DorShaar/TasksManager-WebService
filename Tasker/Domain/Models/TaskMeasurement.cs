@@ -1,4 +1,5 @@
-﻿using Triangle;
+﻿using System;
+using Triangle;
 
 namespace Tasker.Domain.Models
 {
@@ -10,9 +11,9 @@ namespace Tasker.Domain.Models
 
         public TaskMeasurement(string id, string description, TaskTriangle triangle)
         {
-            Id = id;
-            Description = description;
-            Triangle = triangle;
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Description = description ?? throw new ArgumentNullException(nameof(description));
+            Triangle = triangle ?? throw new ArgumentNullException(nameof(triangle));
         }
     }
 }

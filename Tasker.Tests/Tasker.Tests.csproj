@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Folder Include="TestFiles\NewDatabase\" />
+    <Folder Include="TestFiles\Archiver\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestFiles\Archiver\AfterPack\Archiver.7z">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\Archiver\AfterPack\BeforePack.7z">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\Archiver\BeforePack\folder1\text2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\Archiver\BeforePack\text1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestFiles\GeneralNotes\generalNote3.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -31,9 +44,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestFiles\GeneralNotes\subject1\generalNote2.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestFiles\id_producer.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestFiles\id_producer.db.txt">
@@ -57,13 +67,7 @@
     <None Update="TestFiles\TaskNotes\1022 - clean old directories.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestFiles\tasks.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="TestFiles\tasks.db.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestFiles\tasks_other.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestFiles\tasks_other.db.txt">

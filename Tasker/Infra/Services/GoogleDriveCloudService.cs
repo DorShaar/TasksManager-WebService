@@ -7,12 +7,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using Tasker.App.Services;
 using Tasker.Infra.Consts;
+using Tasker.Infra.Options;
 using GoogleData = Google.Apis.Drive.v3.Data;
 
 namespace Tasker.Infra.Services
@@ -20,23 +20,31 @@ namespace Tasker.Infra.Services
     public class GoogleDriveCloudService : ICloudService
     {
         private const string FolderMimeType = "application/vnd.google-apps.folder";
-        private const string ZipExtension = ".zip";
 
         private readonly ILogger<GoogleDriveCloudService> mLogger;
+        private readonly IArchiverService mArchiveService;
+        private readonly IOptions<TaskerConfiguration> mTaskerConfiguration;
         private readonly string mDatabasePath;
         private readonly string mTasksNotesPath;
         private readonly string[] Scopes = { DriveService.Scope.Drive };
 
         private string mTaskerDriveDirectory = AppConsts.AppName;
 
-        public GoogleDriveCloudService(IOptions<DatabaseConfigurtaion> configuration,
+        public GoogleDriveCloudService(IArchiverService archiveService,
+            IOptions<DatabaseConfigurtaion> databaseConfiguration,
+            IOptions<TaskerConfiguration> taskerConfiguration,
             ILogger<GoogleDriveCloudService> logger)
         {
-            if (configuration == null)
-                throw new ArgumentNullException(nameof(configuration));
+            mArchiveService = archiveService ?? throw new ArgumentNullException(nameof(archiveService));
 
-            mDatabasePath = configuration.Value.DatabaseDirectoryPath;
-            mTasksNotesPath = configuration.Value.NotesTasksDirectoryPath;
+            if (databaseConfiguration == null)
+                throw new ArgumentNullException(nameof(databaseConfiguration));
+
+            if (taskerConfiguration == null)
+                throw new ArgumentNullException(nameof(taskerConfiguration));
+
+            mDatabasePath = databaseConfiguration.Value.DatabaseDirectoryPath;
+            mTasksNotesPath = databaseConfiguration.Value.NotesTasksDirectoryPath;
 
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -49,7 +57,7 @@ namespace Tasker.Infra.Services
 
             try
             {
-                tempArchiveFile = PackDataIntoZip();
+                tempArchiveFile = await PackDataIntoArchive().ConfigureAwait(false);
 
                 UserCredential credential = await CreateUserCredential().ConfigureAwait(false);
                 DriveService service = GetDriveService(credential);
@@ -75,17 +83,18 @@ namespace Tasker.Infra.Services
             mLogger.LogDebug($"Destination directory is {mTaskerDriveDirectory}");
         }
 
-        private string PackDataIntoZip()
+        private async Task<string> PackDataIntoArchive()
         {
             string outputDirectoryName = DateTime.Now.ToString("M/d/yyyy").Replace('/', '-');
             Directory.CreateDirectory(outputDirectoryName);
 
-            string archiveName = outputDirectoryName + ZipExtension;
+            string archiveName = outputDirectoryName + mArchiveService.ArchiveExtension;
 
             try
             {
                 CopyContentIntoDirectory(outputDirectoryName);
-                ZipFile.CreateFromDirectory(outputDirectoryName, archiveName);
+                await mArchiveService.Pack(outputDirectoryName, archiveName, mTaskerConfiguration.Value.Password)
+                    .ConfigureAwait(false);
             }
             finally
             {
@@ -220,7 +229,7 @@ namespace Tasker.Infra.Services
         private async Task RemoveExistingFileIfExists(DriveService service, string fileToUpload, string parentId)
         {
             string existingFileId = await FindFile(service,
-                file => file.MimeType.Contains(ZipExtension) && file.Name == fileToUpload)
+                file => file.MimeType.Contains(mArchiveService.ArchiveExtension) && file.Name == fileToUpload)
                 .ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(existingFileId))

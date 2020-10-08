@@ -8,9 +8,8 @@ using TaskData.TasksGroups;
 using TaskData.WorkTasks;
 using Tasker.App.Services;
 using Tasker.Domain.Models;
-using Triangle;
 
-namespace Tasker.Infra.Services
+namespace Tasker.Infra.Services.Notifier
 {
     public class NotifierService : INotifierService
     {
@@ -18,8 +17,8 @@ namespace Tasker.Infra.Services
         private readonly IEmailService mEmailService;
         private readonly ITasksGroupService mTasksGroupService;
 
-        private readonly ConcurrentDictionary<int, TaskMeasurement> mOpenTasksMeasurements =
-            new ConcurrentDictionary<int, TaskMeasurement>();
+        private readonly ConcurrentDictionary<string, TaskMeasurementInfo> mOpenTasksMeasurementsDict =
+            new ConcurrentDictionary<string, TaskMeasurementInfo>();
 
         public NotifierService(IEmailService emailService,
             ITasksGroupService tasksGroupService,
@@ -50,7 +49,7 @@ namespace Tasker.Infra.Services
 
         private async Task<List<TaskMeasurement>> CollectTaskMeasurementsToNotify()
         {
-            List<TaskMeasurement> TasksMeasurements = new List<TaskMeasurement>();
+            List<TaskMeasurement> tasksMeasurements = new List<TaskMeasurement>();
 
             IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
 
@@ -60,28 +59,48 @@ namespace Tasker.Infra.Services
 
                 foreach (IWorkTask task in tasks)
                 {
-                    if (task.TaskMeasurement == null)
-                        continue;
-
-                    if (task.TaskMeasurement.ShouldNotify() && CheckIsAlreadyNotified(task.ID, task.TaskMeasurement))
+                    if (task.IsFinished ||
+                        task.TaskMeasurement == null ||
+                        !task.TaskMeasurement.ShouldAlreadyBeNotified())
                     {
-                        TasksMeasurements.Add(new TaskMeasurement(task.ID, task.Description, task.TaskMeasurement));
-                        UpdateAlreadyNotified(task.ID, task.TaskMeasurement);
+                        continue;
                     }
+
+                    AddTaskMeasurement(task, tasksMeasurements);
                 }
             }
 
-            return TasksMeasurements;
+            return tasksMeasurements;
         }
 
-        private bool CheckIsAlreadyNotified(string id, TaskTriangle taskMeasurement)
+        private void AddTaskMeasurement(IWorkTask task, List<TaskMeasurement> tasksMeasurements)
         {
+            if (mOpenTasksMeasurementsDict.TryGetValue(task.ID, out TaskMeasurementInfo taskMeasurementInfo))
+            {
+                if (!taskMeasurementInfo.TaskMeasurement.Triangle.ShouldNotifyExact())
+                    return;
 
+                int currentProgressPercentage =
+                    taskMeasurementInfo.TaskMeasurement.Triangle.GetCurrentTimeProgressPercentage();
+
+                if (taskMeasurementInfo.PercentageProgress < currentProgressPercentage)
+                    AddOrUpdateNewTaskMeasurement(taskMeasurementInfo, tasksMeasurements);
+
+                return;
+            }
+
+            TaskMeasurement taskMeasurement = new TaskMeasurement(task.ID, task.Description, task.TaskMeasurement);
+            taskMeasurementInfo = new TaskMeasurementInfo(taskMeasurement);
+            AddOrUpdateNewTaskMeasurement(taskMeasurementInfo, tasksMeasurements);
         }
 
-        private void UpdateAlreadyNotified(string id, TaskTriangle taskMeasurement)
+        private void AddOrUpdateNewTaskMeasurement(TaskMeasurementInfo taskMeasurementInfo,
+            List<TaskMeasurement> TasksMeasurements)
         {
-            fghfgh
+            mOpenTasksMeasurementsDict.AddOrUpdate(
+                taskMeasurementInfo.TaskMeasurement.Id, taskMeasurementInfo, (key, value) => value);
+
+            TasksMeasurements.Add(taskMeasurementInfo.TaskMeasurement);
         }
 
         private string BuildReportFromTasksMeasurements(List<TaskMeasurement> tasksMeasurements)

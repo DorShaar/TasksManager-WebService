@@ -9,10 +9,19 @@ namespace Tasker.Infra.Options
         public TimeSpan NotifierInterval { get; set; } = TimeSpan.FromSeconds(60);
         public List<string> RecipientsToNotify { get; set; } = new List<string>();
         public string Password { get; set; }
+        public string PasswordPath { get; set; } = @"C:\Users\dor.shaar.CORP\Desktop\temp.txt";
 
         public TaskerConfiguration()
         {
-            Password = File.ReadAllText(@"C:\Users\dor.shaar.CORP\Desktop\temp.txt");
+            try
+            {
+                Password = File.ReadAllText(PasswordPath);
+            }
+            catch (FileNotFoundException)
+            {
+                Password = null;
+            }
+
             RecipientsToNotify.Add("dordatas@gmail.com");
         }
     }

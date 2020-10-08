@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using FakeItEasy;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System.IO;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
+using Tasker.App.Services;
+using Tasker.Infra.Options;
 using Tasker.Infra.Services;
 using Xunit;
 
@@ -24,8 +27,16 @@ namespace Tasker.Tests.Infra.Services
                 NotesTasksDirectoryPath = TasksNotesDirectoryPath
             });
 
-            GoogleDriveCloudService googleDriveUploadService =
-                new GoogleDriveCloudService(databaseOptions, NullLogger<GoogleDriveCloudService>.Instance);
+            IOptions<TaskerConfiguration> taskerOptions = Options.Create(new TaskerConfiguration()
+            {
+                Password = "1234",
+            });
+
+            GoogleDriveCloudService googleDriveUploadService = new GoogleDriveCloudService(
+                A.Fake<IArchiverService>(),
+                databaseOptions,
+                taskerOptions,
+                NullLogger<GoogleDriveCloudService>.Instance);
 
             Assert.True(await googleDriveUploadService.Upload("Tasker-web-test").ConfigureAwait(false));
         }

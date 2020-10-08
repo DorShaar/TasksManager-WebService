@@ -17,6 +17,7 @@ using Tasker.Infra.Options;
 using Tasker.Infra.Persistence.Context;
 using Tasker.Infra.Persistence.Repositories;
 using Tasker.Infra.Services;
+using Tasker.Infra.Services.Notifier;
 
 namespace Tasker.Infra.Extensions
 {
@@ -46,6 +47,7 @@ namespace Tasker.Infra.Extensions
             services.AddSingleton<ICloudService, GoogleDriveCloudService>();
             services.AddSingleton<INotifierService, NotifierService>();
             services.AddSingleton<IEmailService, EmailService>();
+            services.AddSingleton<IArchiverService, ArchiverService>();
         }
 
         private static void RegisterRepositories(IServiceCollection services)
