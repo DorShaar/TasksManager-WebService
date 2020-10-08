@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskData.TasksGroups;
@@ -31,8 +32,12 @@ namespace Tasker.Infra.Services.Notifier
 
         public async Task Notify()
         {
+            IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
+
+            CleanFinishedTasksFromOpenTasksMeasurements(groups);
+
             List<TaskMeasurement> tasksMeasurementsToNotify =
-                await CollectTaskMeasurementsToNotify().ConfigureAwait(false);
+                await CollectTaskMeasurementsToNotify(groups).ConfigureAwait(false);
 
             if (tasksMeasurementsToNotify.Count == 0)
             {
@@ -47,11 +52,55 @@ namespace Tasker.Infra.Services.Notifier
             await mEmailService.SendEmail(report).ConfigureAwait(false);
         }
 
-        private async Task<List<TaskMeasurement>> CollectTaskMeasurementsToNotify()
+        private void CleanFinishedTasksFromOpenTasksMeasurements(IEnumerable<ITasksGroup> groups)
         {
-            List<TaskMeasurement> tasksMeasurements = new List<TaskMeasurement>();
+            HashSet<string> allClosedTasksIds = GetAllClosedTasksId(groups);
 
-            IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
+            HashSet<string> openTasksMeasurements = mOpenTasksMeasurementsDict.Keys.ToHashSet();
+
+            HashSet<string> tasksIdsIntersection = openTasksMeasurements;
+
+            tasksIdsIntersection.IntersectWith(allClosedTasksIds);
+
+            foreach(string closedTaskId in tasksIdsIntersection)
+            {
+                if (mOpenTasksMeasurementsDict.TryRemove(closedTaskId, out TaskMeasurementInfo _))
+                {
+                    mLogger.LogDebug($"Task id {closedTaskId} removed from open tasks measurements dictionary");
+                }
+                else
+                {
+                    mLogger.LogWarning($"Task id {closedTaskId} was not removed from open tasks measurements dictionary" +
+                        $"although it was marked has should been removed");
+                }
+            }
+        }
+
+        private HashSet<string> GetAllClosedTasksId(IEnumerable<ITasksGroup> groups)
+        {
+            HashSet<string> allClosedTasksIds = new HashSet<string>();
+
+            foreach (ITasksGroup group in groups)
+            {
+                IEnumerable<IWorkTask> tasks = group.GetAllTasks();
+
+                foreach (IWorkTask task in tasks)
+                {
+                    if (!task.IsFinished)
+                        continue;
+
+                    allClosedTasksIds.Add(task.ID);
+                }
+            }
+
+            return allClosedTasksIds;
+        }
+
+        private Task<List<TaskMeasurement>> CollectTaskMeasurementsToNotify(IEnumerable<ITasksGroup> groups)
+        {
+            mLogger.LogDebug("Collection tasks to notify");
+
+            List<TaskMeasurement> tasksMeasurements = new List<TaskMeasurement>();
 
             foreach (ITasksGroup group in groups)
             {
@@ -66,14 +115,14 @@ namespace Tasker.Infra.Services.Notifier
                         continue;
                     }
 
-                    AddTaskMeasurement(task, tasksMeasurements);
+                    AddTaskMeasurementIfNeeded(task, tasksMeasurements);
                 }
             }
 
-            return tasksMeasurements;
+            return Task.FromResult(tasksMeasurements);
         }
 
-        private void AddTaskMeasurement(IWorkTask task, List<TaskMeasurement> tasksMeasurements)
+        private void AddTaskMeasurementIfNeeded(IWorkTask task, List<TaskMeasurement> tasksMeasurements)
         {
             if (mOpenTasksMeasurementsDict.TryGetValue(task.ID, out TaskMeasurementInfo taskMeasurementInfo))
             {
@@ -97,6 +146,8 @@ namespace Tasker.Infra.Services.Notifier
         private void AddOrUpdateNewTaskMeasurement(TaskMeasurementInfo taskMeasurementInfo,
             List<TaskMeasurement> TasksMeasurements)
         {
+            mLogger.LogDebug($"Adding or updating task {taskMeasurementInfo.TaskMeasurement.Id} to dictionary");
+
             mOpenTasksMeasurementsDict.AddOrUpdate(
                 taskMeasurementInfo.TaskMeasurement.Id, taskMeasurementInfo, (key, value) => value);
 
