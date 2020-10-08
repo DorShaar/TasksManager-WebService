@@ -40,12 +40,10 @@ namespace Tasker.Infra.Services
             if (databaseConfiguration == null)
                 throw new ArgumentNullException(nameof(databaseConfiguration));
 
-            if (taskerConfiguration == null)
-                throw new ArgumentNullException(nameof(taskerConfiguration));
-
             mDatabasePath = databaseConfiguration.Value.DatabaseDirectoryPath;
             mTasksNotesPath = databaseConfiguration.Value.NotesTasksDirectoryPath;
 
+            mTaskerConfiguration = taskerConfiguration ?? throw new ArgumentNullException(nameof(taskerConfiguration));
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -265,6 +263,11 @@ namespace Tasker.Infra.Services
             }
 
             return string.Empty;
+        }
+
+        public Task<bool> Download(string fileName)
+        {
+            // TODO
         }
     }
 }

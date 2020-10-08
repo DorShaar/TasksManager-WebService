@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Tasker.Tests.Infra.Services
 {
-    public class GoogleDriveUploadServiceTests
+    public class GoogleDriveCloudServiceTests
     {
         private const string TestFilesDirectory = "TestFiles";
         private const string TaskNotesDirectoryName = "TaskNotes";
@@ -32,13 +32,13 @@ namespace Tasker.Tests.Infra.Services
                 Password = "1234",
             });
 
-            GoogleDriveCloudService googleDriveUploadService = new GoogleDriveCloudService(
+            GoogleDriveCloudService googleDriveCloudService = new GoogleDriveCloudService(
                 A.Fake<IArchiverService>(),
                 databaseOptions,
                 taskerOptions,
                 NullLogger<GoogleDriveCloudService>.Instance);
 
-            Assert.True(await googleDriveUploadService.Upload("Tasker-web-test").ConfigureAwait(false));
+            Assert.True(await googleDriveCloudService.Upload("Tasker-web-test").ConfigureAwait(false));
         }
     }
 }
