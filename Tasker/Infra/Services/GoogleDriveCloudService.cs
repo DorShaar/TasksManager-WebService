@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Upload;
@@ -230,16 +231,16 @@ namespace Tasker.Infra.Services
                 file => file.MimeType.Contains(mArchiveService.ArchiveExtension) && file.Name == fileToUpload)
                 .ConfigureAwait(false);
 
-            if (string.IsNullOrEmpty(existingFileId))
+            if (string.IsNullOrWhiteSpace(existingFileId))
             {
                 mLogger.LogDebug($"File {fileToUpload} not found in {mTaskerDriveDirectory} directory");
                 return;
             }
 
-            await RemoveExistingFileIfExists(service, existingFileId).ConfigureAwait(false);
+            await RemoveExistingFile(service, existingFileId).ConfigureAwait(false);
         }
 
-        private async Task RemoveExistingFileIfExists(DriveService service, string fileIdToDelete)
+        private async Task RemoveExistingFile(DriveService service, string fileIdToDelete)
         {
             mLogger.LogDebug($"Going to remove file id {fileIdToDelete} from {mTaskerDriveDirectory} directory");
 
@@ -248,6 +249,45 @@ namespace Tasker.Infra.Services
 
             string deleteResult = await deleteRequest.ExecuteAsync().ConfigureAwait(false);
             mLogger.LogDebug($"Done removing file id {fileIdToDelete}. Delete result: {deleteResult}");
+        }
+
+        public async Task<Stream> Download(string fileName)
+        {
+            mLogger.LogDebug($"Going to download file {fileName} from {mTaskerDriveDirectory} directory");
+
+            UserCredential credential = await CreateUserCredential().ConfigureAwait(false);
+            DriveService service = GetDriveService(credential);
+
+            string fileId = await FindFile(service, file => file.Name == fileName)
+                .ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(fileId))
+            {
+                mLogger.LogDebug($"File {fileName} not found in {mTaskerDriveDirectory} directory");
+                return Stream.Null;
+            }
+
+            return await DownloadFromGoogleDrive(service, fileId).ConfigureAwait(false);
+        }
+
+        private async Task<Stream> DownloadFromGoogleDrive(DriveService service, string fileId)
+        {
+            Stream memoryStream = new MemoryStream();
+
+            IDownloadProgress downloadProgress = await service.Files.Get(fileId)
+                .DownloadAsync(memoryStream).ConfigureAwait(false);
+
+            if (downloadProgress.Status != DownloadStatus.Completed)
+            {
+                mLogger.LogWarning($"Download file id {fileId} from {mTaskerDriveDirectory}. " +
+                    $"Bytes: {downloadProgress.BytesDownloaded}. Status: {downloadProgress.Status}");
+                return Stream.Null;
+            }
+
+            mLogger.LogDebug($"Download file id {fileId} from {mTaskerDriveDirectory}. " +
+                    $"Bytes: {downloadProgress.BytesDownloaded}. Status: {downloadProgress.Status}");
+
+            return memoryStream;
         }
 
         private async Task<string> FindFile(DriveService service, Func<GoogleData.File, bool> predicate)
@@ -263,11 +303,6 @@ namespace Tasker.Infra.Services
             }
 
             return string.Empty;
-        }
-
-        public Task<bool> Download(string fileName)
-        {
-            // TODO
         }
     }
 }

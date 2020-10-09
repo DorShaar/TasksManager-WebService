@@ -1,10 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace Tasker.App.Services
 {
     public interface ICloudService
     {
         Task<bool> Upload(string destinationDirectory = default);
-        Task<bool> Download(string fileName);
+        Task<Stream> Download(string fileName);
     }
 }
