@@ -4,6 +4,7 @@ namespace Tasker.App.Services
 {
     public interface INotifierService
     {
-        Task Notify();
+        Task NotifyTriangleTasks();
+        Task NotifySummary();
     }
 }

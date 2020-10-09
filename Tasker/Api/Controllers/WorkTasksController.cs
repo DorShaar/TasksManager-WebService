@@ -40,7 +40,7 @@ namespace Takser.Api.Controllers
 
             mLogger.LogDebug("Requesting all tasks");
 
-            IEnumerable<IWorkTask> tasks = await mWorkTaskService.ListAsync().ConfigureAwait(false);
+            IEnumerable<IWorkTask> tasks = await mWorkTaskService.ListAllAsync().ConfigureAwait(false);
 
             if (tasks == null)
                 return workTaskResources;

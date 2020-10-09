@@ -72,7 +72,7 @@ namespace Tasker.Infra.Persistence.Context
                 throw new FileNotFoundException("Database does not exists", DatabaseFilePath);
             }
 
-            mLogger.LogInformation($"Going to load database from {DatabaseFilePath}");
+            mLogger.LogDebug($"Going to load database from {DatabaseFilePath}");
             Entities = await mSerializer.Deserialize<List<ITasksGroup>>(DatabaseFilePath)
                 .ConfigureAwait(false);
         }
@@ -85,7 +85,7 @@ namespace Tasker.Infra.Persistence.Context
                 throw new FileNotFoundException("Database does not exists", NextIdPath);
             }
 
-            mLogger.LogInformation("Going to load next id");
+            mLogger.LogDebug("Going to load next id");
             mIdProducer.SetNextID(await mSerializer.Deserialize<int>(NextIdPath).ConfigureAwait(false));
         }
 

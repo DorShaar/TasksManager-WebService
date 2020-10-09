@@ -44,7 +44,7 @@ namespace Tasker.Tests.Api.Controllers
             List<IWorkTask> tasksList = null;
 
             IWorkTaskService workTaskService = A.Fake<IWorkTaskService>();
-            A.CallTo(() => workTaskService.ListAsync()).Returns(tasksList);
+            A.CallTo(() => workTaskService.ListAllAsync()).Returns(tasksList);
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(workTaskService: workTaskService);
             using HttpClient httpClient = testServer.CreateClient();
@@ -63,7 +63,7 @@ namespace Tasker.Tests.Api.Controllers
             List<IWorkTask> tasksList = new List<IWorkTask>();
 
             IWorkTaskService workTaskService = A.Fake<IWorkTaskService>();
-            A.CallTo(() => workTaskService.ListAsync()).Returns(tasksList);
+            A.CallTo(() => workTaskService.ListAllAsync()).Returns(tasksList);
 
             using TestServer testServer = ApiTestHelper.BuildTestServerWithFakes(workTaskService: workTaskService);
             using HttpClient httpClient = testServer.CreateClient();

@@ -2,3 +2,7 @@ DatabaseDirectoryPath: C:\Dor\Apps\DorTasker\db
 NotesDirectoryPath: C:\Users\Dor.Shaar.CORP\OneDrive - Votiro\Dor\Notes
 NotesTasksDirectoryPath: C:\Users\Dor.Shaar.CORP\OneDrive - Votiro\Dor\Notes\tasks
 DefaultTasksGroup: bugs-146
+PasswordPath: C:\Users\dor.shaar.CORP\Desktop\temp.txt
+NotifierInterval: 00:05:00
+SummaryEmailInterval: 1.00:00:00
+SummaryEmailHour: 8

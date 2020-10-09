@@ -27,15 +27,10 @@ namespace Tasker.Tests.Infra.Services
                 NotesTasksDirectoryPath = TasksNotesDirectoryPath
             });
 
-            IOptions<TaskerConfiguration> taskerOptions = Options.Create(new TaskerConfiguration()
-            {
-                Password = "1234",
-            });
-
             GoogleDriveCloudService googleDriveCloudService = new GoogleDriveCloudService(
                 A.Fake<IArchiverService>(),
                 databaseOptions,
-                taskerOptions,
+                Options.Create(new TaskerConfiguration()),
                 NullLogger<GoogleDriveCloudService>.Instance);
 
             Assert.True(await googleDriveCloudService.Upload("Tasker-web-test").ConfigureAwait(false));

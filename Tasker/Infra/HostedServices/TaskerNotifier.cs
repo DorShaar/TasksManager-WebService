@@ -18,7 +18,8 @@ namespace Tasker.Infra.HostedServices
         private bool mDisposed;
         private readonly INotifierService mNotifierService;
         private readonly IOptionsMonitor<TaskerConfiguration> mTaskerOptions;
-        private Timer mTimer;
+        private Timer mTriangleNotifierTimer;
+        private Timer mDailyNotifierTimer;
 
         public TaskerNotifier(INotifierService notifierService, IOptionsMonitor<TaskerConfiguration> options,
             ILogger<TaskerNotifier> logger)
@@ -31,26 +32,38 @@ namespace Tasker.Infra.HostedServices
         public Task StartAsync(CancellationToken cancellationToken)
         {
             mLogger.LogDebug($"Initializing timer with interval of {mTaskerOptions.CurrentValue.NotifierInterval}");
-            mTimer = new Timer
+            mTriangleNotifierTimer = new Timer
             {
                 Interval = mTaskerOptions.CurrentValue.NotifierInterval.TotalMilliseconds,
                 Enabled = true,
             };
 
-            mTimer.Elapsed += OnElapsed;
+            mDailyNotifierTimer = new Timer
+            {
+                Interval = mTaskerOptions.CurrentValue.SummaryEmailInterval.TotalMilliseconds,
+                Enabled = true,
+            };
+
+            mTriangleNotifierTimer.Elapsed += OnTriangleNotifierElapsed;
+            mDailyNotifierTimer.Elapsed += OnDailyNotifierElapsed;
 
             return Task.CompletedTask;
         }
 
-        private async void OnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        private async void OnTriangleNotifierElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            await mNotifierService.Notify().ConfigureAwait(false);
+            await mNotifierService.NotifyTriangleTasks().ConfigureAwait(false);
+        }
+
+        private async void OnDailyNotifierElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            await mNotifierService.NotifySummary().ConfigureAwait(false);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
             mLogger.LogDebug($"Stopping timer");
-            mTimer.Stop();
+            mTriangleNotifierTimer.Stop();
 
             return Task.CompletedTask;
         }
@@ -69,7 +82,7 @@ namespace Tasker.Infra.HostedServices
                 return;
 
             if (disposing)
-                mTimer.Dispose();
+                mTriangleNotifierTimer.Dispose();
 
             mDisposed = true;
         }

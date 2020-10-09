@@ -8,6 +8,6 @@ namespace Tasker.App.Services
     public interface IWorkTaskService
     {
         Task<IEnumerable<IWorkTask>> FindWorkTasksByConditionAsync(Func<IWorkTask, bool> condition);
-        Task<IEnumerable<IWorkTask>> ListAsync();
+        Task<IEnumerable<IWorkTask>> ListAllAsync();
     }
 }

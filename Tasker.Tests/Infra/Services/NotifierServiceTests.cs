@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TaskData.TasksGroups;
 using TaskData.WorkTasks;
 using Tasker.App.Services;
 using Tasker.Infra.Services.Notifier;
@@ -16,10 +15,10 @@ namespace Tasker.Tests.Infra.Services
     public class NotifierServiceTests
     {
         [Fact]
-        public async Task Notify_HasTasksToNotify_Notify()
+        public async Task NotifyTriangleTasks_HasTasksToNotify_Notify()
         {
             IEmailService emailService = A.Fake<IEmailService>();
-            ITasksGroupService tasksGroupService  = A.Fake<ITasksGroupService>();
+            IWorkTaskService workTaskService  = A.Fake<IWorkTaskService>();
 
             TaskTriangleBuilder taskTriangleBuilder = new TaskTriangleBuilder();
             TaskTriangle taskTriangle = taskTriangleBuilder.AddContent("content1")
@@ -36,67 +35,39 @@ namespace Tasker.Tests.Infra.Services
                 workTask 
             };
 
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetAllTasks()).Returns(workTasks);
-
-            List<ITasksGroup> tasksGroups = new List<ITasksGroup>()
-            {
-                tasksGroup
-            };
-            A.CallTo(() => tasksGroupService.ListAsync()).Returns(tasksGroups);
+            A.CallTo(() => workTaskService.FindWorkTasksByConditionAsync(A<Func<IWorkTask, bool>>.Ignored))
+                .Returns(workTasks);
 
             NotifierService notifierService = new NotifierService(
-                emailService, tasksGroupService, NullLogger<NotifierService>.Instance);
+                emailService, workTaskService, NullLogger<NotifierService>.Instance);
 
-            await notifierService.Notify().ConfigureAwait(false);
+            await notifierService.NotifyTriangleTasks().ConfigureAwait(false);
 
             A.CallTo(() => emailService.SendEmail(A<string>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
         [Fact]
-        public async Task Notify_HasNoTasksToNotify_DoesNotNotify()
+        public async Task NotifyTriangleTasks_HasNoTasksToNotify_DoesNotNotify()
         {
             IEmailService emailService = A.Fake<IEmailService>();
-            ITasksGroupService tasksGroupService = A.Fake<ITasksGroupService>();
+            IWorkTaskService workTaskService = A.Fake<IWorkTaskService>();
 
-            TaskTriangleBuilder taskTriangleBuilder = new TaskTriangleBuilder();
-            TaskTriangle taskTriangle = taskTriangleBuilder.AddContent("content1")
-                               .AddResource("resource1")
-                               .AddPercentageProgressToNotify(60)
-                               .SetTime(DateTime.Now.ToString(TimeConsts.TimeFormat), 
-                                        DayPeriod.Noon, 4, halfWorkDay: true)
-                               .Build();
-
-            IWorkTask workTask = A.Fake<IWorkTask>();
-            A.CallTo(() => workTask.TaskMeasurement).Returns(taskTriangle);
-
-            List<IWorkTask> workTasks = new List<IWorkTask>()
-            {
-                workTask
-            };
-
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetAllTasks()).Returns(workTasks);
-
-            List<ITasksGroup> tasksGroups = new List<ITasksGroup>()
-            {
-                tasksGroup
-            };
-            A.CallTo(() => tasksGroupService.ListAsync()).Returns(tasksGroups);
+            A.CallTo(() => workTaskService.FindWorkTasksByConditionAsync(A<Func<IWorkTask, bool>>.Ignored))
+                .Returns(new List<IWorkTask>());
 
             NotifierService notifierService = new NotifierService(
-                emailService, tasksGroupService, NullLogger<NotifierService>.Instance);
+                emailService, workTaskService, NullLogger<NotifierService>.Instance);
 
-            await notifierService.Notify().ConfigureAwait(false);
+            await notifierService.NotifyTriangleTasks().ConfigureAwait(false);
 
             A.CallTo(() => emailService.SendEmail(A<string>.Ignored)).MustNotHaveHappened();
         }
 
         [Fact]
-        public async Task Notify_HasTasksToNotify_NotifyOnlyOnce()
+        public async Task NotifyTriangleTasks_HasTasksToNotify_NotifyOnlyOnce()
         {
             IEmailService emailService = A.Fake<IEmailService>();
-            ITasksGroupService tasksGroupService = A.Fake<ITasksGroupService>();
+            IWorkTaskService workTaskService = A.Fake<IWorkTaskService>();
 
             TaskTriangleBuilder taskTriangleBuilder = new TaskTriangleBuilder();
             TaskTriangle taskTriangle = taskTriangleBuilder.AddContent("content1")
@@ -113,20 +84,17 @@ namespace Tasker.Tests.Infra.Services
                 workTask
             };
 
-            ITasksGroup tasksGroup = A.Fake<ITasksGroup>();
-            A.CallTo(() => tasksGroup.GetAllTasks()).Returns(workTasks);
-
-            List<ITasksGroup> tasksGroups = new List<ITasksGroup>()
-            {
-                tasksGroup
-            };
-            A.CallTo(() => tasksGroupService.ListAsync()).Returns(tasksGroups);
+            A.CallTo(() => workTaskService.FindWorkTasksByConditionAsync(A<Func<IWorkTask, bool>>.Ignored))
+                .Returns(new List<IWorkTask>()).Once()
+                .Then.Returns(workTasks).Once()
+                .Then.Returns(new List<IWorkTask>()).Once()
+                .Then.Returns(workTasks).Once();
 
             NotifierService notifierService = new NotifierService(
-                emailService, tasksGroupService, NullLogger<NotifierService>.Instance);
+                emailService, workTaskService, NullLogger<NotifierService>.Instance);
 
-            await notifierService.Notify().ConfigureAwait(false);
-            await notifierService.Notify().ConfigureAwait(false);
+            await notifierService.NotifyTriangleTasks().ConfigureAwait(false);
+            await notifierService.NotifyTriangleTasks().ConfigureAwait(false);
 
             A.CallTo(() => emailService.SendEmail(A<string>.Ignored)).MustHaveHappenedOnceExactly();
         }

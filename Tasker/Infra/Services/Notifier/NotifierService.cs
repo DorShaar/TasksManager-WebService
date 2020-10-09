@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskData.TasksGroups;
+using TaskData.TaskStatus;
 using TaskData.WorkTasks;
 using Tasker.App.Services;
 using Tasker.Domain.Models;
@@ -16,28 +16,26 @@ namespace Tasker.Infra.Services.Notifier
     {
         private readonly ILogger<NotifierService> mLogger;
         private readonly IEmailService mEmailService;
-        private readonly ITasksGroupService mTasksGroupService;
+        private readonly IWorkTaskService mWorkTaskService;
 
         private readonly ConcurrentDictionary<string, TaskMeasurementInfo> mOpenTasksMeasurementsDict =
             new ConcurrentDictionary<string, TaskMeasurementInfo>();
 
         public NotifierService(IEmailService emailService,
-            ITasksGroupService tasksGroupService,
+            IWorkTaskService workTaskService,
             ILogger<NotifierService> logger)
         {
             mEmailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-            mTasksGroupService = tasksGroupService ?? throw new ArgumentNullException(nameof(tasksGroupService));
+            mWorkTaskService = workTaskService ?? throw new ArgumentNullException(nameof(workTaskService));
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task Notify()
+        public async Task NotifyTriangleTasks()
         {
-            IEnumerable<ITasksGroup> groups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
-
-            CleanFinishedTasksFromOpenTasksMeasurements(groups);
+            await CleanFinishedTasksFromOpenTasksMeasurements().ConfigureAwait(false);
 
             List<TaskMeasurement> tasksMeasurementsToNotify =
-                await CollectTaskMeasurementsToNotify(groups).ConfigureAwait(false);
+                await CollectTaskMeasurementsToNotify().ConfigureAwait(false);
 
             if (tasksMeasurementsToNotify.Count == 0)
             {
@@ -52,9 +50,13 @@ namespace Tasker.Infra.Services.Notifier
             await mEmailService.SendEmail(report).ConfigureAwait(false);
         }
 
-        private void CleanFinishedTasksFromOpenTasksMeasurements(IEnumerable<ITasksGroup> groups)
+        private async Task CleanFinishedTasksFromOpenTasksMeasurements()
         {
-            HashSet<string> allClosedTasksIds = GetAllClosedTasksId(groups);
+            IEnumerable<IWorkTask> allClosedTasks =
+                await mWorkTaskService.FindWorkTasksByConditionAsync(
+                    task => task.IsFinished).ConfigureAwait(false);
+
+            IEnumerable<string> allClosedTasksIds = allClosedTasks.Select(task => task.ID);
 
             HashSet<string> openTasksMeasurements = mOpenTasksMeasurementsDict.Keys.ToHashSet();
 
@@ -62,7 +64,7 @@ namespace Tasker.Infra.Services.Notifier
 
             tasksIdsIntersection.IntersectWith(allClosedTasksIds);
 
-            foreach(string closedTaskId in tasksIdsIntersection)
+            foreach (string closedTaskId in tasksIdsIntersection)
             {
                 if (mOpenTasksMeasurementsDict.TryRemove(closedTaskId, out TaskMeasurementInfo _))
                 {
@@ -76,50 +78,24 @@ namespace Tasker.Infra.Services.Notifier
             }
         }
 
-        private HashSet<string> GetAllClosedTasksId(IEnumerable<ITasksGroup> groups)
+        private async Task<List<TaskMeasurement>> CollectTaskMeasurementsToNotify()
         {
-            HashSet<string> allClosedTasksIds = new HashSet<string>();
-
-            foreach (ITasksGroup group in groups)
-            {
-                IEnumerable<IWorkTask> tasks = group.GetAllTasks();
-
-                foreach (IWorkTask task in tasks)
-                {
-                    if (!task.IsFinished)
-                        continue;
-
-                    allClosedTasksIds.Add(task.ID);
-                }
-            }
-
-            return allClosedTasksIds;
-        }
-
-        private Task<List<TaskMeasurement>> CollectTaskMeasurementsToNotify(IEnumerable<ITasksGroup> groups)
-        {
-            mLogger.LogDebug("Collection tasks to notify");
+            mLogger.LogDebug("Collecting tasks to notify");
 
             List<TaskMeasurement> tasksMeasurements = new List<TaskMeasurement>();
 
-            foreach (ITasksGroup group in groups)
+            IEnumerable<IWorkTask> tasks = await mWorkTaskService.FindWorkTasksByConditionAsync(
+                task =>
+                    !task.IsFinished &&
+                    task.TaskMeasurement != null &&
+                    task.TaskMeasurement.ShouldAlreadyBeNotified()).ConfigureAwait(false);
+
+            foreach (IWorkTask task in tasks)
             {
-                IEnumerable<IWorkTask> tasks = group.GetAllTasks();
-
-                foreach (IWorkTask task in tasks)
-                {
-                    if (task.IsFinished ||
-                        task.TaskMeasurement == null ||
-                        !task.TaskMeasurement.ShouldAlreadyBeNotified())
-                    {
-                        continue;
-                    }
-
-                    AddTaskMeasurementIfNeeded(task, tasksMeasurements);
-                }
+                AddTaskMeasurementIfNeeded(task, tasksMeasurements);
             }
 
-            return Task.FromResult(tasksMeasurements);
+            return tasksMeasurements;
         }
 
         private void AddTaskMeasurementIfNeeded(IWorkTask task, List<TaskMeasurement> tasksMeasurements)
@@ -165,6 +141,32 @@ namespace Tasker.Infra.Services.Notifier
                              .AppendLine()
                              .AppendLine(taskMeasurement.Triangle.GetStatus())
                              .AppendLine("--------------------------------------------------");
+            }
+
+            return reportBuilder.ToString();
+        }
+
+        public async Task NotifySummary()
+        {
+            IEnumerable<IWorkTask> workTasks = await mWorkTaskService.FindWorkTasksByConditionAsync(
+                task => !task.IsFinished).ConfigureAwait(false);
+
+            string report = BuildReportFromGivenTasks(workTasks);
+
+            await mEmailService.SendEmail(report).ConfigureAwait(false);
+        }
+
+        private string BuildReportFromGivenTasks(IEnumerable<IWorkTask> workTasks)
+        {
+            StringBuilder reportBuilder = new StringBuilder();
+
+            foreach (IWorkTask workTask in workTasks)
+            {
+                reportBuilder.Append("Task id: ").Append(workTask.ID).Append(" ")
+                             .Append("Description: ").Append(workTask.Description).Append(" ")
+                             .Append("Group: ").Append(workTask.GroupName).Append(" ")
+                             .Append("Status: ").Append(workTask.Status)
+                             .AppendLine();
             }
 
             return reportBuilder.ToString();

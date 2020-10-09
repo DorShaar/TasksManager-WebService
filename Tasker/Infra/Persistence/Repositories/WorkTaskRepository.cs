@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
 using TaskData.TasksGroups;
@@ -54,7 +53,7 @@ namespace Tasker.Infra.Persistence.Repositories
                 allTasks.AddRange(taskGroup.GetAllTasks());
             }
 
-            return allTasks.AsEnumerable();
+            return allTasks;
         }
 
         public async Task RemoveAsync(IWorkTask workTask)
