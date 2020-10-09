@@ -11,7 +11,19 @@ namespace Tasker.Infra.Options
         public int SummaryEmailHour { get; set; }
         public List<string> RecipientsToNotify { get; set; } = new List<string>();
         public string PasswordPath { get; set; }
-        public string Password => File.ReadAllText(PasswordPath);
+        public string Password => GetPassword();
+
+        private string GetPassword()
+        {
+            try
+            {
+                return File.ReadAllText(PasswordPath);
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+        }
 
         public TaskerConfiguration()
         {

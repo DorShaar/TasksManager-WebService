@@ -31,13 +31,16 @@ namespace Tasker.Infra.HostedServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            mLogger.LogDebug($"Initializing timer with interval of {mTaskerOptions.CurrentValue.NotifierInterval}");
+            mLogger.LogDebug($"Initializing triangle notifier timer with interval of " +
+                $"{mTaskerOptions.CurrentValue.NotifierInterval}");
             mTriangleNotifierTimer = new Timer
             {
                 Interval = mTaskerOptions.CurrentValue.NotifierInterval.TotalMilliseconds,
                 Enabled = true,
             };
 
+            mLogger.LogDebug($"Initializing daily notifier timer with interval of " +
+                $"{mTaskerOptions.CurrentValue.SummaryEmailInterval}");
             mDailyNotifierTimer = new Timer
             {
                 Interval = mTaskerOptions.CurrentValue.SummaryEmailInterval.TotalMilliseconds,
