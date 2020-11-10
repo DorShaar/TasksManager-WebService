@@ -77,7 +77,7 @@ namespace Takser.Api.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> PutWorkTaskAsync([FromBody] TasksGroupResource newTaskGroupResource)
+        public async Task<IActionResult> PutTaskGroupAsync([FromBody] TasksGroupResource newTaskGroupResource)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());

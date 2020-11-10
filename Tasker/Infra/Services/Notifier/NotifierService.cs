@@ -72,7 +72,7 @@ namespace Tasker.Infra.Services.Notifier
                 else
                 {
                     mLogger.LogWarning($"Task id {closedTaskId} was not removed from open tasks measurements dictionary" +
-                        $"although it was marked has should been removed");
+                        "although it was marked has should been removed");
                 }
             }
         }
@@ -86,8 +86,7 @@ namespace Tasker.Infra.Services.Notifier
             IEnumerable<IWorkTask> tasks = await mWorkTaskService.FindWorkTasksByConditionAsync(
                 task =>
                     !task.IsFinished &&
-                    task.TaskMeasurement != null &&
-                    task.TaskMeasurement.ShouldAlreadyBeNotified()).ConfigureAwait(false);
+                    task.TaskMeasurement?.ShouldAlreadyBeNotified() == true).ConfigureAwait(false);
 
             foreach (IWorkTask task in tasks)
             {
@@ -136,8 +135,7 @@ namespace Tasker.Infra.Services.Notifier
             foreach (TaskMeasurement taskMeasurement in tasksMeasurements)
             {
                 reportBuilder.Append("Task id: ").Append(taskMeasurement.Id).Append(" ")
-                             .Append("Description: ").Append(taskMeasurement.Description)
-                             .AppendLine()
+                             .Append("Description: ").AppendLine(taskMeasurement.Description)
                              .AppendLine(taskMeasurement.Triangle.GetStatus())
                              .AppendLine("--------------------------------------------------");
             }

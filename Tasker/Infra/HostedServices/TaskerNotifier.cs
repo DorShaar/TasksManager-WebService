@@ -31,7 +31,7 @@ namespace Tasker.Infra.HostedServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            mLogger.LogDebug($"Initializing triangle notifier timer with interval of " +
+            mLogger.LogDebug("Initializing triangle notifier timer with interval of " +
                 $"{mTaskerOptions.CurrentValue.NotifierInterval}");
             mTriangleNotifierTimer = new Timer
             {
@@ -39,7 +39,7 @@ namespace Tasker.Infra.HostedServices
                 Enabled = true,
             };
 
-            mLogger.LogDebug($"Initializing daily notifier timer with interval of " +
+            mLogger.LogDebug("Initializing daily notifier timer with interval of " +
                 $"{mTaskerOptions.CurrentValue.SummaryEmailInterval}");
             mDailyNotifierTimer = new Timer
             {
@@ -65,7 +65,7 @@ namespace Tasker.Infra.HostedServices
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            mLogger.LogDebug($"Stopping timer");
+            mLogger.LogDebug("Stopping timer");
             mTriangleNotifierTimer.Stop();
 
             return Task.CompletedTask;

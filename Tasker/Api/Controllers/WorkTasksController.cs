@@ -52,27 +52,45 @@ namespace Takser.Api.Controllers
             return workTaskResources;
         }
 
-        [HttpGet("{groupId}")]
-        public async Task<IEnumerable<WorkTaskResource>> ListTasksOfSpecificGroupAsync(string groupId)
+        [HttpGet("{groupNameOrId}")]
+        public async Task<IEnumerable<WorkTaskResource>> ListTasksOfSpecificGroupAsync(string groupNameOrId)
         {
             IEnumerable<WorkTaskResource> workTaskResources = new List<WorkTaskResource>();
 
-            if (string.IsNullOrEmpty(groupId))
+            if (string.IsNullOrEmpty(groupNameOrId))
+            {
+                mLogger.LogWarning($"{nameof(groupNameOrId)} is null or empty");
                 return workTaskResources;
+            }
 
-            mLogger.LogDebug($"Requesting all tasks from group id {groupId}");
-
-            ITasksGroup group = (await mTasksGroupService.ListAsync().ConfigureAwait(false))
-                .SingleOrDefault(group => group.ID.Equals(groupId));
+            ITasksGroup group = await GetSpecificGroup(groupNameOrId).ConfigureAwait(false);
 
             if (group == null)
+            {
+                mLogger.LogDebug($"Could not find tasks of group {groupNameOrId}");
                 return workTaskResources;
+            }
 
             workTaskResources = mMapper.Map<IEnumerable<IWorkTask>, IEnumerable<WorkTaskResource>>(group.GetAllTasks());
 
             mLogger.LogDebug($"Found {workTaskResources.Count()} work tasks");
 
             return workTaskResources;
+        }
+
+        private async Task<ITasksGroup> GetSpecificGroup(string groupNameOrId)
+        {
+            mLogger.LogDebug($"Requesting all tasks from group id {groupNameOrId}");
+
+            IEnumerable<ITasksGroup> taskGroups = await mTasksGroupService.ListAsync().ConfigureAwait(false);
+
+            ITasksGroup group = taskGroups.SingleOrDefault(group => group.ID.Equals(groupNameOrId));
+
+            if (group != null)
+                return group;
+
+            mLogger.LogTrace($"Could not find tasks by id {groupNameOrId}, searching by name");
+            return taskGroups.SingleOrDefault(group => group.Name.Equals(groupNameOrId));
         }
 
         [HttpPost("{id}")]

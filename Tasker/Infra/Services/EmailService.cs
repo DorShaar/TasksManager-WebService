@@ -31,7 +31,7 @@ namespace Tasker.Infra.Services
             List<string> recipients = mOptions.CurrentValue.RecipientsToNotify;
 
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append($"Sending email from {fromEmail} to ");
+            stringBuilder.Append("Sending email from ").Append(fromEmail).Append(" to ");
 
             recipients.ForEach(recipient => stringBuilder.Append(recipient).Append(", "));
             mLogger.LogDebug(stringBuilder.ToString());
