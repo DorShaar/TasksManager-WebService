@@ -49,7 +49,7 @@ namespace Tasker.Infra.Services
 
         public async Task<IResponse<INote>> GetTaskNote(string noteIdentifier)
         {
-            mLogger.LogDebug($"Creating notes file system structure from {mGeneralNotesDirectory}");
+            mLogger.LogDebug($"Searching task note from {mTasksNotesDirectory}");
 
             string taskNotePath = Directory.EnumerateFiles(mTasksNotesDirectory).FirstOrDefault(
                 note => Path.GetFileName(note).StartsWith(noteIdentifier));

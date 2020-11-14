@@ -62,6 +62,16 @@ namespace Tasker.Api.Controllers
             }
         }
 
+        [HttpGet("private/")]
+        public async Task<NoteNode> GetPrivateNotesStructureAsync()
+        {
+            mLogger.LogDebug("Requesting for pirvate notes structure");
+
+            NoteNode notesStructure = await mNoteService.GetNotesStructure().ConfigureAwait(false);
+
+            return notesStructure;
+        }
+
         [HttpGet("note/{noteIdentifier}")]
         public async Task<IActionResult> GetPrivateNoteAsync(string noteIdentifier)
         {
