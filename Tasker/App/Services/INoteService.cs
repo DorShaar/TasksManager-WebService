@@ -8,6 +8,7 @@ namespace Tasker.App.Services
     public interface INoteService
     {
         Task<NoteNode> GetNotesStructure();
+        Task<NoteNode> GetGeneralNotesStructure();
         Task<IResponse<NoteResourceResponse>> GetGeneralNote(string noteIdentifier);
         Task<IResponse<NoteResourceResponse>> GetTaskNote(string noteIdentifier);
     }

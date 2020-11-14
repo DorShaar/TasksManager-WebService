@@ -66,7 +66,7 @@ namespace Tasker.Infra.HostedServices
         public Task StopAsync(CancellationToken cancellationToken)
         {
             mLogger.LogDebug("Stopping timer");
-            mTriangleNotifierTimer.Stop();
+            mTriangleNotifierTimer?.Stop();
 
             return Task.CompletedTask;
         }
@@ -85,7 +85,7 @@ namespace Tasker.Infra.HostedServices
                 return;
 
             if (disposing)
-                mTriangleNotifierTimer.Dispose();
+                mTriangleNotifierTimer?.Dispose();
 
             mDisposed = true;
         }

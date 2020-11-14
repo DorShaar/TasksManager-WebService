@@ -41,9 +41,13 @@ namespace Tasker.Domain.Models
         {
             ValidateParametersInput(pathComponents, pathOfSameNames);
 
+            if (pathComponents.Length == 0)
+                return;
+
             if (Children.Count == 0 && pathComponents.Length == 1 && AreSameName(pathComponents[0], Name))
             {
                 pathOfSameNames.Add(mPath);
+                return;
             }
 
             int taskIndex = 0;
@@ -70,15 +74,18 @@ namespace Tasker.Domain.Models
 
             if (pathComponents == null)
                 throw new ArgumentNullException(nameof(pathComponents));
-
-            if (pathComponents.Length == 0)
-                throw new ArgumentException($"{nameof(pathComponents)} cannot be empty");
         }
 
         private bool AreSameName(string name1, string name2)
         {
             if (Path.HasExtension(name1) && Path.HasExtension(name2))
                 return name1.Equals(name2, StringComparison.InvariantCultureIgnoreCase);
+
+            string fileName1WithoutExtension = Path.GetFileNameWithoutExtension(name1);
+            string fileName2WithoutExtension = Path.GetFileNameWithoutExtension(name2);
+
+            if (string.IsNullOrWhiteSpace(fileName1WithoutExtension) || string.IsNullOrWhiteSpace(fileName2WithoutExtension))
+                return false;
 
             if (name1.Length > name2.Length)
             {

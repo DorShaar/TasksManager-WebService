@@ -33,7 +33,7 @@ namespace Tasker.Api.Controllers
         {
             mLogger.LogDebug("Requesting for general notes structure");
 
-            return await mNoteService.GetNotesStructure().ConfigureAwait(false);
+            return await mNoteService.GetGeneralNotesStructure().ConfigureAwait(false);
         }
 
         [HttpGet("{notePath}")]

@@ -1,4 +1,3 @@
 DatabaseDirectoryPath: /mnt/database
 NotesDirectoryPath: /mnt/general_notes
 NotesTasksDirectoryPath: /mnt/tasks
-DefaultTasksGroup: none

@@ -31,7 +31,7 @@ namespace Tasker.Infra.Services
 
         public async Task<IResponse<NoteResourceResponse>> GetGeneralNote(string noteIdentifier)
         {
-            NoteNode generalNotesStructure = await GetNotesStructure().ConfigureAwait(false);
+            NoteNode generalNotesStructure = await GetGeneralNotesStructure().ConfigureAwait(false);
 
             IEnumerable<string> notePaths = await generalNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
@@ -58,10 +58,16 @@ namespace Tasker.Infra.Services
             return new SuccessResponse<NoteResourceResponse>(noteResponse);
         }
 
-        public Task<NoteNode> GetNotesStructure()
+        public Task<NoteNode> GetGeneralNotesStructure()
         {
             mLogger.LogDebug($"Creating notes file system structure from {mGeneralNotesDirectory}");
             return Task.FromResult(new NoteNode(mGeneralNotesDirectory));
+        }
+
+        public Task<NoteNode> GetNotesStructure()
+        {
+            mLogger.LogDebug($"Creating notes file system structure from {mTasksNotesDirectory}");
+            return Task.FromResult(new NoteNode(mTasksNotesDirectory));
         }
     }
 }

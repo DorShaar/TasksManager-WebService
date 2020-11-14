@@ -81,23 +81,6 @@ namespace Tasker.Tests.Infra.Persistence.Context
         }
 
         [Fact]
-        public void DefaultTasksGroup_SameAsInConfiguration()
-        {
-            IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
-            {
-                DefaultTasksGroup = "abc"
-            });
-
-            AppDbContext database = new AppDbContext(
-                   databaseOptions,
-                   mObjectSerializer,
-                   mIDProducer,
-                   NullLogger<AppDbContext>.Instance);
-
-            Assert.Equal("abc", database.DefaultTasksGroup);
-        }
-
-        [Fact]
         public void NotesDirectoryPath_SameAsInConfiguration()
         {
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()

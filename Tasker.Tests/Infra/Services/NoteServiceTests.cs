@@ -37,7 +37,7 @@ namespace Tasker.Tests.Infra.Services
         }
 
         [Fact]
-        public async Task GetAllNotesPaths_AsExpected()
+        public async Task GetGeneralNotesPaths_AsExpected()
         {
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
             {
@@ -47,7 +47,7 @@ namespace Tasker.Tests.Infra.Services
 
             INoteService noteService = new NoteService(
                 mNoteFactory, databaseOptions, NullLogger<NoteService>.Instance);
-            NoteNode noteNode = await noteService.GetNotesStructure().ConfigureAwait(false);
+            NoteNode noteNode = await noteService.GetGeneralNotesStructure().ConfigureAwait(false);
 
             Assert.Equal(Path.GetFileName(GeneralNotesDirectoryPath), noteNode.Name);
         }
