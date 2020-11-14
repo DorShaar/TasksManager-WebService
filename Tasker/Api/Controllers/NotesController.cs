@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using TaskData.Notes;
+using Tasker.App.Resources;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
@@ -28,9 +28,7 @@ namespace Tasker.Api.Controllers
         {
             mLogger.LogDebug("Requesting for general notes structure");
 
-            NoteNode notesStructure = await mNoteService.GetNotesStructure().ConfigureAwait(false);
-
-            return notesStructure;
+            return await mNoteService.GetNotesStructure().ConfigureAwait(false);
         }
 
         [HttpGet("{notePath}")]
@@ -45,15 +43,21 @@ namespace Tasker.Api.Controllers
 
             try
             {
-                IResponse<INote> result = await mNoteService.GetGeneralNote(notePath).ConfigureAwait(false);
+                IResponse<NoteResource> result = await mNoteService.GetGeneralNote(notePath).ConfigureAwait(false);
 
                 mLogger.LogDebug($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status404NotFound, result.Message);
 
-                mLogger.LogDebug($"Note text: {result.ResponseObject.Text}");
-                return Ok(result.ResponseObject.Text);
+                if (result.ResponseObject.IsMoreThanOneNoteFound)
+                {
+                    mLogger.LogDebug($"Found more than one note for {notePath}");
+                    return Ok(result.ResponseObject.PossibleNotes);
+                }
+
+                mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
+                return Ok(result.ResponseObject.Note.Text);
             }
             catch (Exception ex)
             {
@@ -67,9 +71,7 @@ namespace Tasker.Api.Controllers
         {
             mLogger.LogDebug("Requesting for pirvate notes structure");
 
-            NoteNode notesStructure = await mNoteService.GetNotesStructure().ConfigureAwait(false);
-
-            return notesStructure;
+            return await mNoteService.GetNotesStructure().ConfigureAwait(false);
         }
 
         [HttpGet("note/{noteIdentifier}")]
@@ -84,15 +86,21 @@ namespace Tasker.Api.Controllers
 
             try
             {
-                IResponse<INote> result = await mNoteService.GetTaskNote(noteIdentifier).ConfigureAwait(false);
+                IResponse<NoteResource> result = await mNoteService.GetTaskNote(noteIdentifier).ConfigureAwait(false);
 
                 mLogger.LogDebug($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status404NotFound, result.Message);
 
-                mLogger.LogDebug($"Note text: {result.ResponseObject.Text}");
-                return Ok(result.ResponseObject.Text);
+                if (result.ResponseObject.IsMoreThanOneNoteFound)
+                {
+                    mLogger.LogDebug($"Found more than one note for {noteIdentifier}");
+                    return Ok(result.ResponseObject.PossibleNotes);
+                }
+
+                mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
+                return Ok(result.ResponseObject.Note.Text);
             }
             catch (Exception ex)
             {

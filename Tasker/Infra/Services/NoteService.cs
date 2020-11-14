@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.IO;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData.Notes;
+using Tasker.App.Resources;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
@@ -14,8 +14,6 @@ namespace Tasker.Infra.Services
 {
     public class NoteService : INoteService
     {
-        private const string TextFileExtension = ".txt";
-
         private readonly string mGeneralNotesDirectory;
         private readonly string mTasksNotesDirectory;
         private readonly INoteFactory mNoteFactory;
@@ -31,61 +29,33 @@ namespace Tasker.Infra.Services
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IResponse<INote>> GetGeneralNote(string noteIdentifier)
+        public async Task<IResponse<NoteResource>> GetGeneralNote(string noteIdentifier)
         {
-            mLogger.LogDebug($"Creating notes file system structure from {mGeneralNotesDirectory}");
+            NoteNode generalNotesStructure = await GetNotesStructure().ConfigureAwait(false);
 
-            noteIdentifier = AddExtensionIfNotExists(noteIdentifier);
+            IEnumerable<string> notePaths = await generalNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
-            noteIdentifier = RemoveDuplicateDirectory(noteIdentifier);
+            NoteResource noteResponse = new NoteResource(notePaths, mNoteFactory);
 
-            INote note = mNoteFactory.LoadNote(Path.Combine(mGeneralNotesDirectory, noteIdentifier));
+            if (!noteResponse.IsNoteFound)
+                return new FailResponse<NoteResource>($"No {noteIdentifier} note found");
 
-            if (!File.Exists(note.NotePath))
-                return new FailResponse<INote>($"No note found in path {note.NotePath}");
-
-            return new SuccessResponse<INote>(note);
+            return new SuccessResponse<NoteResource>(noteResponse);
         }
 
-        public async Task<IResponse<INote>> GetTaskNote(string noteIdentifier)
+        public async Task<IResponse<NoteResource>> GetTaskNote(string noteIdentifier)
         {
-            mLogger.LogDebug($"Searching task note from {mTasksNotesDirectory}");
+            mLogger.LogDebug($"Creating notes file system structure from {mTasksNotesDirectory}");
+            NoteNode tasksNotesStructure = new NoteNode(mTasksNotesDirectory);
 
-            string taskNotePath = Directory.EnumerateFiles(mTasksNotesDirectory).FirstOrDefault(
-                note => Path.GetFileName(note).StartsWith(noteIdentifier));
+            IEnumerable<string> notePaths = await tasksNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
-            if (taskNotePath == null)
-                return new FailResponse<INote>($"No note {noteIdentifier} found");
+            NoteResource noteResponse = new NoteResource(notePaths, mNoteFactory);
 
-            INote note = mNoteFactory.LoadNote(taskNotePath);
+            if (!noteResponse.IsNoteFound)
+                return new FailResponse<NoteResource>($"No {noteIdentifier} note found");
 
-            return new SuccessResponse<INote>(note);
-        }
-
-        private string AddExtensionIfNotExists(string fileName)
-        {
-            if (!Path.GetExtension(fileName).Equals(TextFileExtension))
-                fileName += TextFileExtension;
-
-            return fileName;
-        }
-
-        private string RemoveDuplicateDirectory(string fileName)
-        {
-            string fileNameWithoutDuplicatedDirectory = fileName;
-
-            string notesDirectoryName = Path.GetFileName(mGeneralNotesDirectory);
-
-            if (fileName.StartsWith(notesDirectoryName) &&
-                !Directory.GetDirectories(mGeneralNotesDirectory).Any(
-                    directoryPath => Path.GetFileName(directoryPath) == notesDirectoryName))
-            {
-                fileNameWithoutDuplicatedDirectory = fileName.Remove(0, notesDirectoryName.Length);
-                fileNameWithoutDuplicatedDirectory =
-                    fileNameWithoutDuplicatedDirectory.TrimStart(Path.DirectorySeparatorChar);
-            }
-
-            return fileNameWithoutDuplicatedDirectory;
+            return new SuccessResponse<NoteResource>(noteResponse);
         }
 
         public Task<NoteNode> GetNotesStructure()

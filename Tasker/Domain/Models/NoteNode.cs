@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Tasker.Domain.Extensions;
 
 namespace Tasker.Domain.Models
 {
@@ -31,17 +32,16 @@ namespace Tasker.Domain.Models
         public async Task<IEnumerable<string>> FindRecursive(string name)
         {
             List<string> pathOfSameNames = new List<string>();
-            await FindRecursive(name, pathOfSameNames).ConfigureAwait(false);
+            await FindRecursive(name.Split(Path.DirectorySeparatorChar), pathOfSameNames).ConfigureAwait(false);
 
             return pathOfSameNames;
         }
 
-        private Task FindRecursive(string name, List<string> pathOfSameNames)
+        private Task FindRecursive(string[] pathComponents, List<string> pathOfSameNames)
         {
-            if (pathOfSameNames == null)
-                throw new ArgumentNullException(nameof(pathOfSameNames));
+            ValidateParametersInput(pathComponents, pathOfSameNames);
 
-            if (Children.Count == 0 && Path.GetFileNameWithoutExtension(Name).Equals(name, StringComparison.InvariantCultureIgnoreCase))
+            if (Children.Count == 0 && pathComponents.Length == 1 && AreSameName(pathComponents[0], Name))
             {
                 pathOfSameNames.Add(mPath);
                 return Task.CompletedTask;
@@ -52,7 +52,11 @@ namespace Tasker.Domain.Models
 
             foreach (NoteNode noteNode in Children.Values)
             {
-                tasks[taskIndex] = noteNode.FindRecursive(name, pathOfSameNames);
+                if (AreSameName(pathComponents[0], Name))
+                    tasks[taskIndex] = noteNode.FindRecursive(pathComponents.Slice(1, pathComponents.Length), pathOfSameNames);
+                else
+                    tasks[taskIndex] = noteNode.FindRecursive(pathComponents, pathOfSameNames);
+
                 taskIndex++;
             }
 
@@ -60,6 +64,27 @@ namespace Tasker.Domain.Models
                 throw new TimeoutException($"Search exceeded limit of {TimeoutThreshold.TotalSeconds}");
 
             return Task.CompletedTask;
+        }
+
+        private void ValidateParametersInput(string[] pathComponents, List<string> pathOfSameNames)
+        {
+            if (pathOfSameNames == null)
+                throw new ArgumentNullException(nameof(pathOfSameNames));
+
+            if (pathComponents == null)
+                throw new ArgumentNullException(nameof(pathComponents));
+
+            if (pathComponents.Length == 0)
+                throw new ArgumentException($"{nameof(pathComponents)} cannot be empty");
+        }
+
+        private bool AreSameName(string name1, string name2)
+        {
+            if (Path.HasExtension(name1) && Path.HasExtension(name2))
+                return name1.Equals(name2, StringComparison.InvariantCultureIgnoreCase);
+
+            return Path.GetFileNameWithoutExtension(name1).Equals(
+                Path.GetFileNameWithoutExtension(name2), StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

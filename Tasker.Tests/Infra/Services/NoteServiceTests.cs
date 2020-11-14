@@ -1,5 +1,4 @@
-﻿using FakeItEasy;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using ObjectSerializer.JsonService;
@@ -8,6 +7,7 @@ using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData;
 using TaskData.Notes;
+using Tasker.App.Resources;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
@@ -67,11 +67,11 @@ namespace Tasker.Tests.Infra.Services
 
             INoteService noteService = new NoteService(
                 mNoteFactory, databaseOptions, NullLogger<NoteService>.Instance);
-            IResponse<INote> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
+            IResponse<NoteResource> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
 
             Assert.True(response.IsSuccess);
-            Assert.Equal(expectedNotePath, response.ResponseObject.NotePath);
-            Assert.Equal(expectedText, response.ResponseObject.Text);
+            Assert.Equal(expectedNotePath, response.ResponseObject.Note.NotePath);
+            Assert.Equal(expectedText, response.ResponseObject.Note.Text);
         }
 
         [Theory]
@@ -89,11 +89,11 @@ namespace Tasker.Tests.Infra.Services
 
             INoteService noteService = new NoteService(
                 mNoteFactory, databaseOptions, NullLogger<NoteService>.Instance);
-            IResponse<INote> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
+            IResponse<NoteResource> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
 
             Assert.True(response.IsSuccess);
-            Assert.Equal(expectedNotePath, response.ResponseObject.NotePath);
-            Assert.Equal(expectedText, response.ResponseObject.Text);
+            Assert.Equal(expectedNotePath, response.ResponseObject.Note.NotePath);
+            Assert.Equal(expectedText, response.ResponseObject.Note.Text);
         }
 
         [Fact]
@@ -110,7 +110,7 @@ namespace Tasker.Tests.Infra.Services
 
             INoteService noteService = new NoteService(
                 mNoteFactory, databaseOptions, NullLogger<NoteService>.Instance);
-            IResponse<INote> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
+            IResponse<NoteResource> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
 
             Assert.False(response.IsSuccess);
         }
