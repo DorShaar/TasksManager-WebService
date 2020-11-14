@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData;
 using TaskData.Notes;
-using Tasker.App.Resources;
+using Tasker.App.Resources.Note;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
@@ -67,7 +67,7 @@ namespace Tasker.Tests.Infra.Services
 
             INoteService noteService = new NoteService(
                 mNoteFactory, databaseOptions, NullLogger<NoteService>.Instance);
-            IResponse<NoteResource> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
+            IResponse<NoteResourceResponse> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
 
             Assert.True(response.IsSuccess);
             Assert.Equal(expectedNotePath, response.ResponseObject.Note.NotePath);
@@ -89,7 +89,7 @@ namespace Tasker.Tests.Infra.Services
 
             INoteService noteService = new NoteService(
                 mNoteFactory, databaseOptions, NullLogger<NoteService>.Instance);
-            IResponse<NoteResource> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
+            IResponse<NoteResourceResponse> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
 
             Assert.True(response.IsSuccess);
             Assert.Equal(expectedNotePath, response.ResponseObject.Note.NotePath);
@@ -110,7 +110,7 @@ namespace Tasker.Tests.Infra.Services
 
             INoteService noteService = new NoteService(
                 mNoteFactory, databaseOptions, NullLogger<NoteService>.Instance);
-            IResponse<NoteResource> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
+            IResponse<NoteResourceResponse> response = await noteService.GetGeneralNote(noteRelativePath).ConfigureAwait(false);
 
             Assert.False(response.IsSuccess);
         }

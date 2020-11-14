@@ -37,14 +37,13 @@ namespace Tasker.Domain.Models
             return pathOfSameNames;
         }
 
-        private Task FindRecursive(string[] pathComponents, List<string> pathOfSameNames)
+        private async Task FindRecursive(string[] pathComponents, List<string> pathOfSameNames)
         {
             ValidateParametersInput(pathComponents, pathOfSameNames);
 
             if (Children.Count == 0 && pathComponents.Length == 1 && AreSameName(pathComponents[0], Name))
             {
                 pathOfSameNames.Add(mPath);
-                return Task.CompletedTask;
             }
 
             int taskIndex = 0;
@@ -62,8 +61,6 @@ namespace Tasker.Domain.Models
 
             if (!Task.WaitAll(tasks, TimeoutThreshold))
                 throw new TimeoutException($"Search exceeded limit of {TimeoutThreshold.TotalSeconds}");
-
-            return Task.CompletedTask;
         }
 
         private void ValidateParametersInput(string[] pathComponents, List<string> pathOfSameNames)
@@ -83,8 +80,16 @@ namespace Tasker.Domain.Models
             if (Path.HasExtension(name1) && Path.HasExtension(name2))
                 return name1.Equals(name2, StringComparison.InvariantCultureIgnoreCase);
 
-            return Path.GetFileNameWithoutExtension(name1).Equals(
-                Path.GetFileNameWithoutExtension(name2), StringComparison.InvariantCultureIgnoreCase);
+            if (name1.Length > name2.Length)
+            {
+                return Path.GetFileNameWithoutExtension(name1).Contains(
+                    Path.GetFileNameWithoutExtension(name2), StringComparison.InvariantCultureIgnoreCase);
+            }
+            else
+            {
+                return Path.GetFileNameWithoutExtension(name2).Contains(
+                    Path.GetFileNameWithoutExtension(name1), StringComparison.InvariantCultureIgnoreCase);
+            }
         }
     }
 }

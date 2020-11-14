@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData.Notes;
-using Tasker.App.Resources;
+using Tasker.App.Resources.Note;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
@@ -29,33 +29,33 @@ namespace Tasker.Infra.Services
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IResponse<NoteResource>> GetGeneralNote(string noteIdentifier)
+        public async Task<IResponse<NoteResourceResponse>> GetGeneralNote(string noteIdentifier)
         {
             NoteNode generalNotesStructure = await GetNotesStructure().ConfigureAwait(false);
 
             IEnumerable<string> notePaths = await generalNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
-            NoteResource noteResponse = new NoteResource(notePaths, mNoteFactory);
+            NoteResourceResponse noteResponse = new NoteResourceResponse(notePaths, mNoteFactory);
 
             if (!noteResponse.IsNoteFound)
-                return new FailResponse<NoteResource>($"No {noteIdentifier} note found");
+                return new FailResponse<NoteResourceResponse>($"No {noteIdentifier} note found");
 
-            return new SuccessResponse<NoteResource>(noteResponse);
+            return new SuccessResponse<NoteResourceResponse>(noteResponse);
         }
 
-        public async Task<IResponse<NoteResource>> GetTaskNote(string noteIdentifier)
+        public async Task<IResponse<NoteResourceResponse>> GetTaskNote(string noteIdentifier)
         {
             mLogger.LogDebug($"Creating notes file system structure from {mTasksNotesDirectory}");
             NoteNode tasksNotesStructure = new NoteNode(mTasksNotesDirectory);
 
             IEnumerable<string> notePaths = await tasksNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
-            NoteResource noteResponse = new NoteResource(notePaths, mNoteFactory);
+            NoteResourceResponse noteResponse = new NoteResourceResponse(notePaths, mNoteFactory);
 
             if (!noteResponse.IsNoteFound)
-                return new FailResponse<NoteResource>($"No {noteIdentifier} note found");
+                return new FailResponse<NoteResourceResponse>($"No {noteIdentifier} note found");
 
-            return new SuccessResponse<NoteResource>(noteResponse);
+            return new SuccessResponse<NoteResourceResponse>(noteResponse);
         }
 
         public Task<NoteNode> GetNotesStructure()

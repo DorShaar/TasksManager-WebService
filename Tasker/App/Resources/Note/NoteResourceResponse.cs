@@ -2,16 +2,16 @@
 using System.Linq;
 using TaskData.Notes;
 
-namespace Tasker.App.Resources
+namespace Tasker.App.Resources.Note
 {
-    public class NoteResource
+    public class NoteResourceResponse
     {
         public bool IsNoteFound => PossibleNotes.Any();
         public bool IsMoreThanOneNoteFound => PossibleNotes.Count() > 1;
         public IEnumerable<string> PossibleNotes { get; }
         public INote Note { get; }
 
-        public NoteResource(IEnumerable<string> notes, INoteFactory noteFactory)
+        public NoteResourceResponse(IEnumerable<string> notes, INoteFactory noteFactory)
         {
             PossibleNotes = notes;
 

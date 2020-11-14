@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.TestHost;
+using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Tasker.App.Resources.Note;
 using Xunit;
 
 namespace Tasker.Tests.Api.Controllers
@@ -42,7 +44,9 @@ namespace Tasker.Tests.Api.Controllers
             using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/{notePath}").ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
-            Assert.Equal(expectedText, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            NoteResource noteResource = JsonConvert.DeserializeObject<NoteResource>(
+                await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            Assert.Equal(expectedText, noteResource.Text);
         }
 
         [Fact]
@@ -71,7 +75,9 @@ namespace Tasker.Tests.Api.Controllers
             using HttpResponseMessage response = await httpClient.GetAsync($"{MainRoute}/note/{noteIdentifier}").ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
-            Assert.Equal(expectedText, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            NoteResource noteResource = JsonConvert.DeserializeObject<NoteResource>(
+                await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            Assert.Equal(expectedText, noteResource.Text);
         }
     }
 }

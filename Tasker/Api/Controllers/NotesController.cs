@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Tasker.App.Resources;
+using Tasker.App.Resources.Note;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
@@ -15,11 +16,15 @@ namespace Tasker.Api.Controllers
     public class NotesController : Controller
     {
         private readonly INoteService mNoteService;
+        private readonly IMapper mMapper;
         private readonly ILogger<NotesController> mLogger;
 
-        public NotesController(INoteService noteService, ILogger<NotesController> logger)
+        public NotesController(INoteService noteService,
+            IMapper mapper,
+            ILogger<NotesController> logger)
         {
             mNoteService = noteService ?? throw new ArgumentNullException(nameof(noteService));
+            mMapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -43,21 +48,21 @@ namespace Tasker.Api.Controllers
 
             try
             {
-                IResponse<NoteResource> result = await mNoteService.GetGeneralNote(notePath).ConfigureAwait(false);
+                IResponse<NoteResourceResponse> result = await mNoteService.GetGeneralNote(notePath).ConfigureAwait(false);
 
                 mLogger.LogDebug($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status404NotFound, result.Message);
 
-                if (result.ResponseObject.IsMoreThanOneNoteFound)
-                {
-                    mLogger.LogDebug($"Found more than one note for {notePath}");
-                    return Ok(result.ResponseObject.PossibleNotes);
-                }
+                NoteResource noteResource = mMapper.Map<NoteResourceResponse, NoteResource>(result.ResponseObject);
 
-                mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
-                return Ok(result.ResponseObject.Note.Text);
+                if (noteResource.IsMoreThanOneNoteFound)
+                    mLogger.LogDebug($"Found more than one note for {notePath}");
+                else
+                    mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
+
+                return Ok(noteResource);
             }
             catch (Exception ex)
             {
@@ -86,21 +91,21 @@ namespace Tasker.Api.Controllers
 
             try
             {
-                IResponse<NoteResource> result = await mNoteService.GetTaskNote(noteIdentifier).ConfigureAwait(false);
+                IResponse<NoteResourceResponse> result = await mNoteService.GetTaskNote(noteIdentifier).ConfigureAwait(false);
 
                 mLogger.LogDebug($"Get result {(result.IsSuccess ? "succeeded" : "failed")}");
 
                 if (!result.IsSuccess)
                     return StatusCode(StatusCodes.Status404NotFound, result.Message);
 
-                if (result.ResponseObject.IsMoreThanOneNoteFound)
-                {
-                    mLogger.LogDebug($"Found more than one note for {noteIdentifier}");
-                    return Ok(result.ResponseObject.PossibleNotes);
-                }
+                NoteResource noteResource = mMapper.Map<NoteResourceResponse, NoteResource>(result.ResponseObject);
 
-                mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
-                return Ok(result.ResponseObject.Note.Text);
+                if (noteResource.IsMoreThanOneNoteFound)
+                    mLogger.LogDebug($"Found more than one note for {noteIdentifier}");
+                else
+                    mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
+
+                return Ok(noteResource);
             }
             catch (Exception ex)
             {
