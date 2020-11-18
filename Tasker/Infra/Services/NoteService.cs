@@ -33,9 +33,10 @@ namespace Tasker.Infra.Services
         {
             NoteNode generalNotesStructure = await GetGeneralNotesStructure().ConfigureAwait(false);
 
-            IEnumerable<string> notePaths = await generalNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
+            IEnumerable<string> notesPaths = await generalNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
-            NoteResourceResponse noteResponse = new NoteResourceResponse(notePaths, mNoteFactory);
+            NoteResourceResponse noteResponse = new NoteResourceResponse(
+                mGeneralNotesDirectory, notesPaths, mNoteFactory);
 
             if (!noteResponse.IsNoteFound)
                 return new FailResponse<NoteResourceResponse>($"No {noteIdentifier} note found");
@@ -48,9 +49,10 @@ namespace Tasker.Infra.Services
             mLogger.LogDebug($"Creating notes file system structure from {mTasksNotesDirectory}");
             NoteNode tasksNotesStructure = new NoteNode(mTasksNotesDirectory);
 
-            IEnumerable<string> notePaths = await tasksNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
+            IEnumerable<string> notesPaths = await tasksNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
-            NoteResourceResponse noteResponse = new NoteResourceResponse(notePaths, mNoteFactory);
+            NoteResourceResponse noteResponse = new NoteResourceResponse(
+                mTasksNotesDirectory, notesPaths, mNoteFactory);
 
             if (!noteResponse.IsNoteFound)
                 return new FailResponse<NoteResourceResponse>($"No {noteIdentifier} note found");

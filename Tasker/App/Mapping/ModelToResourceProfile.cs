@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using System;
+using System.IO;
 using TaskData.TasksGroups;
 using TaskData.WorkTasks;
 using Tasker.App.Resources;
@@ -36,13 +38,25 @@ namespace Tasker.App.Mapping
                 .ForMember(dest => dest.IsMoreThanOneNoteFound,
                            option => option.MapFrom(source => source.IsMoreThanOneNoteFound))
                 .ForMember(dest => dest.PossibleNotes,
-                           option => option.MapFrom(source => source.PossibleNotes))
+                           option => option.MapFrom(source => source.PossibleNotesRelativePaths))
                 .ForMember(dest => dest.Extension,
                            option => option.MapFrom(source => source.Note.Extension))
                 .ForMember(dest => dest.NotePath,
                            option => option.MapFrom(source => source.Note.NotePath))
                 .ForMember(dest => dest.Text,
-                           option => option.MapFrom(source => source.Note.Text));
+                           option => option.MapFrom(source => GetText(source)));
+        }
+
+        private string GetText(NoteResourceResponse noteResourceResponse)
+        {
+            try
+            {
+                return noteResourceResponse.Note.Text;
+            }
+            catch (Exception ex) when (ex is DirectoryNotFoundException || ex is FileNotFoundException)
+            {
+                return string.Empty;
+            }
         }
     }
 }
