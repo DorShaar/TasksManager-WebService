@@ -11,5 +11,6 @@ namespace Tasker.App.Services
         Task<NoteNode> GetGeneralNotesStructure();
         Task<IResponse<NoteResourceResponse>> GetGeneralNote(string noteIdentifier);
         Task<IResponse<NoteResourceResponse>> GetTaskNote(string noteIdentifier);
+        Task<IResponse<NoteResourceResponse>> CreatePrivateNote(string notePath, string text);
     }
 }

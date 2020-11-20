@@ -19,15 +19,16 @@ namespace Tasker.Infra.Persistence.Repositories
             mLogger = logger;
         }
 
-        public async Task AddAsync(IWorkTask workTask)
+        public async Task<bool> AddAsync(IWorkTask workTask)
         {
             if (workTask == null)
             {
                 mLogger.LogError("Work task given is null, no database adding performed");
-                return;
+                return false;
             }
 
             await mDatabase.SaveCurrentDatabase().ConfigureAwait(false);
+            return true;
         }
 
         public async Task<IWorkTask> FindAsync(string workTaskId)

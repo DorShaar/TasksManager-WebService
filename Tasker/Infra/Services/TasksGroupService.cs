@@ -85,7 +85,11 @@ namespace Tasker.Infra.Services
                         $"Group name '{tasksGroup.Name}' exceeds the maximal group name length: {NameLengths.MaximalGroupNameLength}");
                 }
 
-                await mTasksGroupRepository.AddAsync(tasksGroup).ConfigureAwait(false);
+                if (!await mTasksGroupRepository.AddAsync(tasksGroup).ConfigureAwait(false))
+                {
+                    return new FailResponse<ITasksGroup>(
+                        $"Group name '{tasksGroup.Name}' already exist");
+                }
 
                 return new SuccessResponse<ITasksGroup>(tasksGroup);
             }

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
 using TaskData.Notes;
@@ -9,6 +10,7 @@ using Tasker.App.Resources.Note;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
 using Tasker.Domain.Models;
+using Tasker.Infra.Consts;
 
 namespace Tasker.Infra.Services
 {
@@ -70,6 +72,38 @@ namespace Tasker.Infra.Services
         {
             mLogger.LogDebug($"Creating notes file system structure from {mTasksNotesDirectory}");
             return Task.FromResult(new NoteNode(mTasksNotesDirectory));
+        }
+
+        public async Task<IResponse<NoteResourceResponse>> CreatePrivateNote(string notePath, string text)
+        {
+            mLogger.LogDebug($"Creating private note {notePath}");
+
+            string fixedNotePath = GetFixedPrivateNotePath(notePath);
+
+            if (File.Exists(fixedNotePath))
+                return new FailResponse<NoteResourceResponse>($"File {notePath} is already exist");
+
+            try
+            {
+                await File.WriteAllTextAsync(fixedNotePath, text).ConfigureAwait(false);
+
+                NoteResourceResponse noteResponse = new NoteResourceResponse(
+                    mTasksNotesDirectory, new string[] { fixedNotePath }, mNoteFactory);
+
+                return new SuccessResponse<NoteResourceResponse>(noteResponse);
+            }
+            catch (Exception ex)
+            {
+                return new FailResponse<NoteResourceResponse>($"Failed to write note to path {notePath} due to exception: {ex.Message}");
+            }
+        }
+
+        private string GetFixedPrivateNotePath(string notePath)
+        {
+            string noteName = Path.GetFileName(notePath);
+            string noteNameWithExtension = Path.ChangeExtension(noteName, AppConsts.NoteExtension);
+
+            return Path.Combine(mTasksNotesDirectory, noteNameWithExtension);
         }
     }
 }

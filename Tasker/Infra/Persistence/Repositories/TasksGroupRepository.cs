@@ -21,69 +21,69 @@ namespace Tasker.Infra.Persistence.Repositories
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public Task AddAsync(ITasksGroup newGroup)
+        public async Task<bool> AddAsync(ITasksGroup newGroup)
         {
-            mDatabase.LoadDatabase();
+            await mDatabase.LoadDatabase().ConfigureAwait(false);
 
             if (mDatabase.Entities.Contains(newGroup) ||
                (mDatabase.Entities.Find(entity => entity.ID == newGroup.ID) != null))
             {
                 mLogger.LogError($"Group ID: {newGroup.ID} is already found in database");
-                return Task.CompletedTask;
+                return false;
             }
 
             if (mDatabase.Entities.Find(entity => entity.Name == newGroup.Name) != null)
             {
                 mLogger.LogError($"Group name: {newGroup.Name} is already found in database");
-                return Task.CompletedTask;
+                return false;
             }
 
             mDatabase.Entities.Add(newGroup);
 
-            mDatabase.SaveCurrentDatabase();
-            return Task.CompletedTask;
+            await mDatabase.SaveCurrentDatabase().ConfigureAwait(false);
+            return true;
         }
 
-        public Task<IEnumerable<ITasksGroup>> ListAsync()
+        public async Task<IEnumerable<ITasksGroup>> ListAsync()
         {
-            mDatabase.LoadDatabase();
+            await mDatabase.LoadDatabase().ConfigureAwait(false);
 
-            return Task.FromResult(mDatabase.Entities.AsEnumerable());
+            return mDatabase.Entities.AsEnumerable();
         }
 
-        public Task<ITasksGroup> FindAsync(string entityToFind)
+        public async Task<ITasksGroup> FindAsync(string entityToFind)
         {
-            mDatabase.LoadDatabase();
+            await mDatabase.LoadDatabase().ConfigureAwait(false);
 
             ITasksGroup entityFound =
                 mDatabase.Entities.Find(entity => entity.ID == entityToFind) ??
                 mDatabase.Entities.Find(entity => entity.Name == entityToFind);
 
-            return Task.FromResult(entityFound);
+            return entityFound;
         }
 
-        public Task UpdateAsync(ITasksGroup newGroup)
+        public async Task UpdateAsync(ITasksGroup newGroup)
         {
             int tasksGroupToUpdateIndex = mDatabase.Entities.FindIndex(entity => entity.ID == newGroup.ID);
 
             if (tasksGroupToUpdateIndex < 0)
             {
                 mLogger.LogError($"Group ID: {newGroup.ID} Group name: {newGroup.Name} - No such entity was found in database");
-                return Task.CompletedTask;
+                return;
             }
 
             mDatabase.Entities[tasksGroupToUpdateIndex] = newGroup;
 
-            mDatabase.SaveCurrentDatabase();
-            return Task.CompletedTask;
+            await mDatabase.SaveCurrentDatabase().ConfigureAwait(false);
+            return;
         }
 
-        public Task RemoveAsync(ITasksGroup group)
+        public async Task RemoveAsync(ITasksGroup group)
         {
             if (!mDatabase.Entities.Contains(group))
             {
                 mLogger.LogError($"Group ID: {group.ID} Group name: {group.Name} - No such entity was found in database");
-                return Task.CompletedTask;
+                return;
             }
 
             foreach (IWorkTask task in group.GetAllTasks())
@@ -94,8 +94,8 @@ namespace Tasker.Infra.Persistence.Repositories
             mDatabase.Entities.Remove(group);
             mLogger.LogDebug($"Task group id {group.ID} group name {group.Name} removed");
 
-            mDatabase.SaveCurrentDatabase();
-            return Task.CompletedTask;
+            await mDatabase.SaveCurrentDatabase().ConfigureAwait(false);
+            return;
         }
     }
 }

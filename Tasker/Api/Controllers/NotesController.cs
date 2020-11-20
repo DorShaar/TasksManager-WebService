@@ -3,12 +3,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using TaskData.WorkTasks;
 using Tasker.App.Resources.Note;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
+using Tasker.Domain.Extensions;
 using Tasker.Domain.Models;
+using Tasker.Infra.Consts;
 
 namespace Tasker.Api.Controllers
 {
@@ -16,14 +21,17 @@ namespace Tasker.Api.Controllers
     public class NotesController : Controller
     {
         private readonly INoteService mNoteService;
+        private readonly IWorkTaskService mWorkTaskService;
         private readonly IMapper mMapper;
         private readonly ILogger<NotesController> mLogger;
 
         public NotesController(INoteService noteService,
+            IWorkTaskService workTaskService,
             IMapper mapper,
             ILogger<NotesController> logger)
         {
             mNoteService = noteService ?? throw new ArgumentNullException(nameof(noteService));
+            mWorkTaskService = workTaskService ?? throw new ArgumentNullException(nameof(workTaskService));
             mMapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -110,6 +118,47 @@ namespace Tasker.Api.Controllers
             catch (Exception ex)
             {
                 mLogger.LogError(ex, "Update operation failed with error");
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> PutNoteAsync([FromBody] NoteResource noteResource)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorMessages());
+
+            if (noteResource == null)
+                return BadRequest($"Parameter {nameof(noteResource)} is null");
+
+            IEnumerable<IWorkTask> workTasks =
+                await mWorkTaskService.FindWorkTasksByConditionAsync(task => task.ID == noteResource.NotePath)
+                .ConfigureAwait(false);
+
+            if (!workTasks.Any())
+                return StatusCode(StatusCodes.Status405MethodNotAllowed, $"Could not find work task {noteResource.NotePath}");
+
+            mLogger.LogDebug($"Requesting putting new note {noteResource.NotePath}");
+
+            IWorkTask firstWorkTask = workTasks.First();
+
+            string noteName = $"{firstWorkTask.ID}-{firstWorkTask.Description}{AppConsts.NoteExtension}";
+
+            try
+            {
+                IResponse<NoteResourceResponse> result =
+                    await mNoteService.CreatePrivateNote(noteName, noteResource.Text).ConfigureAwait(false);
+
+                NoteResource noteResourceResult = mMapper.Map<NoteResourceResponse, NoteResource>(result.ResponseObject);
+
+                if (!result.IsSuccess)
+                    return StatusCode(StatusCodes.Status405MethodNotAllowed, result.Message);
+
+                return Ok(noteResourceResult);
+            }
+            catch (Exception ex)
+            {
+                mLogger.LogError(ex, "Put operation failed with error");
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }

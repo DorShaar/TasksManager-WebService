@@ -132,7 +132,7 @@ namespace Takser.Api.Controllers
                 return BadRequest(ModelState.GetErrorMessages());
 
             if (newWorkTaskResource == null)
-                return BadRequest("New work task resource is null");
+                return BadRequest($"Parameter {nameof(newWorkTaskResource)} is null");
 
             mLogger.LogDebug($"Requesting putting new task {newWorkTaskResource.Description} to group {newWorkTaskResource.GroupName}");
 

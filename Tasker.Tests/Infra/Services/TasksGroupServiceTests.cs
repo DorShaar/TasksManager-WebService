@@ -384,6 +384,8 @@ namespace Tasker.Tests.Infra.Services
             const string groupName = "ValidGroupName";
 
             IDbRepository<ITasksGroup> dbRepository = A.Fake<IDbRepository<ITasksGroup>>();
+            A.CallTo(() => dbRepository.AddAsync(A<ITasksGroup>.Ignored)).Returns(true);
+
             TasksGroupService tasksGroupService =
                 new TasksGroupService(dbRepository, mTasksGroupFactory, NullLogger<TasksGroupService>.Instance);
 

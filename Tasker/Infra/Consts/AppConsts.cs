@@ -6,5 +6,7 @@
 
         public const string DatabaseName = "tasks.db";
         public const string NextIdHolderName = "id_producer.db";
+
+        public const string NoteExtension = ".txt";
     }
 }
