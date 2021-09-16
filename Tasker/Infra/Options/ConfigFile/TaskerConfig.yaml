@@ -1,3 +1,7 @@
-DatabaseDirectoryPath: /mnt/database
-NotesDirectoryPath: /mnt/general_notes
-NotesTasksDirectoryPath: /mnt/tasks
+DatabaseDirectoryPath: /app/data
+NotesDirectoryPath: /app/general_notes
+NotesTasksDirectoryPath: /app/tasks
+PasswordPath: /app/temp.txt
+NotifierInterval: 00:05:00
+SummaryEmailInterval: 1.00:00:00
+SummaryEmailHour: 8

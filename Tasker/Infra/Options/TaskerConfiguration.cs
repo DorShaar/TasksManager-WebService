@@ -19,7 +19,7 @@ namespace Tasker.Infra.Options
             {
                 return File.ReadAllText(PasswordPath);
             }
-            catch (FileNotFoundException)
+            catch (Exception ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
             {
                 return null;
             }

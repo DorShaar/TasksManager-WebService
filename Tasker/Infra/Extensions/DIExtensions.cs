@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
@@ -79,7 +80,11 @@ namespace Tasker.Infra.Extensions
         {
             IConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
 
-            const string configFileName = "TaskerConfig - work.yaml";
+            string configFileName;
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                configFileName = "TaskerConfig - work.yaml";
+            else
+                configFileName = "TaskerConfig.yaml";
             configurationBuilder.AddYamlFile(Path.Combine("Infra", "Options", "ConfigFile", configFileName), optional: false);
 
             IConfiguration configuration = configurationBuilder.Build();

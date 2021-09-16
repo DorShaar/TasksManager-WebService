@@ -1,11 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build-stage
 
-WORKDIR /build
+WORKDIR /app
 
 #Copy sources.
-COPY ./Tasker ./Tasker
-COPY ./Tasker.Tests ./Tasker.Tests
-COPY ./nuget.config ./nuget.config
+COPY ./ ./
 
 #Restore nugets
 RUN dotnet restore ./Tasker/Tasker.csproj
@@ -29,6 +27,6 @@ RUN dotnet publish ./Tasker/Tasker.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine
 COPY --from=build-stage /artifacts /app
 
-WORKDIR /app
+WORKDIR /app/artifacts
 
 ENTRYPOINT ["dotnet", "Tasker.dll"]
