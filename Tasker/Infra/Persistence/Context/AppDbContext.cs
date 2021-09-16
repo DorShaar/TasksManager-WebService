@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ObjectSerializer.JsonService;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,8 +7,10 @@ using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
 using TaskData.IDsProducer;
+using TaskData.ObjectSerializer.JsonService;
 using TaskData.TasksGroups;
 using Tasker.Infra.Consts;
+using static TaskData.ObjectSerializer.JsonService.JsonSerializerWrapper;
 
 namespace Tasker.Infra.Persistence.Context
 {
@@ -37,6 +38,11 @@ namespace Tasker.Infra.Persistence.Context
             mConfiguration = configuration.Value;
 
             mSerializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+
+            mSerializer.RegisterConverters(new TaskConverter());
+            mSerializer.RegisterConverters(new TaskGroupConverter());
+            mSerializer.RegisterConverters(new TaskStatusHistoryConverter());
+
             mIdProducer = idProducer ?? throw new ArgumentNullException(nameof(idProducer));
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -72,8 +78,15 @@ namespace Tasker.Infra.Persistence.Context
             }
 
             mLogger.LogDebug($"Going to load database from {DatabaseFilePath}");
-            Entities = await mSerializer.Deserialize<List<ITasksGroup>>(DatabaseFilePath)
-                .ConfigureAwait(false);
+            try
+            {
+                Entities = await mSerializer.Deserialize<List<ITasksGroup>>(DatabaseFilePath)
+                    .ConfigureAwait(false);
+            }
+            catch(Exception ex)
+            {
+                mLogger.LogError(ex, $"Could not deserialize {DatabaseFilePath}");
+            }
         }
 
         private async Task LoadNextIdToProduce()

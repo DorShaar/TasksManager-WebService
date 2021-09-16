@@ -1,14 +1,16 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ObjectSerializer.JsonService;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
-using TaskData;
 using TaskData.IDsProducer;
+using TaskData.Ioc;
+using TaskData.ObjectSerializer.JsonService;
 using TaskData.TasksGroups;
+using TaskData.TasksGroups.Producers;
+using TaskData.WorkTasks.Producers;
 using Tasker.Infra.Consts;
 using Tasker.Infra.Persistence.Context;
 using Xunit;
@@ -20,19 +22,26 @@ namespace Tasker.Tests.Infra.Persistence.Context
         private const string TestFilesDirectory = "TestFiles";
 
         private readonly ITasksGroupFactory mTasksGroupFactory;
+        private readonly IWorkTaskProducer mWorkTaskProducer;
+        private readonly ITasksGroupProducer mTasksGroupProducer;
         private readonly IObjectSerializer mObjectSerializer;
         private readonly IIDProducer mIDProducer;
 
         public AppDbContextTests()
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.UseTaskerDataEntities();
-            serviceCollection.UseJsonObjectSerializer();
+            serviceCollection.UseTaskerDataEntities()
+                .UseJsonObjectSerializer()
+                .RegisterRegularWorkTaskProducer()
+                .RegisterRegularTasksGroupProducer();
+
             ServiceProvider serviceProvider = serviceCollection
                 .AddLogging()
                 .BuildServiceProvider();
 
             mTasksGroupFactory = serviceProvider.GetRequiredService<ITasksGroupFactory>();
+            mWorkTaskProducer = serviceProvider.GetRequiredService<IWorkTaskProducer>();
+            mTasksGroupProducer = serviceProvider.GetRequiredService<ITasksGroupProducer>();
             mObjectSerializer = serviceProvider.GetRequiredService<IObjectSerializer>();
             mIDProducer = serviceProvider.GetRequiredService<IIDProducer>();
         }
@@ -164,7 +173,7 @@ namespace Tasker.Tests.Infra.Persistence.Context
 
                 await database.LoadDatabase().ConfigureAwait(false);
 
-                ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group");
+                ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group", mTasksGroupProducer).Value;
 
                 Assert.Equal("1022", tasksGroup.ID);
             }
@@ -192,12 +201,12 @@ namespace Tasker.Tests.Infra.Persistence.Context
                    mIDProducer,
                    NullLogger<AppDbContext>.Instance);
 
-                ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1");
-                mTasksGroupFactory.CreateTask(tasksGroup1, "workTask1");
-                mTasksGroupFactory.CreateTask(tasksGroup1, "workTask2");
+                ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
+                mTasksGroupFactory.CreateTask(tasksGroup1, "workTask1", mWorkTaskProducer);
+                mTasksGroupFactory.CreateTask(tasksGroup1, "workTask2", mWorkTaskProducer);
 
-                ITasksGroup tasksGroup2 = mTasksGroupFactory.CreateGroup("group2");
-                mTasksGroupFactory.CreateTask(tasksGroup2, "workTask3");
+                ITasksGroup tasksGroup2 = mTasksGroupFactory.CreateGroup("group2", mTasksGroupProducer).Value;
+                mTasksGroupFactory.CreateTask(tasksGroup2, "workTask3", mWorkTaskProducer);
 
                 database.Entities.Add(tasksGroup1);
                 database.Entities.Add(tasksGroup2);
@@ -211,7 +220,7 @@ namespace Tasker.Tests.Infra.Persistence.Context
             }
         }
 
-        private string CopyDirectoryToTempDirectory()
+        private static string CopyDirectoryToTempDirectory()
         {
             string tempDirectory = Directory.CreateDirectory(Guid.NewGuid().ToString()).FullName;
 

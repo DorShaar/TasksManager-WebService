@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ObjectSerializer.JsonService;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,36 +9,52 @@ using System.Linq;
 using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
-using TaskData;
 using TaskData.IDsProducer;
+using TaskData.Ioc;
+using TaskData.ObjectSerializer.JsonService;
 using TaskData.TasksGroups;
+using TaskData.TasksGroups.Producers;
 using TaskData.WorkTasks;
+using TaskData.WorkTasks.Producers;
 using Tasker.Infra.Persistence.Context;
 using Tasker.Infra.Persistence.Repositories;
 using Xunit;
+using static TaskData.ObjectSerializer.JsonService.JsonSerializerWrapper;
 
 namespace Tasker.Tests.Infra.Persistence.Repositories
 {
     public class WorkTaskRepositoryTests
     {
-        private const string TestFilesDirectory = "TestFiles";
-        private readonly string mAlternateDatabasePath = Path.Combine("TestFiles", "tasks_other.db.txt");
+        private const string TestFilesDirectory = "TestFiles";        
         private readonly string mNewDatabaseDirectoryPath = Path.Combine("TestFiles", "NewDatabase");
+
         private readonly ITasksGroupFactory mTasksGroupBuilder;
+        private readonly IWorkTaskProducer mWorkTaskProducer;
+        private readonly ITasksGroupProducer mTasksGroupProducer;
         private readonly IObjectSerializer mObjectSerializer;
         private readonly IIDProducer mIDProducer;
 
         public WorkTaskRepositoryTests()
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.UseTaskerDataEntities();
-            serviceCollection.UseJsonObjectSerializer();
+            serviceCollection.UseTaskerDataEntities()
+                .UseJsonObjectSerializer()
+                .RegisterRegularWorkTaskProducer()
+                .RegisterRegularTasksGroupProducer();
+
             ServiceProvider serviceProvider = serviceCollection
                 .AddLogging()
                 .BuildServiceProvider();
 
             mTasksGroupBuilder = serviceProvider.GetRequiredService<ITasksGroupFactory>();
+            mWorkTaskProducer = serviceProvider.GetRequiredService<IWorkTaskProducer>();
+            mTasksGroupProducer = serviceProvider.GetRequiredService<ITasksGroupProducer>();
+
             mObjectSerializer = serviceProvider.GetRequiredService<IObjectSerializer>();
+            mObjectSerializer.RegisterConverters(new TaskConverter());
+            mObjectSerializer.RegisterConverters(new TaskGroupConverter());
+            mObjectSerializer.RegisterConverters(new TaskStatusHistoryConverter());
+
             mIDProducer = serviceProvider.GetRequiredService<IIDProducer>();
         }
 
@@ -64,11 +79,11 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
                 WorkTaskRepository workTaskRepository =
                     new WorkTaskRepository(database, NullLogger< WorkTaskRepository>.Instance);
 
-                ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup("group1");
+                ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup("group1", mTasksGroupProducer).Value;
 
                 database.Entities.Add(tasksGroup);
 
-                IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "worktask1");
+                IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "worktask1", mWorkTaskProducer).Value;
 
                 await workTaskRepository.AddAsync(workTask).ConfigureAwait(false);
 
@@ -95,8 +110,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
 
             const string tasksGroupName = "group1";
 
-            ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup(tasksGroupName);
-            IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "taskDescription");
+            ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup(tasksGroupName, mTasksGroupProducer).Value;
+            IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "taskDescription", mWorkTaskProducer).Value;
 
             database.Entities.Add(tasksGroup);
 
@@ -147,8 +162,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             WorkTaskRepository workTaskRepository =
                 new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup("group1");
-            IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "taskDescription");
+            ITasksGroup tasksGroup = mTasksGroupBuilder.CreateGroup("group1", mTasksGroupProducer).Value;
+            IWorkTask workTask = mTasksGroupBuilder.CreateTask(tasksGroup, "taskDescription", mWorkTaskProducer).Value;
 
             database.Entities.Add(tasksGroup);
 
@@ -196,12 +211,12 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             WorkTaskRepository workTaskRepository =
                 new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
-            ITasksGroup tasksGroup1 = mTasksGroupBuilder.CreateGroup("group1");
-            IWorkTask workTask1 = mTasksGroupBuilder.CreateTask(tasksGroup1, "task1");
-            IWorkTask workTask2 = mTasksGroupBuilder.CreateTask(tasksGroup1, "task2");
+            ITasksGroup tasksGroup1 = mTasksGroupBuilder.CreateGroup("group1", mTasksGroupProducer).Value;
+            IWorkTask workTask1 = mTasksGroupBuilder.CreateTask(tasksGroup1, "task1", mWorkTaskProducer).Value;
+            IWorkTask workTask2 = mTasksGroupBuilder.CreateTask(tasksGroup1, "task2", mWorkTaskProducer).Value;
 
-            ITasksGroup tasksGroup2 = mTasksGroupBuilder.CreateGroup("group2");
-            IWorkTask workTask3 = mTasksGroupBuilder.CreateTask(tasksGroup2, "task3");
+            ITasksGroup tasksGroup2 = mTasksGroupBuilder.CreateGroup("group2", mTasksGroupProducer).Value;
+            IWorkTask workTask3 = mTasksGroupBuilder.CreateTask(tasksGroup2, "task3", mWorkTaskProducer).Value;
 
             database.Entities.Add(tasksGroup1);
             database.Entities.Add(tasksGroup2);
@@ -246,11 +261,13 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
                     NullLogger<AppDbContext>.Instance);
 
                 WorkTaskRepository workTaskRepository =
-                new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
+                    new WorkTaskRepository(database, NullLogger<WorkTaskRepository>.Instance);
 
                 Assert.Equal(18, (await workTaskRepository.ListAsync().ConfigureAwait(false)).Count());
 
-                File.Copy(mAlternateDatabasePath, database.DatabaseFilePath, overwrite: true);
+                string AlternateDatabasePath = Path.Combine("TestFiles", "tasks_other.db.txt");
+
+                File.Copy(AlternateDatabasePath, database.DatabaseFilePath, overwrite: true);
 
                 Assert.Equal(16, (await workTaskRepository.ListAsync().ConfigureAwait(false)).Count());
             }

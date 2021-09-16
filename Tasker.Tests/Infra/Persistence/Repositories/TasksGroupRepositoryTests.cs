@@ -2,15 +2,16 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ObjectSerializer.JsonService;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
-using TaskData;
 using TaskData.IDsProducer;
+using TaskData.Ioc;
+using TaskData.ObjectSerializer.JsonService;
 using TaskData.TasksGroups;
+using TaskData.TasksGroups.Producers;
 using Tasker.Infra.Persistence.Context;
 using Tasker.Infra.Persistence.Repositories;
 using Xunit;
@@ -20,19 +21,25 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
     public class TasksGroupRepositoryTests
     {
         private readonly ITasksGroupFactory mTasksGroupFactory;
+        private readonly ITasksGroupProducer mTasksGroupProducer;
         private readonly IObjectSerializer mObjectSerializer;
         private readonly IIDProducer mIDProducer;
 
         public TasksGroupRepositoryTests()
         {
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.UseTaskerDataEntities();
-            serviceCollection.UseJsonObjectSerializer();
+            serviceCollection.UseTaskerDataEntities()
+                .UseJsonObjectSerializer()
+                .RegisterRegularWorkTaskProducer()
+                .RegisterRegularTasksGroupProducer();
+
+
             ServiceProvider serviceProvider = serviceCollection
                 .AddLogging()
                 .BuildServiceProvider();
 
             mTasksGroupFactory = serviceProvider.GetRequiredService<ITasksGroupFactory>();
+            mTasksGroupProducer = serviceProvider.GetRequiredService<ITasksGroupProducer>();
             mObjectSerializer = serviceProvider.GetRequiredService<IObjectSerializer>();
             mIDProducer = serviceProvider.GetRequiredService<IIDProducer>();
         }
@@ -49,7 +56,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
 
             Assert.False((await tasksGroupRepository.ListAsync().ConfigureAwait(false)).Any());
 
@@ -71,7 +78,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
 
             Assert.False((await tasksGroupRepository.ListAsync().ConfigureAwait(false)).Any());
 
@@ -96,8 +103,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1");
-            ITasksGroup tasksGroupWithSameName = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
+            ITasksGroup tasksGroupWithSameName = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
 
             Assert.NotEqual(tasksGroup.ID, tasksGroupWithSameName.ID);
 
@@ -137,7 +144,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
 
             database.Entities.Add(tasksGroup);
 
@@ -185,8 +192,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1");
-            ITasksGroup tasksGroup2 = mTasksGroupFactory.CreateGroup("group2");
+            ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
+            ITasksGroup tasksGroup2 = mTasksGroupFactory.CreateGroup("group2", mTasksGroupProducer).Value;
 
             database.Entities.Add(tasksGroup1);
             database.Entities.Add(tasksGroup2);
@@ -237,7 +244,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
 
             database.Entities.Add(tasksGroup1);
 
@@ -260,8 +267,8 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1");
-            ITasksGroup tasksGroup2 = mTasksGroupFactory.CreateGroup("group2");
+            ITasksGroup tasksGroup1 = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
+            ITasksGroup tasksGroup2 = mTasksGroupFactory.CreateGroup("group2", mTasksGroupProducer).Value;
 
             database.Entities.Add(tasksGroup1);
 
@@ -280,7 +287,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
             database.Entities.Add(tasksGroup);
 
             await tasksGroupRepository.RemoveAsync(tasksGroup).ConfigureAwait(false);
@@ -301,7 +308,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
 
             database.Entities.Add(tasksGroup);
 
@@ -334,7 +341,7 @@ namespace Tasker.Tests.Infra.Persistence.Repositories
             TasksGroupRepository tasksGroupRepository =
                     new TasksGroupRepository(database, NullLogger<TasksGroupRepository>.Instance);
 
-            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1");
+            ITasksGroup tasksGroup = mTasksGroupFactory.CreateGroup("group1", mTasksGroupProducer).Value;
 
             await tasksGroupRepository.UpdateAsync(tasksGroup).ConfigureAwait(false);
 

@@ -41,13 +41,11 @@ namespace Tasker.App.Mapping
                            option => option.MapFrom(source => source.PossibleNotesRelativePaths))
                 .ForMember(dest => dest.Extension,
                            option => option.MapFrom(source => source.Note.Extension))
-                .ForMember(dest => dest.NotePath,
-                           option => option.MapFrom(source => source.Note.NotePath))
                 .ForMember(dest => dest.Text,
                            option => option.MapFrom(source => GetText(source)));
         }
 
-        private string GetText(NoteResourceResponse noteResourceResponse)
+        private static string GetText(NoteResourceResponse noteResourceResponse)
         {
             try
             {

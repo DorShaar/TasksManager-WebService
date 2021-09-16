@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Takser.Infra.Options;
-using TaskData.Notes;
 using Tasker.App.Resources.Note;
 using Tasker.App.Services;
 using Tasker.Domain.Communication;
@@ -18,12 +17,10 @@ namespace Tasker.Infra.Services
     {
         private readonly string mGeneralNotesDirectory;
         private readonly string mTasksNotesDirectory;
-        private readonly INoteFactory mNoteFactory;
         private readonly ILogger<NoteService> mLogger;
 
-        public NoteService(INoteFactory noteFactory, IOptions<DatabaseConfigurtaion> options, ILogger<NoteService> logger)
+        public NoteService(IOptions<DatabaseConfigurtaion> options, ILogger<NoteService> logger)
         {
-            mNoteFactory = noteFactory ?? throw new ArgumentNullException(nameof(noteFactory));
             mGeneralNotesDirectory = options.Value.NotesDirectoryPath ??
                 throw new ArgumentNullException(nameof(options.Value.NotesDirectoryPath));
             mTasksNotesDirectory = options.Value.NotesTasksDirectoryPath ??
@@ -38,7 +35,7 @@ namespace Tasker.Infra.Services
             IEnumerable<string> notesPaths = await generalNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
             NoteResourceResponse noteResponse = new NoteResourceResponse(
-                mGeneralNotesDirectory, notesPaths, mNoteFactory);
+                mGeneralNotesDirectory, notesPaths);
 
             if (!noteResponse.IsNoteFound)
                 return new FailResponse<NoteResourceResponse>($"No {noteIdentifier} note found");
@@ -54,7 +51,7 @@ namespace Tasker.Infra.Services
             IEnumerable<string> notesPaths = await tasksNotesStructure.FindRecursive(noteIdentifier).ConfigureAwait(false);
 
             NoteResourceResponse noteResponse = new NoteResourceResponse(
-                mTasksNotesDirectory, notesPaths, mNoteFactory);
+                mTasksNotesDirectory, notesPaths);
 
             if (!noteResponse.IsNoteFound)
                 return new FailResponse<NoteResourceResponse>($"No {noteIdentifier} note found");
@@ -88,7 +85,7 @@ namespace Tasker.Infra.Services
                 await File.WriteAllTextAsync(fixedNotePath, text).ConfigureAwait(false);
 
                 NoteResourceResponse noteResponse = new NoteResourceResponse(
-                    mTasksNotesDirectory, new string[] { fixedNotePath }, mNoteFactory);
+                    mTasksNotesDirectory, new string[] { fixedNotePath });
 
                 return new SuccessResponse<NoteResourceResponse>(noteResponse);
             }

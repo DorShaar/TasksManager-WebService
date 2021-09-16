@@ -13,18 +13,18 @@ namespace Tasker.App.Resources.Note
         public INote Note { get; }
 
         public NoteResourceResponse(string baseDirectory,
-            IEnumerable<string> notes, INoteFactory noteFactory)
+            IEnumerable<string> notes)
         {
             PossibleNotesRelativePaths = notes.Select(
                 path => Path.GetRelativePath(baseDirectory, path));
 
             if (notes.Count() == 1)
             {
-                Note = noteFactory.LoadNote(notes.First());
+                Note = null;
                 return;
             }
 
-            Note = noteFactory.LoadNote(string.Empty);
+            Note = null;
         }
     }
 }

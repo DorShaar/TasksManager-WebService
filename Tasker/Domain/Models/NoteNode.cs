@@ -56,9 +56,14 @@ namespace Tasker.Domain.Models
             foreach (NoteNode noteNode in Children.Values)
             {
                 if (AreSameName(pathComponents[0], Name))
-                    tasks[taskIndex] = noteNode.FindRecursive(pathComponents.Slice(1, pathComponents.Length), pathOfSameNames);
+                {
+                    tasks[taskIndex] = noteNode.FindRecursive(
+                        pathComponents.Slice(1, pathComponents.Length), pathOfSameNames);
+                }
                 else
+                {
                     tasks[taskIndex] = noteNode.FindRecursive(pathComponents, pathOfSameNames);
+                }
 
                 taskIndex++;
             }

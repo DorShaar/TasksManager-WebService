@@ -68,7 +68,7 @@ namespace Tasker.Api.Controllers
                 if (noteResource.IsMoreThanOneNoteFound)
                     mLogger.LogDebug($"Found more than one note for {notePath}");
                 else
-                    mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
+                    mLogger.LogDebug($"Found note at path {notePath}");
 
                 return Ok(noteResource);
             }
@@ -111,7 +111,7 @@ namespace Tasker.Api.Controllers
                 if (noteResource.IsMoreThanOneNoteFound)
                     mLogger.LogDebug($"Found more than one note for {noteIdentifier}");
                 else
-                    mLogger.LogDebug($"Found note at path {result.ResponseObject.Note.NotePath}");
+                    mLogger.LogDebug($"Found note for identifier {noteIdentifier}");
 
                 return Ok(noteResource);
             }
@@ -163,7 +163,7 @@ namespace Tasker.Api.Controllers
             }
         }
 
-        private string GetFixedNotePath(string notePath)
+        private static string GetFixedNotePath(string notePath)
         {
             return notePath.Replace('*', Path.DirectorySeparatorChar);
         }

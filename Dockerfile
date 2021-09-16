@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build-stage
+FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build-stage
 
 WORKDIR /build
 
@@ -26,9 +26,9 @@ RUN dotnet publish ./Tasker/Tasker.csproj \
 	-o /artifacts
 
 #Create image from compiled project.
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine
-COPY --from=build-stage /artifacts /tasker
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine
+COPY --from=build-stage /artifacts /app
 
-WORKDIR /tasker
+WORKDIR /app
 
 ENTRYPOINT ["dotnet", "Tasker.dll"]

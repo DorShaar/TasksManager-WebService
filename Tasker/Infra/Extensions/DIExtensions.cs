@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ObjectSerializer.JsonService;
 using System.IO;
 using Takser.App.Persistence.Context;
 using Takser.Infra.Options;
-using TaskData;
+using TaskData.Ioc;
+using TaskData.ObjectSerializer.JsonService;
 using TaskData.TasksGroups;
 using TaskData.WorkTasks;
 using Tasker.App.Mapping;
@@ -65,6 +65,8 @@ namespace Tasker.Infra.Extensions
         {
             services.UseJsonObjectSerializer();
             services.UseTaskerDataEntities();
+            services.RegisterRegularWorkTaskProducer();
+            services.RegisterRegularTasksGroupProducer();
         }
 
         private static void RegisterLogger(IServiceCollection services)

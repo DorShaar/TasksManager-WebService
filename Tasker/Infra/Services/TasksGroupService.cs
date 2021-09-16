@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using TaskData.OperationResults;
 using TaskData.TasksGroups;
+using TaskData.TasksGroups.Producers;
 using TaskData.TaskStatus;
 using TaskData.WorkTasks;
+using TaskData.WorkTasks.Producers;
 using Tasker.App.Persistence.Repositories;
 using Tasker.App.Resources;
 using Tasker.App.Services;
@@ -20,16 +22,22 @@ namespace Tasker.Infra.Services
     public class TasksGroupService : ITasksGroupService
     {
         private readonly IDbRepository<ITasksGroup> mTasksGroupRepository;
+        private readonly IWorkTaskProducer mWorkTaskProducer;
+        private readonly ITasksGroupProducer mTasksGroupProducer;
         private readonly ITasksGroupFactory mTaskGroupFactory;
         private readonly NameValidator mTasksGroupNameValidator;
         private readonly NameValidator mWorkTaskNameValidator;
         private readonly ILogger<TasksGroupService> mLogger;
 
         public TasksGroupService(IDbRepository<ITasksGroup> TaskGroupRepository,
+            IWorkTaskProducer workTaskProducer,
+            ITasksGroupProducer tasksGroupProducer,
             ITasksGroupFactory tasksGroupBuilder,
             ILogger<TasksGroupService> logger)
         {
             mTasksGroupRepository = TaskGroupRepository ?? throw new ArgumentNullException(nameof(TaskGroupRepository));
+            mWorkTaskProducer = workTaskProducer ?? throw new ArgumentNullException(nameof(workTaskProducer));
+            mTasksGroupProducer = tasksGroupProducer ?? throw new ArgumentNullException(nameof(tasksGroupProducer));
             mTaskGroupFactory = tasksGroupBuilder ?? throw new ArgumentNullException(nameof(tasksGroupBuilder));
             mLogger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -77,7 +85,7 @@ namespace Tasker.Infra.Services
         {
             try
             {
-                ITasksGroup tasksGroup = mTaskGroupFactory.CreateGroup(groupName);
+                ITasksGroup tasksGroup = mTaskGroupFactory.CreateGroup(groupName, mTasksGroupProducer).Value;
 
                 if (!mTasksGroupNameValidator.IsNameValid(tasksGroup.Name))
                 {
@@ -125,7 +133,7 @@ namespace Tasker.Infra.Services
                         $"has already work task with description {workTaskDescription}");
                 }
 
-                IWorkTask workTask = mTaskGroupFactory.CreateTask(tasksGroup, workTaskDescription);
+                IWorkTask workTask = mTaskGroupFactory.CreateTask(tasksGroup, workTaskDescription, mWorkTaskProducer).Value;
 
                 if (!mWorkTaskNameValidator.IsNameValid(workTask.Description))
                     return new FailResponse<IWorkTask>($"Task description'{workTask.Description}' is invalid");
@@ -329,7 +337,7 @@ namespace Tasker.Infra.Services
             }
         }
 
-        private bool IsWorkTaskDescriptionAlreadyExist(ITasksGroup tasksGroup, string workTaskDescription)
+        private static bool IsWorkTaskDescriptionAlreadyExist(ITasksGroup tasksGroup, string workTaskDescription)
         {
             return tasksGroup.GetAllTasks().Any(
                 task => task.Description.Equals(workTaskDescription, StringComparison.OrdinalIgnoreCase));
@@ -397,7 +405,7 @@ namespace Tasker.Infra.Services
             return (null, null);
         }
 
-        private bool ValidateUniqueTaskDescription(ITasksGroup tasksGroup, string workTaskDescription)
+        private static bool ValidateUniqueTaskDescription(ITasksGroup tasksGroup, string workTaskDescription)
         {
             foreach (IWorkTask workTask in tasksGroup.GetAllTasks())
             {

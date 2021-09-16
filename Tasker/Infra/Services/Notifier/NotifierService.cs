@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskData.WorkTasks;
@@ -17,9 +15,6 @@ namespace Tasker.Infra.Services.Notifier
         private readonly IEmailService mEmailService;
         private readonly IWorkTaskService mWorkTaskService;
 
-        private readonly ConcurrentDictionary<string, TaskMeasurementInfo> mOpenTasksMeasurementsDict =
-            new ConcurrentDictionary<string, TaskMeasurementInfo>();
-
         public NotifierService(IEmailService emailService,
             IWorkTaskService workTaskService,
             ILogger<NotifierService> logger)
@@ -31,8 +26,6 @@ namespace Tasker.Infra.Services.Notifier
 
         public async Task NotifyTriangleTasks()
         {
-            await CleanFinishedTasksFromOpenTasksMeasurements().ConfigureAwait(false);
-
             List<TaskMeasurement> tasksMeasurementsToNotify =
                 await CollectTaskMeasurementsToNotify().ConfigureAwait(false);
 
@@ -49,34 +42,6 @@ namespace Tasker.Infra.Services.Notifier
             await mEmailService.SendEmail(report).ConfigureAwait(false);
         }
 
-        private async Task CleanFinishedTasksFromOpenTasksMeasurements()
-        {
-            IEnumerable<IWorkTask> allClosedTasks =
-                await mWorkTaskService.FindWorkTasksByConditionAsync(
-                    task => task.IsFinished).ConfigureAwait(false);
-
-            IEnumerable<string> allClosedTasksIds = allClosedTasks.Select(task => task.ID);
-
-            HashSet<string> openTasksMeasurements = mOpenTasksMeasurementsDict.Keys.ToHashSet();
-
-            HashSet<string> tasksIdsIntersection = openTasksMeasurements;
-
-            tasksIdsIntersection.IntersectWith(allClosedTasksIds);
-
-            foreach (string closedTaskId in tasksIdsIntersection)
-            {
-                if (mOpenTasksMeasurementsDict.TryRemove(closedTaskId, out TaskMeasurementInfo _))
-                {
-                    mLogger.LogDebug($"Task id {closedTaskId} removed from open tasks measurements dictionary");
-                }
-                else
-                {
-                    mLogger.LogWarning($"Task id {closedTaskId} was not removed from open tasks measurements dictionary" +
-                        "although it was marked has should been removed");
-                }
-            }
-        }
-
         private async Task<List<TaskMeasurement>> CollectTaskMeasurementsToNotify()
         {
             mLogger.LogDebug("Collecting tasks to notify");
@@ -85,8 +50,7 @@ namespace Tasker.Infra.Services.Notifier
 
             IEnumerable<IWorkTask> tasks = await mWorkTaskService.FindWorkTasksByConditionAsync(
                 task =>
-                    !task.IsFinished &&
-                    task.TaskMeasurement?.ShouldAlreadyBeNotified() == true).ConfigureAwait(false);
+                    !task.IsFinished).ConfigureAwait(false);
 
             foreach (IWorkTask task in tasks)
             {
@@ -96,39 +60,14 @@ namespace Tasker.Infra.Services.Notifier
             return tasksMeasurements;
         }
 
-        private void AddTaskMeasurementIfNeeded(IWorkTask task, List<TaskMeasurement> tasksMeasurements)
+        private static void AddTaskMeasurementIfNeeded(IWorkTask task, List<TaskMeasurement> tasksMeasurements)
         {
-            if (mOpenTasksMeasurementsDict.TryGetValue(task.ID, out TaskMeasurementInfo taskMeasurementInfo))
-            {
-                if (!taskMeasurementInfo.TaskMeasurement.Triangle.ShouldNotifyExact())
-                    return;
-
-                int currentProgressPercentage =
-                    taskMeasurementInfo.TaskMeasurement.Triangle.GetCurrentTimeProgressPercentage();
-
-                if (taskMeasurementInfo.PercentageProgress < currentProgressPercentage)
-                    AddOrUpdateNewTaskMeasurement(taskMeasurementInfo, tasksMeasurements);
-
-                return;
-            }
-
             TaskMeasurement taskMeasurement = new TaskMeasurement(task.ID, task.Description, task.TaskMeasurement);
-            taskMeasurementInfo = new TaskMeasurementInfo(taskMeasurement);
-            AddOrUpdateNewTaskMeasurement(taskMeasurementInfo, tasksMeasurements);
+
+            tasksMeasurements.Add(taskMeasurement);
         }
 
-        private void AddOrUpdateNewTaskMeasurement(TaskMeasurementInfo taskMeasurementInfo,
-            List<TaskMeasurement> TasksMeasurements)
-        {
-            mLogger.LogDebug($"Adding or updating task {taskMeasurementInfo.TaskMeasurement.Id} to dictionary");
-
-            mOpenTasksMeasurementsDict.AddOrUpdate(
-                taskMeasurementInfo.TaskMeasurement.Id, taskMeasurementInfo, (key, value) => value);
-
-            TasksMeasurements.Add(taskMeasurementInfo.TaskMeasurement);
-        }
-
-        private string BuildReportFromTasksMeasurements(List<TaskMeasurement> tasksMeasurements)
+        private static string BuildReportFromTasksMeasurements(List<TaskMeasurement> tasksMeasurements)
         {
             StringBuilder reportBuilder = new StringBuilder();
 
@@ -136,7 +75,7 @@ namespace Tasker.Infra.Services.Notifier
             {
                 reportBuilder.Append("Task id: ").Append(taskMeasurement.Id).Append(" ")
                              .Append("Description: ").AppendLine(taskMeasurement.Description)
-                             .AppendLine(taskMeasurement.Triangle.GetStatus())
+                             .AppendLine(taskMeasurement.Triangle.GetStringStatus())
                              .AppendLine("--------------------------------------------------");
             }
 
@@ -153,15 +92,15 @@ namespace Tasker.Infra.Services.Notifier
             await mEmailService.SendEmail(report).ConfigureAwait(false);
         }
 
-        private string BuildReportFromGivenTasks(IEnumerable<IWorkTask> workTasks)
+        private static string BuildReportFromGivenTasks(IEnumerable<IWorkTask> workTasks)
         {
             StringBuilder reportBuilder = new StringBuilder();
 
             foreach (IWorkTask workTask in workTasks)
             {
-                reportBuilder.Append("Task id: ").Append(workTask.ID).Append(" ")
-                             .Append("Description: ").Append(workTask.Description).Append(" ")
-                             .Append("Group: ").Append(workTask.GroupName).Append(" ")
+                reportBuilder.Append("Task id: ").Append(workTask.ID).Append(' ')
+                             .Append("Description: ").Append(workTask.Description).Append(' ')
+                             .Append("Group: ").Append(workTask.GroupName).Append(' ')
                              .Append("Status: ").Append(workTask.Status)
                              .AppendLine();
             }

@@ -1,0 +1,1 @@
+dotnet test ./Tasker.Tests/Tasker.Tests.csproj -c Release -r /TestResults

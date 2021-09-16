@@ -17,7 +17,7 @@ namespace Tasker.Tests.Infra.Services
         private const string TaskNotesDirectoryName = "TaskNotes";
         private readonly string TasksNotesDirectoryPath = Path.Combine(TestFilesDirectory, TaskNotesDirectoryName);
 
-        [Fact]
+        [Fact(Skip = "This test is mannual")]
         public async Task Upload_DatabaseUploadedIntoDrive()
         {
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
@@ -36,7 +36,7 @@ namespace Tasker.Tests.Infra.Services
             Assert.True(await googleDriveCloudService.Upload("Tasker-web-test").ConfigureAwait(false));
         }
 
-        [Fact]
+        [Fact(Skip = "This test is mannual")]
         public async Task Download_FileExist_StreamWasDownloadedSuccessfully()
         {
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
@@ -57,7 +57,7 @@ namespace Tasker.Tests.Infra.Services
             Assert.NotEqual(Stream.Null, stream);
         }
 
-        [Fact]
+        [Fact(Skip = "This test is mannual")]
         public async Task Download_FileNotExist_EmptyStreamIsGiven()
         {
             IOptions<DatabaseConfigurtaion> databaseOptions = Options.Create(new DatabaseConfigurtaion()
