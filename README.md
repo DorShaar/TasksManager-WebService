@@ -1,23 +1,40 @@
 # TasksManager-WebService
 
-Task Manager is a console application that help you manage your tasks according to groups. Each task has status of "Open", "Closed" or "On-Work". Group's status is dependent in all of the tasks' stauts it conatins.
+## About that project
+TasksManager-WebService is ASP.Net application that waits for CRUD (Create, Read, Update, Delete) http/s operation and help you manage your tasks seperated by groups.
 
+That service was build as part of [TasksManager Project](https://github.com/DorShaar/TasksManager "TasksManager")
+and from TasksManager Version 1.1 I decided to seperate it into different projects. This project is the server side which is responsible for handling requests from the client and update the database accordingly.
+
+
+## What Tasks and Groups is consisted of
+Each task has status of "Open", "Closed" or "On-Work".\
 Each task can have:
 
-Note.
-Task Triangle. Gives the ability to control your tasks in three dimensions: a. Time (What is the dead-line). b. Quality (What is the contnet of the task). c. Resources (Who work on that task).
+* Note.
+* Task Triangle - Gives the ability to control your tasks in three dimensions:\
+a. Time (What is the dead-line).\
+b. Quality (What is the contnet of the task).\
+c. Resources (Who work on that task).
 
-That project is web application, created in react, and gives some GUI to the regular TaskMananger.
+Group's status is dependent in all of the tasks statuses it conatins.\
 
-In that project I used:
+## The GUI Part
+There is a web application part for this project, created in react, and gives some GUI to the regular TaskMananger.
+Look for [Tasker.UI](https://github.com/DorShaar/TasksManager-WebService/tree/master/Tasker.UI "Tasker.UI")
 
-IOC,
-Controllers,
-API testing,
+## Usage
+See at [TasksManager Project](https://github.com/DorShaar/TasksManager "TasksManager").
+
+## Development patterns and information I used and learn in that project
+
+IOC (Invertion of control),\
+Controllers,\
+Custome Middlewares,\
+API testing,\
 Union architecture pattern,
-Custome Middlewares,
-Cors (Cross-origin resource sharing),
-GoogleDrive Api,
-Hosted Service,
-Dispose pattern,
+Cors (Cross-origin resource sharing),\
+GoogleDrive Api,\
+Hosted Service,\
+Dispose pattern,\
 Email sender,
