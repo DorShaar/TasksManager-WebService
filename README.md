@@ -1,13 +1,13 @@
 # TasksManager-WebService
 
 ## About that project
-TasksManager-WebService is ASP.Net application that waits for CRUD (Create, Read, Update, Delete) http/s operation and help you manage your tasks seperated by groups.
+TasksManager-WebService is ASP.Net application that waits for CRUD (Create, Read, Update, Delete) http/s operations and help you manage your tasks seperated by groups.
 
 That service was build as part of [TasksManager Project](https://github.com/DorShaar/TasksManager "TasksManager")
 and from TasksManager Version 1.1 I decided to seperate it into different projects. This project is the server side which is responsible for handling requests from the client and update the database accordingly.
 
 
-## What Tasks and Groups is consisted of
+## What Tasks and Groups are consisted of
 Each task has status of "Open", "Closed" or "On-Work".\
 Each task can have:
 
