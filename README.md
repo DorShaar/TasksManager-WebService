@@ -24,7 +24,9 @@ There is a web application part for this project, created in react, and gives so
 Look for [Tasker.UI](https://github.com/DorShaar/TasksManager-WebService/tree/master/Tasker.UI "Tasker.UI")
 
 ## Usage
-See at [TasksManager Project](https://github.com/DorShaar/TasksManager "TasksManager").
+For the UI-Web version, please run the docker-build.bat inside Tasker.UI and run the docker-run.bat.\
+For the console version, please see at [TasksManager Project](https://github.com/DorShaar/TasksManager "TasksManager").]\
+For both you should run the taskerserver application.
 
 ## Development patterns and information I used and learn in that project
 
