@@ -27,6 +27,6 @@ RUN dotnet publish ./Tasker/Tasker.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine
 COPY --from=build-stage /artifacts /app
 
-WORKDIR /app/artifacts
+WORKDIR /app
 
 ENTRYPOINT ["dotnet", "Tasker.dll"]
