@@ -19,7 +19,7 @@ namespace Tasker.Tests.Infra.Services
             Assert.Equal(".7z", archiverService.ArchiveExtension);
         }
 
-        [Fact]
+        [Fact(Skip = "no archive service is supported yet")]
         public async Task Extract_ExitCode_0()
         {
             ArchiverService archiverService = new ArchiverService(NullLogger<ArchiverService>.Instance);
@@ -45,7 +45,7 @@ namespace Tasker.Tests.Infra.Services
             }
         }
 
-        [Fact]
+        [Fact(Skip = "no archive service is supported yet")]
         public async Task Pack_ExitCode_0()
         {
             ArchiverService archiverService = new ArchiverService(NullLogger<ArchiverService>.Instance);
